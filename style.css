@@ -176,3 +176,7 @@ body.cine #dialog.narr #dlgNext { right: 50%; }
 #dreamFx { position: fixed; inset: 0; pointer-events: none; z-index: 3; opacity: 0; transition: opacity 1.2s; }
 body.dream #dreamFx { opacity: 1; background: radial-gradient(ellipse at center, rgba(120,150,255,0) 45%, rgba(40,60,160,.55) 100%); }
 body.nightmare #dreamFx { opacity: 1; background: radial-gradient(ellipse at center, rgba(120,0,0,0) 35%, rgba(60,0,0,.75) 100%); }
+
+/* ===== Malstil: Leinwand-Struktur ===== */
+#paper { position: fixed; inset: 0; pointer-events: none; z-index: 2; opacity: 0; mix-blend-mode: overlay; background-size: 256px; transition: opacity .6s; }
+body.paint #paper { opacity: .22; }

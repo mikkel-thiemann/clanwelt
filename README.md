@@ -40,6 +40,8 @@ Freunde sterben, neue Feinde tauchen auf. Du führst den Clan durch viele Monde.
   Totenwachen, Traumszenen (SternenClan und Wald der Finsternis), „Was bisher geschah“ zu jedem Buch,
   Clan-Katzen, die sich über die Geschichte unterhalten, Älteste, die den Jungen Geschichten erzählen,
   Figuren, die je nach Buch Neues zu sagen haben, und Gedanken an wichtigen Orten
+- **Anime-Malstil:** Cel-Shading, Tusche-Konturen, Pinsel-Filter und Leinwand-Struktur, Lichtstrahlen durch hohe Bäume,
+  schwebende Lichtpunkte, tiefblaue Sternennacht, Lichtsaum um die Katzen und leuchtende Anime-Augen (im Menü abschaltbar)
 - **Grafik-Einstellung:** Im Menü zwischen „Schön“ und „Schnell“ umschalten (für langsamere Geräte)
 
 ## Steuerung

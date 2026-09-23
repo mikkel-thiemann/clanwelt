@@ -63,6 +63,12 @@ const FX3 = {
     if (night && (s === 0 || s === 1) && Math.random() < 0.5 && territoryAt(pc.x, pc.y) !== 'zweibeiner') { const x = rx(), z = rz(); this.add({ x, y: surfaceY(x, z) + rand(5, 30), z, life: 4, size: 4, col: this.col('#e8ff80'), add: true, wob: 2.5, blink: true }); }
     if (!night && f > 0.9 && s === 1 && Math.random() < 0.08) { const x = rx(), z = rz(); this.add({ x, y: surfaceY(x, z) + rand(8, 25), z, life: 6, size: 1.8, col: this.col(pick(['#ffffff', '#ffd84a', '#9ad0ff', '#ff9ad0'])), wob: 3, flutter: true }); }
     if (G.fire && Math.random() < 0.9) for (let i = 0; i < 3; i++) { const a = Math.random() * TAU, d = Math.sqrt(Math.random()) * G.fire.r, x = G.fire.x + Math.cos(a) * d, z = G.fire.y + Math.sin(a) * d; this.add({ x, y: heightAt(x, z) + 20, z, vy: rand(40, 90), vx: rand(-10, 10), vz: rand(-10, 10), life: 1.6, size: 2.5, col: this.col('#ffb040'), add: true, wob: 1 }); }
+    // Schwebende Lichtpunkte: tagsüber goldene Funken im Wald, nachts blaue Sternenfunken
+    if (PAINT.on && Math.random() < 0.55) {
+      const x = pc.x + rand(-350, 350), z = pc.y + rand(-350, 350), y = surfaceY(x, z) + rand(5, 70);
+      if (f > 0.4) this.add({ x, y, z, vy: rand(-2, 4), life: rand(4, 7), size: rand(4, 8), col: this.col(pick(['#fff2b0', '#e8ffb0', '#ffe8a0'])), add: true, wob: 0.6, blink: true });
+      else for (let q = 0; q < 3; q++) this.add({ x: x + rand(-80, 80), y: y + rand(0, 90), z: z + rand(-80, 80), vy: rand(-1, 3), life: rand(3, 6), size: rand(2.5, 6), col: this.col(pick(['#bfe0ff', '#ffffff', '#9fc8ff'])), add: true, wob: 0.4, blink: true });
+    }
     for (const e of ENTS) if (e.star && Math.random() < 0.5) this.add({ x: e.x + rand(-10, 10), y: surfaceY(e.x, e.y) + rand(5, 25), z: e.y + rand(-10, 10), vy: 12, life: 1.2, size: 2.5, col: this.col('#bfe3ff'), add: true });
   },
   update(dt, t) {

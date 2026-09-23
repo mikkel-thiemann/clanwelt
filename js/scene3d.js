@@ -42,12 +42,12 @@ function init3D() {
   FIRELIGHT = new THREE.PointLight(0xff8a30, 0, 900, 0); SC.add(FIRELIGHT);
   buildTerrain3D(); buildWater(); buildRoad(); buildTrees(); buildBushes(); buildGrass(); buildDebris(); buildRocks(); buildHouses(); buildCamps(); buildHerbs(); buildSky(); buildWeather(); buildFire(); buildMarkers();
   FX3.init();
-  initBloom();
+  initBloom(); initPaint(); buildShafts(); buildCanvasOverlay();
   resize3D();
 }
 function resize3D() {
   if (!R3) return; R3.setSize(innerWidth, innerHeight, false); CAMERA.aspect = innerWidth / innerHeight; CAMERA.updateProjectionMatrix();
-  if (W3.composer) { W3.composer.setSize(innerWidth, innerHeight); W3.bloom.resolution.set(innerWidth / 2, innerHeight / 2); }
+  if (W3.composer) { W3.composer.setSize(innerWidth, innerHeight); W3.bloom.resolution.set(innerWidth / 2, innerHeight / 2); if (typeof resizePaint === 'function') resizePaint(innerWidth, innerHeight); }
 }
 function initBloom() {
   const A = window.THREE_ADDONS; if (!A) return;
@@ -57,6 +57,7 @@ function initBloom() {
   W3.composer.addPass(W3.bloom);
   W3.composer.addPass(new A.OutputPass());
 }
+
 function setGfx(hoch) {
   GFX.hoch = hoch; try { localStorage.setItem('clanwelt_gfx', hoch ? 'hoch' : 'niedrig'); } catch (e) { }
   R3.shadowMap.enabled = hoch; R3.setPixelRatio(hoch ? Math.min(1.75, devicePixelRatio || 1) : 1);
@@ -153,9 +154,9 @@ function buildRoad() {
 }
 
 // ---------- Bäume ----------
-const treeH = t => t.tr > 20 ? 100 : (t.k === 'pine' ? 26 : 34 + t.c * 24);
+const treeH = t => t.tr > 20 ? 170 : (t.k === 'pine' ? 60 : 80 + t.c * 55);
 function inst(geo, n, shadow = true, mat) {
-  const m = new THREE.InstancedMesh(geo, mat || new THREE.MeshLambertMaterial({ color: 0xffffff }), Math.max(1, n));
+  const m = new THREE.InstancedMesh(geo, mat || toonMat({ color: 0xffffff }), Math.max(1, n));
   m.count = n; m.frustumCulled = false; m.castShadow = shadow; m.receiveShadow = true; SC.add(m); return m;
 }
 function buildTrees() {
@@ -167,10 +168,10 @@ function buildTrees() {
     trunk.setColorAt(i, t.k === 'birch' ? _c.set('#ddd8cc') : _c.set(t.k === 'willow' ? '#5a4a36' : '#5e4630'));
   });
   const blob = leafBlob(), lt = leafTexture();
-  const leafMat = () => windy(new THREE.MeshLambertMaterial({ color: 0xffffff, vertexColors: true, map: lt }), 0.05, false);
+  const leafMat = () => windy(toonMat({ color: 0xffffff, vertexColors: true, map: lt }), 0.05, false);
   const cA = inst(blob, dec.length, true, leafMat()), cB = inst(blob, dec.length, true, leafMat()), cC = inst(blob, dec.length, true, leafMat());
   const cD = inst(blob, dec.length, true, leafMat()), cE = inst(blob, dec.length, true, leafMat());
-  const cone = new THREE.ConeGeometry(1, 1, 9).translate(0, 0.5, 0), pL = inst(cone, pin.length * 3, true, windy(new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true }), 0.04, true));
+  const cone = new THREE.ConeGeometry(1, 1, 9).translate(0, 0.5, 0), pL = inst(cone, pin.length * 3, true, windy(toonMat({ color: 0xffffff, flatShading: true }), 0.04, true));
   W3.inst.trees = { dec, pin, cA, cB, cC, cD, cE, pL, trunk, all: T };
   placeCanopies(1);
 }
@@ -198,7 +199,7 @@ function placeCanopies(s) {
   pin.forEach((t, i) => {
     const g = heightAt(t.x, t.y);
     for (let k = 0; k < 3; k++) {
-      _o.position.set(t.x, g + 16 + k * 24, t.y); _o.rotation.set(0, t.c * 5 + k, 0); const r = t.r * (1 - k * 0.24) * (felled(t) ? 0.0001 : 1); _o.scale.set(r, 52 - k * 8, r); _o.updateMatrix();
+      _o.position.set(t.x, g + 40 + t.c * 30 + k * 38, t.y); _o.rotation.set(0, t.c * 5 + k, 0); const r = t.r * (1 - k * 0.22) * (felled(t) ? 0.0001 : 1); _o.scale.set(r, 80 - k * 12, r); _o.updateMatrix();
       pL.setMatrixAt(i * 3 + k, _o.matrix); pL.setColorAt(i * 3 + k, _c.set(s === 3 && k === 2 ? '#dfe8ea' : ['#1f4326', '#28552e', '#336638'][k]).multiplyScalar(0.9 + t.c * 0.2));
     }
   });
@@ -236,7 +237,7 @@ function buildBushes() {
   for (const k in kinds) {
     const arr = kinds[k], leafy = k === 'fern' || k === 'reed' || k === 'heather';
     const geo = k === 'reed' ? reed : k === 'fern' ? fern : k === 'heather' ? heath : ico1;
-    const mat = leafy ? windy(new THREE.MeshLambertMaterial({ color: 0xffffff, vertexColors: true, side: THREE.DoubleSide }), k === 'reed' ? 0.12 : 0.08, true) : new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true });
+    const mat = leafy ? windy(toonMat({ color: 0xffffff, vertexColors: true, side: THREE.DoubleSide }), k === 'reed' ? 0.12 : 0.08, true) : toonMat({ color: 0xffffff, flatShading: true });
     const m = inst(geo, arr.length, k === 'wall' || k === 'bramble' || k === 'fern', mat);
     arr.forEach((b, i) => {
       const g = heightAt(b.x, b.y);
@@ -281,7 +282,7 @@ function buildDebris() {
     if (r < 0.2 && logs.length < 110) logs.push([x, y, R() * TAU, 40 + R() * 60, 5 + R() * 4]);
     else if (r < 0.8) shrooms.push([x, y, R()]); else pebbles.push([x, y, 2 + R() * 4]);
   }
-  const lm = inst(new THREE.CylinderGeometry(1, 1.1, 1, 9).rotateZ(Math.PI / 2), logs.length, true, new THREE.MeshLambertMaterial({ color: 0xffffff }));
+  const lm = inst(new THREE.CylinderGeometry(1, 1.1, 1, 9).rotateZ(Math.PI / 2), logs.length, true, toonMat({ color: 0xffffff }));
   logs.forEach(([x, y, a, l, r], i) => { _o.position.set(x, heightAt(x, y) + r * 0.6, y); _o.rotation.set(0, a, 0); _o.scale.set(l, r, r); _o.updateMatrix(); lm.setMatrixAt(i, _o.matrix); lm.setColorAt(i, _c.set(i % 3 ? '#5a4632' : '#6a5a44')); });
   const cap = new THREE.SphereGeometry(1, 8, 5, 0, TAU, 0, Math.PI / 2), sm = inst(cap, shrooms.length * 3, false), stem = inst(new THREE.CylinderGeometry(0.3, 0.35, 1, 5).translate(0, 0.5, 0), shrooms.length * 3, false);
   shrooms.forEach(([x, y, v], i) => { for (let k = 0; k < 3; k++) { const xx = x + Math.cos(k * 2.1 + v * 6) * 5, yy = y + Math.sin(k * 2.1 + v * 6) * 5, g = heightAt(xx, yy), s = 1.8 + ((v * 10 + k) % 1) * 1.8;
@@ -387,7 +388,7 @@ function buildCamps() {
   const dome = new THREE.SphereGeometry(1, 14, 8, 0, TAU, 0, Math.PI / 2), hole = new THREE.CircleGeometry(1, 14);
   W3.dens = [];
   const addDen = (x, y, r, cx, cy) => {
-    const g = heightAt(x, y), m = new THREE.Mesh(dome, new THREE.MeshLambertMaterial({ color: 0x3f6a30 }));
+    const g = heightAt(x, y), m = new THREE.Mesh(dome, toonMat({ color: 0x3f6a30 }));
     m.scale.set(r, r * 0.75, r * 0.85); m.position.set(x, g - 2, y); m.castShadow = m.receiveShadow = true; SC.add(m); W3.dens.push(m);
     const a = Math.atan2(cy - y, cx - x), h = new THREE.Mesh(hole, sharedMat('#140e08'));
     h.scale.set(r * 0.35, r * 0.3, 1); h.position.set(x + Math.cos(a) * r * 0.86, g + r * 0.2, y + Math.sin(a) * r * 0.74); h.rotation.y = -a + Math.PI / 2; SC.add(h);
@@ -409,7 +410,7 @@ function buildThunderCamp(addDen, dome) {
   addDen(p.x + 10, p.y, 30, L0.x, L0.y);
   // Ältestenbau: umgestürzter Baum
   p = cp('aeltest');
-  const trunkM = new THREE.MeshLambertMaterial({ color: 0x5a4632 });
+  const trunkM = toonMat({ color: 0x5a4632 });
   const log = new THREE.Mesh(new THREE.CylinderGeometry(15, 18, 150, 10).rotateZ(Math.PI / 2), trunkM); log.position.set(p.x, heightAt(p.x, p.y) + 14, p.y); log.rotation.y = 0.5; log.castShadow = log.receiveShadow = true; SC.add(log);
   for (let i = 0; i < 4; i++) { const b = new THREE.Mesh(new THREE.CylinderGeometry(3, 4, 40, 6), trunkM); b.position.set(p.x - 50 + i * 30, heightAt(p.x, p.y) + 28, p.y + (i % 2 ? 14 : -14)); b.rotation.set(i % 2 ? 0.7 : -0.7, 0.5, 0.4); SC.add(b); }
   const hole = new THREE.Mesh(new THREE.CircleGeometry(12, 14), sharedMat('#120c08')); hole.position.set(p.x + Math.cos(0.5) * 76, heightAt(p.x, p.y) + 14, p.y - Math.sin(0.5) * 76); hole.rotation.y = 0.5 + Math.PI / 2; SC.add(hole);
@@ -418,7 +419,7 @@ function buildThunderCamp(addDen, dome) {
   const cave = new THREE.Mesh(new THREE.CircleGeometry(1, 20, 0, Math.PI), sharedMat('#0c0806')); cave.scale.set(24, 22, 1);
   cave.position.set(hs.x + Math.cos(a) * 64, heightAt(hs.x, hs.y) + 1, hs.y + Math.sin(a) * 64); cave.rotation.y = -a + Math.PI / 2; SC.add(cave);
   // Ginstertunnel am Eingang
-  const gm = new THREE.MeshLambertMaterial({ color: 0x3a5a2a }), gap = Math.PI / 2;
+  const gm = toonMat({ color: 0x3a5a2a }), gap = Math.PI / 2;
   for (let k = 0; k < 4; k++) {
     const d = L0.r - 10 + k * 18, x = L0.x + Math.cos(gap) * d, z = L0.y + Math.sin(gap) * d;
     const arch = new THREE.Mesh(new THREE.TorusGeometry(24, 9, 7, 14, Math.PI), gm); arch.position.set(x, heightAt(x, z) - 2, z); arch.rotation.y = gap + Math.PI / 2; arch.castShadow = true; SC.add(arch);
@@ -481,8 +482,8 @@ function buildSky() {
         gl_FragColor = vec4(c, 1.0); }`
   }));
   W3.sky.renderOrder = -1; SC.add(W3.sky);
-  const n = 1400, p = new Float32Array(n * 3);
-  for (let i = 0; i < n; i++) { const a = Math.random() * TAU, b = Math.random() * 0.45 * Math.PI + 0.05; p.set([Math.cos(a) * Math.cos(b) * 3000, Math.sin(b) * 3000, Math.sin(a) * Math.cos(b) * 3000], i * 3); }
+  const n = 3500, p = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { const a = Math.random() * TAU, b = Math.random() * 0.45 * Math.PI + 0.02; p.set([Math.cos(a) * Math.cos(b) * 3000, Math.sin(b) * 3000, Math.sin(a) * Math.cos(b) * 3000], i * 3); }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(p, 3));
   W3.stars = new THREE.Points(g, new THREE.PointsMaterial({ map: dotTexture(), color: 0xffffff, size: 3, sizeAttenuation: false, transparent: true, opacity: 0, fog: false }));
   SC.add(W3.stars);
@@ -510,7 +511,7 @@ function buildMarkers() {
 
 // ---------- Pro Bild ----------
 function dayFactor() { const h = hour(); if (h >= 7.5 && h < 18.5) return 1; if (h >= 21 || h < 5) return 0; if (h < 7.5) return (h - 5) / 2.5; return 1 - (h - 18.5) / 2.5; }
-const SKY_DAY = new THREE.Color(0xa8cce8), SKY_DUSK = new THREE.Color(0xe8a070), SKY_NIGHT = new THREE.Color(0x0c1630), SKY_RAIN = new THREE.Color(0x8a96a2);
+const SKY_DAY = new THREE.Color(0xa8cce8), SKY_DUSK = new THREE.Color(0xe8a070), SKY_NIGHT = new THREE.Color(0x13306e), SKY_RAIN = new THREE.Color(0x8a96a2);
 function updateSky(tx, tz, dt, t) {
   const f = dayFactor(), dusk = f > 0 && f < 1 ? 1 - Math.abs(f - 0.5) * 2 : 0;
   const sky = SC.background; sky.copy(SKY_NIGHT).lerp(SKY_DAY, f); if (dusk) sky.lerp(SKY_DUSK, dusk * 0.6);
@@ -518,15 +519,17 @@ function updateSky(tx, tz, dt, t) {
   W3.sky.position.copy(CAMERA.position);
   if (G.weather) sky.lerp(SKY_RAIN, 0.45 * f);
   SC.fog.color.copy(sky);
-  SC.fog.near = lerp(260, 600, f) * (G.weather ? 0.7 : 1); SC.fog.far = lerp(1200, 2200, f) * (G.weather ? 0.75 : 1);
-  HEMI.intensity = 0.3 + 0.95 * f; HEMI.color.set(f > 0.3 ? 0xdfefff : 0x7f8fcf);
-  SUN.intensity = 0.35 + 1.9 * f; SUN.color.set(f > 0.3 ? (dusk > 0.3 ? 0xffc890 : 0xfff0d8) : 0x8fa4e0);
+  const woods = ['donner', 'schatten', 'fluss', 'baumgeviert'].includes(territoryAt(tx, tz));
+  if (woods && f > 0.3) SC.fog.color.lerp(new THREE.Color(0x9cbf8a), 0.35 * f);
+  SC.fog.near = lerp(140, woods ? 380 : 600, f) * (G.weather ? 0.7 : 1); SC.fog.far = lerp(1100, woods ? 1700 : 2200, f) * (G.weather ? 0.75 : 1);
+  HEMI.intensity = 0.55 + 0.7 * f; HEMI.color.set(f > 0.3 ? 0xdfefff : 0x6f8fff); HEMI.groundColor.set(f > 0.3 ? 0x5a4a30 : 0x1a2a5a);
+  SUN.intensity = 0.6 + 1.65 * f; SUN.color.set(f > 0.3 ? (dusk > 0.3 ? 0xffc890 : 0xfff0d8) : 0x8fb0ff);
   const ang = (hour() / 24) * TAU - Math.PI / 2;
   const sd = f > 0.05 ? new THREE.Vector3(Math.cos(ang) * 0.6, 0.65 + Math.sin(ang) * 0.3, 0.45) : new THREE.Vector3(-0.4, 0.8, 0.3);
   SUN.position.set(tx + sd.x * 900, sd.y * 900, tz + sd.z * 900); SUN.target.position.set(tx, 0, tz);
   W3.skyU.sunDir.value.set(sd.x, sd.y, sd.z).normalize(); W3.skyU.sunAmt.value = f * (G.weather ? 0.15 : 1); W3.skyU.sunCol.value.set(dusk > 0.3 ? 0xffb070 : 0xfff2c8);
   PLIGHT.intensity = (1 - f) * 1.1; PLIGHT.position.set(tx, surfaceY(tx, tz) + 60, tz);
-  W3.stars.position.copy(CAMERA.position); W3.stars.material.opacity = (1 - f) * 0.9 * (G.weather ? 0.2 : 1);
+  W3.stars.position.copy(CAMERA.position); W3.stars.material.opacity = (1 - f) * (G.weather ? 0.2 : 1);
   W3.moon.position.set(CAMERA.position.x - 1500, CAMERA.position.y + 1300, CAMERA.position.z - 2000); W3.moon.material.opacity = 1 - f;
   // Traumszenen: SternenClan (blau, Sterne) oder Wald der Finsternis (rot, dunkel)
   const dm = typeof dreamMode === 'function' ? dreamMode() : null;
@@ -703,6 +706,7 @@ function render3D(t, dt, tx, tz, title) {
   updateCamera(dt, tx, tz, title);
   updateSky(tx, tz, dt, t);
   updateFire(t);
+  updateGrade(tx, tz); updateShafts(t, tx, tz);
   updateHerbs(t);
   updatePile();
   syncModels(t, dt);

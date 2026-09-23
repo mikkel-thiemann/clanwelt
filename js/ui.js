@@ -206,7 +206,7 @@ function skillsPanel() {
   return `<p>Freie Punkte: <b>${pts}</b> · Stufe ${pc.lvl} (${Math.floor(pc.xp)}/${xpNeed(pc)} EP)</p>` + Object.keys(info).map(k => `<div class="skill"><div><b>${info[k][0]}: ${sk[k]}</b><br><span class="small">${info[k][1]}</span></div><button data-skill="${k}" ${pts && sk[k] < 8 ? '' : 'disabled'}>+1</button></div>`).join('');
 }
 function menuPanel() {
-  return `<div class="menu"><button data-act="close">▶ Weiterspielen</button><button data-act="save">💾 Speichern</button><button data-act="help">⌨ Steuerung</button><button data-act="gfx">🎨 Grafik: ${GFX.hoch ? 'Schön (hoch)' : 'Schnell (niedrig)'}</button><button data-act="title">🏠 Hauptmenü</button><button data-act="new" class="danger">✧ Neues Spiel beginnen</button></div>
+  return `<div class="menu"><button data-act="close">▶ Weiterspielen</button><button data-act="save">💾 Speichern</button><button data-act="help">⌨ Steuerung</button><button data-act="gfx">🎨 Grafik: ${GFX.hoch ? 'Schön (hoch)' : 'Schnell (niedrig)'}</button><button data-act="paint">🖌 Malstil: ${PAINT.on ? 'an' : 'aus'}</button><button data-act="title">🏠 Hauptmenü</button><button data-act="new" class="danger">✧ Neues Spiel beginnen</button></div>
   <p class="small">Das Spiel speichert automatisch. Spielzeit: ${Math.floor(G.playTime / 60)} Minuten.</p>`;
 }
 const HELP_HTML = `<table class="help">
@@ -236,6 +236,7 @@ function panelClick(e) {
   if (d.act === 'close') closePanel();
   else if (d.act === 'save') { saveGame(); toast('Spiel gespeichert.'); }
   else if (d.act === 'help') { UI.panel = 'help'; renderPanel(); }
+  else if (d.act === 'paint') { setPaint(!PAINT.on); renderPanel(); toast(PAINT.on ? 'Malstil an – die Welt sieht aus wie gemalt.' : 'Malstil aus.'); }
   else if (d.act === 'gfx') { setGfx(!GFX.hoch); renderPanel(); toast(GFX.hoch ? 'Grafik: schön – mit Schatten, Leuchten und viel Gras.' : 'Grafik: schnell – für langsamere Geräte.'); }
   else if (d.act === 'title') { saveGame(); closePanel(); showTitle(); }
   else if (d.act === 'new') { if (confirm('Wirklich ein neues Spiel beginnen? Der alte Spielstand wird überschrieben.')) { closePanel(); newGame(); } }

@@ -172,7 +172,7 @@ function addRock(R, x, y, r, collide = true, col) {
 }
 function addTree(R, x, y, kind, big) {
   const r = big ? big : (kind === 'pine' ? 30 + R() * 16 : 36 + R() * 26);
-  const t = { x, y, r, tr: big ? 26 : 7 + R() * 4, k: kind, c: R() };
+  const t = { x, y, r, tr: big ? 30 : 9 + R() * 5, k: kind, c: R() };
   OB.trees.push(t); addCol(x, y, t.tr);
 }
 function addBush(x, y, r, k) { const b = { x, y, r, k }; OB.bushes.push(b); gridAdd(bushGrid, b, r); }

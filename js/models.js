@@ -15,8 +15,16 @@ const FURTEX = new Map();
 function mk(geo, mat, sx, sy, sz, x, y, z, parent) {
   const m = new THREE.Mesh(geo, mat); m.scale.set(sx, sy, sz); m.position.set(x, y, z); if (parent) parent.add(m); return m;
 }
+// Anime-Schattierung: klare Licht- und Schattenstufen
+let _toonGrad = null;
+function toonGrad() {
+  if (_toonGrad) return _toonGrad;
+  const d = new Uint8Array([70, 70, 70, 255, 150, 150, 150, 255, 215, 215, 215, 255, 255, 255, 255, 255]);
+  _toonGrad = new THREE.DataTexture(d, 4, 1); _toonGrad.minFilter = _toonGrad.magFilter = THREE.NearestFilter; _toonGrad.needsUpdate = true; return _toonGrad;
+}
+const toonMat = p => new THREE.MeshToonMaterial(Object.assign({ gradientMap: toonGrad() }, p));
 const MAT = {};
-function sharedMat(col) { return MAT[col] || (MAT[col] = new THREE.MeshLambertMaterial({ color: col })); }
+function sharedMat(col) { return MAT[col] || (MAT[col] = toonMat({ color: col })); }
 
 // ---------- Katze (natürliche Proportionen, echtes Fellmuster, Skelett) ----------
 let _whiskerMat = null;
@@ -71,12 +79,12 @@ const TAILCYL = () => _tailCyl || (_tailCyl = new THREE.CylinderGeometry(0.92, 1
 const _ta = new THREE.Vector3(), _tb = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
 function makeCatModel(look, opts = {}) {
   const g = geos(), root = new THREE.Group(), body = new THREE.Group(); root.add(body);
-  const mFur = new THREE.MeshLambertMaterial({ map: furTexture(look) });
-  const mBase = new THREE.MeshLambertMaterial({ color: look.base });
-  const mLegT = new THREE.MeshLambertMaterial({ map: legTexture(look) });
-  const mWhite = new THREE.MeshLambertMaterial({ color: 0xf2eee6 });
-  const mStripe = look.stripe ? new THREE.MeshLambertMaterial({ color: look.stripe }) : mBase;
-  const W_ = look.white > 0.3, mPaw = W_ ? mWhite : mBase, mFace = look.white > 0.35 ? mWhite : (look.muzzle ? new THREE.MeshLambertMaterial({ color: look.muzzle }) : mBase);
+  const mFur = addRim(toonMat({ map: furTexture(look) }));
+  const mBase = addRim(toonMat({ color: look.base }));
+  const mLegT = addRim(toonMat({ map: legTexture(look) }));
+  const mWhite = toonMat({ color: 0xf2eee6 });
+  const mStripe = look.stripe ? toonMat({ color: look.stripe }) : mBase;
+  const W_ = look.white > 0.3, mPaw = W_ ? mWhite : mBase, mFace = look.white > 0.35 ? mWhite : (look.muzzle ? toonMat({ color: look.muzzle }) : mBase);
   const mats = [mFur, mBase, mWhite, mStripe, mLegT];
   const fat = look.fat ? 1.3 : 1, earS = look.earS || 1, tailL = look.tailL || 1;
   const spine = new THREE.Group(); spine.position.set(0, 14, 0); body.add(spine);
@@ -93,13 +101,14 @@ function makeCatModel(look, opts = {}) {
   for (const sd of [-1, 1]) mk(g.lo, mFace, 2.6, 2.3, 2.4, 1.6, -1.4, sd * 2.1, head);
   mk(g.s, mFace, 2.2 * flat, 1.8, 2.4, 3.6 + flat * 0.3, -1.7, 0, head);
   mk(g.lo, sharedMat('#c9707e'), 0.7, 0.55, 0.9, 3.9 + flat * 1.9, -0.95, 0, head);
-  const eyeM = new THREE.MeshBasicMaterial({ color: look.eye }); mats.push(eyeM);
+  const eyeM = new THREE.MeshBasicMaterial({ color: new THREE.Color(look.eye).multiplyScalar(1.7) }); mats.push(eyeM);
   const eyes = [];
   for (const sd of [-1, 1]) {
     const eg = new THREE.Group(); eg.position.set(3.55, 0.85, sd * 1.95); eg.rotation.y = -sd * 0.35; head.add(eg);
-    mk(g.lo, eyeM, 0.8, 1.0, 1.05, 0, 0, 0, eg);
-    mk(g.lo, sharedMat('#050505'), 0.35, 0.9, 0.28, 0.55, 0, 0, eg);
-    mk(g.lo, sharedMat('#ffffff'), 0.2, 0.2, 0.2, 0.7, 0.35, sd * 0.2, eg);
+    mk(g.lo, eyeM, 1.0, 1.3, 1.35, 0, 0.1, 0, eg);
+    mk(g.lo, sharedMat('#050505'), 0.4, 1.1, 0.35, 0.7, 0.05, 0, eg);
+    mk(g.lo, new THREE.MeshBasicMaterial({ color: 0xffffff }), 0.32, 0.32, 0.32, 0.85, 0.55, sd * 0.25, eg);
+    mk(g.lo, new THREE.MeshBasicMaterial({ color: 0xffffff }), 0.15, 0.15, 0.15, 0.85, -0.35, -sd * 0.2, eg);
     eyes.push(eg);
   }
   const ears = [];
@@ -213,7 +222,7 @@ const BEAST_LOOK = {
 };
 function makeBeastModel(kind) {
   const L = BEAST_LOOK[kind], g = geos(), root = new THREE.Group(), body = new THREE.Group(); root.add(body);
-  const mB = new THREE.MeshLambertMaterial({ color: L.col }), mL = sharedMat(L.leg), mH = L.head ? sharedMat(L.head) : mB;
+  const mB = toonMat({ color: L.col }), mL = sharedMat(L.leg), mH = L.head ? sharedMat(L.head) : mB;
   const hy = L.h * 1.7;
   const torso = mk(g.sr, mB, L.len * 0.75, L.h, L.h * 1.05, 0, hy, 0, body); torso.castShadow = true;
   const head = new THREE.Group(); head.position.set(L.len * 0.8, hy + L.h * 0.6, 0); body.add(head);
@@ -287,7 +296,7 @@ function makePreyModel(k) {
 // ---------- Auto ----------
 function makeCarModel(col) {
   const g = geos(), root = new THREE.Group();
-  const b = mk(g.box, new THREE.MeshLambertMaterial({ color: col }), 76, 16, 34, 0, 14, 0, root); b.castShadow = true;
+  const b = mk(g.box, toonMat({ color: col }), 76, 16, 34, 0, 14, 0, root); b.castShadow = true;
   mk(g.box, sharedMat('#2a3440'), 38, 13, 30, -4, 28, 0, root);
   for (const [x, z] of [[24, 16], [24, -16], [-24, 16], [-24, -16]]) { const w = mk(g.cyl, sharedMat('#151515'), 7, 5, 7, x, 7, z, root); w.rotation.x = Math.PI / 2; }
   mk(g.box, sharedMat('#fff6c0'), 2, 4, 8, 38, 16, 10, root); mk(g.box, sharedMat('#fff6c0'), 2, 4, 8, 38, 16, -10, root);
