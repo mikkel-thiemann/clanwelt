@@ -24,6 +24,53 @@ function allTo(at, except = []) {
   for (const c of clanCats()) if (c !== P() && !except.includes(c.id)) c.ai = { m: 'goto', x: at.x + rand(-110, 110), y: at.y + rand(-90, 90), sp: 170, then: 'hold' };
 }
 const BLAUSTERN_LOOK = () => catById('blaustern').look;
+
+// ----- Helfer für Staffel 2 -----
+const JOURNEY = ['eichhornjunges', 'bernsteinjunges', 'kraehenpfote', 'federschweif', 'sturmpelz'];
+function startStaffel2() {
+  const b = ensureCat('brombeerjunges', { pre: 'Brombeer', suf: 'kralle', rank: 'junges', sex: 'm', look: L('#5a3e26', '#24160c', 0, '#e8b923') });
+  b.suf = 'kralle'; b.clan = 'donner'; b.age = Math.max(b.age, 24); setRank(b, 'krieger'); b.hidden = false; b.storyLock = true; b.look.size = 1.12;
+  const t = ensureCat('bernsteinjunges', { pre: 'Bernstein', suf: 'pelz', rank: 'junges', sex: 'w', look: L('#8a5a30', null, 0, '#7bc043', { patch: '#2b2220' }) });
+  t.suf = 'pelz'; t.clan = 'schatten'; t.age = Math.max(t.age, 24); setRank(t, 'krieger'); t.hidden = true; t.storyLock = true;
+  const e = ensureCat('eichhornjunges', { pre: 'Eichhorn', suf: 'schweif', rank: 'schueler', sex: 'w', age: 8, mother: 'sandpfote', look: L('#c0501e', null, 0.35, '#6fc23a') });
+  e.age = Math.max(e.age, 8); setRank(e, 'schueler'); e.storyLock = true; e.hidden = false; e.rel = 60;
+  const l = ensureCat('blattjunges', { pre: 'Blatt', suf: 'see', rank: 'heilerschueler', sex: 'w', age: 8, mother: 'sandpfote', look: L('#a8845a', '#6a4a2a', 0.4, '#e8b923') });
+  l.age = Math.max(l.age, 8); setRank(l, 'heilerschueler'); l.mentor = 'aschenjunges'; l.storyLock = true; l.hidden = false;
+  ensureCat('kraehenpfote', { pre: 'Krähen', suf: 'feder', rank: 'schueler', clan: 'wind', sex: 'm', age: 9, look: L('#2e2e34', null, 0, '#5ab0e8'), hidden: true, storyLock: true });
+  ensureCat('federschweif', { pre: 'Feder', suf: 'schweif', rank: 'krieger', clan: 'fluss', sex: 'w', age: 20, look: L('#b8bec8', '#7a808a', 0, '#5ab0e8'), hidden: true, storyLock: true });
+  ensureCat('sturmpelz', { pre: 'Sturm', suf: 'pelz', rank: 'krieger', clan: 'fluss', sex: 'm', age: 20, look: L('#5a5a62', null, 0, '#e8b923', { long: true }), hidden: true, storyLock: true });
+  for (const id of JOURNEY.concat(['kraehenpfote'])) { const c = catById(id); c.hidden = id === 'eichhornjunges' ? false : true; }
+  const pc = P(); if (pc.alive) pc.lives = G.player.lives;
+  switchPlayer(b); setStage('staffel2');
+  const pos = denPos('krieger'); b.x = pos.x; b.y = pos.y + 30;
+  G.time = (day() + 3) * 1440 + 9 * 60;
+  titleCard('Staffel 2', 'Die neue Prophezeiung');
+  chron('— Staffel 2: Die neue Prophezeiung — Brombeerkralle, Sohn von Tigerstern, ist jetzt ein Krieger des DonnerClans.');
+}
+function placeJourney(x, y) {
+  JOURNEY.forEach((id, i) => { const c = catById(id); if (!c || !c.alive || id === 'eichhornjunges') return; c.hidden = false; const a = i / 5 * TAU; c.x = x + Math.cos(a) * 60; c.y = y + Math.sin(a) * 60; c.ai = { m: 'hold' }; });
+}
+function journeyFollow() { for (const id of JOURNEY) { const c = catById(id); if (c && c.alive && !(id === 'sturmpelz' && G.flags.sturmBleibt)) { c.hidden = false; c.ai = { m: 'follow' }; } } }
+function journeyHome() { for (const id of JOURNEY) { const c = catById(id); if (!c || !c.alive) continue; if (c.clan === 'donner') c.ai = { m: 'home' }; else { c.hidden = true; c.ai = { m: 'home' }; } } }
+function spawnBulldozers() {
+  for (const e of ENTS) if (e.kind === 'bagger') e.gone = true;
+  const paths = [[{ x: 2500, y: 2050 }, { x: 2950, y: 2250 }], [{ x: 1700, y: 2600 }, { x: 1600, y: 3050 }], [{ x: 2800, y: 2700 }, { x: 3150, y: 2500 }], [{ x: 2000, y: 1700 }, { x: 2500, y: 1650 }]];
+  for (const [a, b] of paths) ENTS.push({ kind: 'bagger', name: 'Monster der Zweibeiner', x: a.x, y: a.y, a, b, dir: 0, r: 40, team: 'zweibeiner', hostile: false, story: false, persistent: true });
+}
+function startMigration() {
+  for (const c of clanCats()) if (c !== P()) { c.ai = { m: 'follow' }; c.hidden = false; c.slow = c.rank === 'junges' || c.rank === 'aeltester'; }
+  const pc = P();
+  ['schatten', 'fluss', 'wind'].forEach((k, j) => { for (let i = 0; i < 4; i++) spawnClanCat(k, pc.x + rand(-120, 120), pc.y + rand(-120, 120), { hostile: false, truce: true, story: true, followP: true, slot: (j * 4 + i - 6) * 0.25 }); });
+  toast('Alle Clans folgen dir. Der See liegt hinter den Bergen im Osten.');
+}
+function arriveAtLake() {
+  G.flags.see = true; G.flags.zerstoert = 1; applyRelocation(true);
+  for (const e of ENTS) if (e.kind === 'bagger' || e.story) e.gone = true;
+  for (const c of G.cats) if (c.alive && c.clan === 'donner') { c.slow = false; if (c !== P()) placeAtHome(c); }
+  G.clan.pile = clanCats().length * 1.2; G.clan.terr = 60;
+  for (const k in G.others) G.others[k].rel = clamp(G.others[k].rel + 20, 0, 100);
+  chron('Die vier Clans erreichen den großen See und finden eine neue Heimat. Riesenstern stirbt.');
+}
 const LOOK = {
   braunstern: () => L('#5a4030', '#2a1a10', 0, '#d98b2b', { size: 1.15 }),
   klauengesicht: () => L('#6a5a4a', '#3a2a1a', 0, '#e8b923', { size: 1.1 }),
@@ -339,6 +386,28 @@ const QUESTS = [
     ]
   },
   {
+    ch: 4, title: 'Wolkenpfote und die Zweibeiner', steps: [
+      {
+        t: 'scene', dlg: () => [
+          { do: () => { const w = catById('wolkenjunges'); if (w && w.rank === 'junges') { w.age = Math.max(6, w.age); setRank(w, 'schueler'); w.mentor = P().id; } } },
+          ['erz', 'Wolkenpfote, dein Schüler, schleicht sich immer wieder zu den Zweibeinern. Dort bekommt er Futter – und er liebt es.'],
+          ['sandpfote', 'Feuerherz! Wolkenpfote ist verschwunden. Ich habe gesehen, wie Zweibeiner ihn in ein Monster gesetzt haben!'],
+          ['player', 'Dann holen wir ihn zurück. Kommst du mit, Sandsturm?'],
+          ['sandpfote', 'Natürlich. Allein würdest du dich im Zweibeinerort sowieso verlaufen.'],
+          { do: () => { follow('sandpfote'); const w = catById('wolkenjunges'); w.hidden = false; w.x = 3740; w.y = 3480; w.ai = { m: 'hold' }; } },
+        ]
+      },
+      { t: 'goto', who: 'wolkenjunges', near: 60, noPatrol: true, text: 'Sucht Wolkenpfote im östlichen Zweibeinerort', enter() { follow('sandpfote'); }, dlg: () => [['wolkenjunges', 'Feuerherz! Sandsturm! Die Zweibeiner haben mich eingesperrt … Ich will nach Hause – in den Clan! Ich will ein echter Krieger sein!'], ['player', 'Dann komm. Und diesmal bleibst du im Wald.']], done() { follow('wolkenjunges'); follow('sandpfote'); } },
+      {
+        t: 'goto', at: 'lager', text: 'Bringt Wolkenpfote zurück ins Lager', enter() { follow('wolkenjunges'); follow('sandpfote'); }, dlg: () => [
+          ['sandpfote', 'Feuerherz … auf dem Weg habe ich gemerkt, wie gern ich mit dir unterwegs bin.'],
+          { who: 'player', text: 'Was sagst du zu Sandsturm?', choices: [{ t: '„Ich auch, Sandsturm. Sehr gern.“' }, { t: 'Deine Nase an ihre drücken', fn: () => [['erz', 'Sandsturm schnurrt leise.']] }] },
+          { do: () => { G.flags.sandsturm = 1; catById('sandpfote').rel = 95; chron('Feuerherz und Sandsturm holen Wolkenpfote von den Zweibeinern zurück – und werden Gefährten.'); } },
+        ], done() { goHome('wolkenjunges'); goHome('sandpfote'); }
+      },
+    ]
+  },
+  {
     ch: 4, title: 'Feuer!', steps: [
       { t: 'scene', dlg: () => [['erz', 'Blattgrüne. Seit Monden hat es nicht geregnet. Der Wald ist trocken wie Stroh.'], ['erz', 'Da riechst du Rauch! Am Donnerweg haben Zweibeiner etwas Brennendes weggeworfen – und der Wind treibt das Feuer auf das Lager zu!'], ['player', 'FEUER! Alle raus aus dem Lager! Zu den Sonnenfelsen, zum Fluss!']] },
       {
@@ -465,10 +534,233 @@ const QUESTS = [
       },
       {
         t: 'scene', dlg: () => [
-          ['erz', 'Du hast die Geschichte der ersten Staffel erlebt – vom Hauskätzchen Sammy bis zu Feuerstern, dem Anführer des DonnerClans.'],
-          ['erz', 'Doch das Leben im Clan geht weiter. Junge werden geboren, Schüler werden Krieger, Krieger werden alt. Neue Feinde tauchen auf. Du triffst die Entscheidungen.'],
-          ['erz', 'Tipp: Im Clan-Bildschirm (K) kannst du deinen Clan verwalten und andere Katzen spielen. Mit J blickst du auf deinen Lebensweg zurück.'],
-          { do: () => { G.freeplay = true; G.flags.tigerstern = true; for (const c of G.cats) c.storyLock = c.rank === 'zweiter'; } },
+          ['erz', 'Du hast die erste Staffel erlebt – vom Hauskätzchen Sammy bis zu Feuerstern, dem Anführer des DonnerClans.'],
+          { do: () => { G.flags.tigerstern = true; const s = catById('sandpfote'); if (s && s.alive) { setRank(s, 'koenigin'); const o = { mother: 'sandpfote', rank: 'junges', age: 0 }; ensureCat('eichhornjunges', Object.assign({ pre: 'Eichhorn', suf: 'schweif', sex: 'w', look: L('#c0501e', null, 0.35, '#6fc23a'), storyLock: true }, o)); ensureCat('blattjunges', Object.assign({ pre: 'Blatt', suf: 'see', sex: 'w', look: L('#a8845a', '#6a4a2a', 0.4, '#e8b923'), storyLock: true }, o)); chron('Sandsturm bekommt zwei Junge: Eichhornjunges und Blattjunges.'); } } },
+          ['erz', 'Ein Mond später: Sandsturm bekommt zwei Töchter – Eichhornjunges mit feuerrotem Fell wie ihr Vater, und die sanfte Blattjunges.'],
+          ['erz', 'Doch die Geschichte ist noch nicht zu Ende. Eine neue Prophezeiung wartet …'],
+        ]
+      },
+    ]
+  },
+  // ================= STAFFEL 2 – DIE NEUE PROPHEZEIUNG =================
+  // ---------------- BUCH 7: MITTERNACHT ----------------
+  {
+    ch: 7, title: 'Ein Traum vom SternenClan', steps: [
+      {
+        t: 'scene', dlg: () => [
+          { do: () => { startStaffel2(); } },
+          ['erz', 'Viele Monde sind vergangen. Feuerstern führt den DonnerClan, und der Wald lebt in Frieden.'],
+          ['erz', 'Doch diese Geschichte erzählt ein anderer: Brombeerkralle, der Sohn von Tigerstern. Viele Katzen misstrauen ihm – wegen seines Vaters.'],
+          ['player', 'Ich bin nicht mein Vater. Ich werde es allen beweisen.'],
+          ['erz', 'Du spielst jetzt Brombeerkralle. Feuerstern ist dein Anführer.'],
+        ]
+      },
+      { t: 'night', text: 'Leg dich im Kriegerbau schlafen (warte bis zur Nacht)' },
+      {
+        t: 'scene', dlg: () => [
+          { do: () => ghosts(['blaustern']) },
+          ['erz', 'Im Traum stehst du in einem Wald aus Sternenlicht. Eine blaugraue Kätzin tritt auf dich zu.'],
+          ['blaustern', 'Brombeerkralle. Ein großes Unheil kommt über den Wald. Eine Katze aus jedem Clan muss aufbrechen.'],
+          ['blaustern', 'Reist dorthin, wo die Sonne im Wasser ertrinkt. Dort wird Mitternacht euch sagen, was ihr tun müsst.'],
+          ['player', 'Mitternacht? Wer ist Mitternacht? Blaustern, warte!'],
+          { do: () => { clearStoryEnts(); chron('Brombeerkralle träumt von Blaustern: Eine Katze aus jedem Clan soll zum Wassernest der Sonne reisen.'); } },
+          ['erz', 'Du wachst auf. Dein Herz klopft wie wild.'],
+        ]
+      },
+      {
+        t: 'talk', who: 'eichhornjunges', text: 'Eichhornpfote hat dich beobachtet – sprich mit ihr', dlg: () => [
+          ['eichhornjunges', 'Du hast im Schlaf gesprochen, Brombeerkralle! Was hast du geträumt? Sag schon!'],
+          ['player', 'Blaustern hat mir eine Reise befohlen. Zum Wassernest der Sonne. Du darfst niemandem etwas sagen!'],
+          ['eichhornjunges', 'Sagen? Ich komme mit! Und versuch gar nicht erst, mich aufzuhalten. Ich bin Feuersterns Tochter – ich bin mutiger als du denkst.'],
+          { who: 'player', text: 'Was antwortest du?', choices: [{ t: '„Na gut. Aber du hörst auf mich.“' }, { t: '„Du bist nur eine Schülerin!“', fn: () => [['eichhornjunges', 'Und du bist nur ein mürrischer Krieger. Ich komme trotzdem mit!']] }] },
+        ], done() { follow('eichhornjunges'); }
+      },
+      {
+        t: 'goto', at: 'baumgeviert', text: 'Triff die anderen Auserwählten heimlich am Baumgeviert', enter() { follow('eichhornjunges'); const b = LM.baumgeviert; placeJourney(b.x, b.y, 'hold'); }, dlg: () => [
+          ['bernsteinjunges', 'Brombeerkralle! Mein Bruder! Ich hatte denselben Traum. Ich bin jetzt im SchattenClan – aber das ist wichtiger als Clangrenzen.'],
+          ['kraehenpfote', 'Ich bin Krähenpfote vom WindClan. Und ich habe keine Lust, mit DonnerClan-Katzen durch die Gegend zu laufen. Aber der SternenClan hat gesprochen.'],
+          ['federschweif', 'Ich bin Federschweif vom FlussClan. Das ist mein Bruder Sturmpelz. Unser Vater ist Graustreif – er hat viel von euch erzählt.'],
+          ['sturmpelz', 'Eigentlich war nur Federschweif auserwählt. Aber ich lasse meine Schwester nicht allein gehen.'],
+          ['player', 'Dann gehen wir zusammen. Nach Nordosten, über die Berge, bis dorthin, wo die Sonne ertrinkt.'],
+        ], done() { journeyFollow(); chron('Brombeerkralle, Eichhornpfote, Bernsteinpelz, Krähenpfote, Federschweif und Sturmpelz brechen zur großen Reise auf.'); }
+      },
+      { t: 'goto', at: 'scheune', noPatrol: true, text: 'Rastet in der Scheune bei Mikusch und Rabenpfote', enter() { journeyFollow(); place('mikusch', LM.scheune.x + 30, LM.scheune.y + 10, 'home'); const r = catById('rabenpfote'); if (r) { r.hidden = false; r.x = LM.scheune.x - 30; r.y = LM.scheune.y + 20; r.ai = { m: 'home' }; } }, dlg: () => [['rabenpfote', 'Katzen aus allen vier Clans? Zusammen? Das habe ich noch nie gesehen. Die Sonne geht hinter den Bergen unter – folgt ihr, dann findet ihr das Wasser.'], ['mikusch', 'Nehmt euch Mäuse, so viele ihr wollt. Die Berge sind gefährlich.']] },
+      { t: 'goto', at: 'wassernest', noPatrol: true, text: 'Überquert die Berge bis zum Wassernest der Sonne (ganz im Nordosten)', enter() { journeyFollow(); }, dlg: () => [['erz', 'Hinter den Dünen breitet sich ein Wasser aus, so groß, dass es kein Ende hat. Es riecht nach Salz.'], ['eichhornjunges', 'Seht nur! Die Sonne versinkt im Wasser! Das Wassernest der Sonne!'], ['kraehenpfote', '… Das ist … wirklich schön.'], { do: () => { G.time = Math.floor(G.time / 1440) * 1440 + 19.5 * 60; } }] },
+      { t: 'night', text: 'Wartet am Strand, bis es Nacht ist' },
+      {
+        t: 'goto', at: 'dachsbau', noPatrol: true, text: 'Folgt dem Geruch in den Dünen zu einem Bau – Mitternacht?', enter() { journeyFollow(); spawnBeast('dachs', LM.dachsbau.x, LM.dachsbau.y, { id: 'mitternacht_e', name: 'Mitternacht', hostile: false, tame: true, story: true, ai: 'leader' }); }, dlg: () => [
+          ['erz', 'Aus dem Bau tritt – ein Dachs! Die Katzen fauchen und sträuben das Fell.'],
+          ['mitternacht_e', 'Keine Angst, kleine Krieger. Ich bin Mitternacht. Ich habe euch erwartet. Der SternenClan und ich – wir sprechen miteinander.'],
+          ['mitternacht_e', 'Hört gut zu. Die Zweibeiner werden euren Wald zerstören. Ihre Monster werden die Bäume fällen und die Beute vertreiben.'],
+          ['mitternacht_e', 'Die Clans müssen gehen. Alle vier. Zusammen. Ein sterbender Krieger wird euch den Weg zu eurer neuen Heimat zeigen – zu einem großen See unter dem Silbervlies.'],
+          ['player', 'Unseren Wald verlassen? Das wird niemand glauben!'],
+          ['mitternacht_e', 'Dann müsst ihr sie überzeugen. Geht jetzt. Die Zeit ist knapp.'],
+        ], done() { chron('Die Auserwählten treffen den Dachs Mitternacht. Die Clans müssen den Wald verlassen.'); for (const e of ENTS) if (e.id === 'mitternacht_e') e.gone = true; }
+      },
+    ]
+  },
+  // ---------------- BUCH 8: MONDSCHEIN ----------------
+  {
+    ch: 8, title: 'Der Stamm des eilenden Wassers', steps: [
+      {
+        t: 'goto', at: 'stamm', noPatrol: true, text: 'Auf dem Rückweg: Findet Schutz in den Bergen (Höhle am Wasserfall)', enter() { journeyFollow(); const s = LM.stamm; spawnClanCat('stamm', s.x, s.y + 10, { id: 'steinsager_e', name: 'Steinsager', look: L('#6a5a4a', null, 0, '#e8b923', { long: true }), hostile: false, story: true, ai: 'leader' }); for (let i = 0; i < 5; i++) spawnClanCat('stamm', s.x + rand(-110, 110), s.y + rand(20, 90), { name: pick(['Adler, der über Felsen kreist', 'Bach, wo kleine Fische schwimmen', 'Nacht ohne Mond', 'Stein, der im Wasser liegt']), look: L(pick(['#7a6a5a', '#5a4a3a', '#8a7a6a']), null, 0, '#e8b923'), hostile: false, story: true, wander: { x: s.x, y: s.y + 60, r: 100 } }); },
+        dlg: () => [
+          ['steinsager_e', 'Fremde Katzen. Ihr seid in der Höhle des Stammes des eilenden Wassers. Ich bin Steinsager, der Heiler-Anführer.'],
+          ['steinsager_e', 'Unsere Ahnen haben uns eine Prophezeiung gegeben: Eine silberne Katze wird kommen und uns von Scharfzahn befreien.'],
+          ['sturmpelz', 'Scharfzahn? Wer ist das?'],
+          ['steinsager_e', 'Eine riesige Berglöwin. Sie hat viele von uns getötet. Ihr seid die Silbernen – ihr müsst uns helfen!'],
+          ['federschweif', '(leise) Silbern … Sturmpelz ist grau. Aber ich … ich bin silbern.'],
+        ]
+      },
+      {
+        t: 'custom', at: 'stamm', noPatrol: true, text: 'Scharfzahn greift die Höhle an! Kämpft!',
+        enter() { journeyFollow(); for (const e of ENTS) if (e.kind === 'scharfzahn') e.gone = true; const s = LM.stamm; spawnBeast('scharfzahn', s.x + 150, s.y + 60, { id: 'scharfzahn_e', story: true, boss: true, fleeAt: 0 }); toast('Scharfzahn!'); },
+        check: () => { const b = ENTS.find(e => e.id === 'scharfzahn_e'); return b && b.hp < b.maxHp * 0.35; },
+        target: () => ENTS.find(e => e.id === 'scharfzahn_e'),
+        dlg: () => [
+          ['erz', 'Scharfzahn stellt sich auf die Hinterbeine – da springt Federschweif auf einen Felsvorsprung über der Höhle.'],
+          ['erz', 'Sie reißt einen spitzen Felszapfen von der Decke. Katze und Stein stürzen gemeinsam auf Scharfzahn herab.'],
+          { do: () => { for (const e of ENTS) if (e.id === 'scharfzahn_e') e.gone = true; } },
+          ['erz', 'Scharfzahn ist tot. Doch Federschweif liegt reglos am Boden.'],
+          ['federschweif', 'Sturmpelz … ich war … die silberne Katze … Es ist gut so …'],
+          { do: () => { killCat(catById('federschweif')); chron('Federschweif opfert sich und tötet Scharfzahn, um den Stamm des eilenden Wassers zu retten.'); } },
+          ['sturmpelz', 'Federschweif! NEIN!'],
+          ['steinsager_e', 'Sie wird bei unseren Ahnen jagen. Der Stamm wird ihren Namen nie vergessen.'],
+          ['sturmpelz', 'Ich … ich bleibe noch eine Weile hier. Bei ihr. Geht ohne mich nach Hause.'],
+          { do: () => { const s = catById('sturmpelz'); s.hidden = true; s.ai = { m: 'home' }; G.flags.sturmBleibt = 1; clearStoryEnts(); } },
+        ]
+      },
+      {
+        t: 'goto', at: 'lager', noPatrol: true, text: 'Kehrt nach Hause zurück', enter() { journeyFollow(); }, dlg: () => [
+          { do: () => { G.flags.zerstoert = 0.35; spawnBulldozers(); } },
+          ['erz', 'Als ihr zurückkehrt, erkennst du den Wald kaum wieder. Riesige gelbe Monster reißen Bäume aus dem Boden. Wo einst Farn wuchs, ist nackte Erde.'],
+          ['eichhornjunges', 'Mitternacht hatte recht … Es fängt schon an.'],
+          { do: () => { journeyHome(); chron('Die Auserwählten kehren zurück. Die Zweibeiner beginnen, den Wald zu zerstören.'); } },
+        ]
+      },
+    ]
+  },
+  // ---------------- BUCH 9: MORGENRÖTE ----------------
+  {
+    ch: 9, title: 'Der sterbende Wald', steps: [
+      { t: 'talk', who: 'sammy', text: 'Berichte Feuerstern von Mitternachts Botschaft', dlg: () => [['sammy', 'Ihr seid einfach davongelaufen! Eichhornpfote, du hättest sterben können!'], ['player', 'Feuerstern, hör mir zu. Mitternacht hat gesagt: Alle vier Clans müssen den Wald verlassen. Die Zweibeiner werden alles zerstören.'], ['sammy', '… Ich sehe die Monster jeden Tag. Die Beute ist fast verschwunden. Vielleicht … vielleicht hast du recht, Brombeerkralle.'], { do: () => { G.flags.zerstoert = 0.55; applyFx({ food: -25, morale: -10 }, true); } }] },
+      { t: 'scene', dlg: () => [['erz', 'Am nächsten Tag kehrt eine Patrouille verstört zurück.'], ['sandpfote', 'Graustreif! Die Zweibeiner haben Graustreif gefangen und in ein Monster gesperrt! Er ist fort!'], { do: () => { const g = catById('graupfote'); if (g && g.alive) { g.hidden = true; g.clan = 'verschollen'; if (g.rank === 'zweiter') setRank(g, 'krieger'); } chron('Graustreif wird von Zweibeinern gefangen und fortgebracht.'); } }, ['sammy', 'Mein bester Freund … Nein. Ich darf jetzt nicht aufgeben. Der Clan braucht mich.'], ['erz', 'Und dann: Blattpfote ist auch verschwunden! Krähenpfote hat sie bei den Zweibeiner-Käfigen gesehen.']] },
+      { t: 'goto', who: 'blattjunges', near: 55, noPatrol: true, text: 'Rette Blattpfote aus den Käfigen der Zweibeiner', enter() { const b = catById('blattjunges'); b.hidden = false; b.x = LM.kaefige.x; b.y = LM.kaefige.y; b.ai = { m: 'hold' }; const k = catById('kraehenpfote'); k.hidden = false; k.x = LM.kaefige.x + 70; k.y = LM.kaefige.y + 40; k.ai = { m: 'hold' }; }, dlg: () => [['erz', 'In einem Drahtkäfig sitzt Blattpfote. Krähenpfote zerrt verzweifelt am Riegel.'], ['kraehenpfote', 'Hilf mir! Zusammen schaffen wir es!'], ['erz', 'Ihr beißt und zerrt – der Riegel springt auf!'], ['blattjunges', 'Danke … Krähenpfote. Und dir auch, Brombeerkralle. Schnell weg, bevor die Zweibeiner zurückkommen!']], done() { follow('blattjunges'); const k = catById('kraehenpfote'); k.ai = { m: 'home' }; k.hidden = true; } },
+      { t: 'goto', at: 'lager', text: 'Bring Blattpfote ins Lager', enter() { follow('blattjunges'); }, done() { goHome('blattjunges'); } },
+      { t: 'night', text: 'Große Versammlung heute Nacht – warte bis es dunkel ist' },
+      {
+        t: 'goto', at: 'baumgeviert', text: 'Geh zur letzten Versammlung am Baumgeviert', enter() { spawnGathering(); follow('sammy'); }, dlg: () => [
+          ['sammy', 'Katzen aller Clans! Unser Wald stirbt. Die Beute ist fort. Wir müssen gehen – alle zusammen.'],
+          ['leader_schatten', 'Der SchattenClan hungert. Wir kommen mit.'],
+          ['leader_fluss', 'Die Zweibeiner haben unseren Fluss vergiftet. Auch der FlussClan geht.'],
+          ['leader_wind', 'Ich bin alt und müde … aber der WindClan folgt euch. Führt uns, junge Krieger.'],
+          ['erz', 'Zum ersten Mal in der Geschichte der Clans ziehen alle vier gemeinsam los.'],
+        ], done() { for (const e of ENTS) if (e.gathering) e.gone = true; goHome('sammy'); G.flags.zerstoert = 0.85; chron('Alle vier Clans beschließen, den Wald gemeinsam zu verlassen.'); }
+      },
+      {
+        t: 'custom', noPatrol: true, text: 'Die große Wanderung: Führe alle Clans über die Berge nach Osten zum großen See',
+        enter() { startMigration(); },
+        target: () => ({ x: 6760, y: 2980 }),
+        check: () => { const pc = P(); if (dist(pc.x, pc.y, 6760, 2980) > 380) return false; const cs = clanCats().filter(c => c !== pc && !c.hidden); return cs.filter(c => dist(c.x, c.y, pc.x, pc.y) < 900).length >= cs.length * 0.6; },
+        dlg: () => [
+          ['erz', 'Nach vielen Tagen erreicht ihr einen Hügel. Unter euch liegt ein riesiger See. In der Nacht spiegelt sich das Silbervlies darin – als würde der SternenClan selbst im Wasser leuchten.'],
+          ['erz', 'Da bricht Riesenstern, der alte Anführer des WindClans, zusammen. Er ist der sterbende Krieger aus Mitternachts Botschaft.'],
+          [{ name: 'Riesenstern', look: LOOK.riesenstern() }, 'Ich habe … euch … hierher gebracht. Hier … ist eure Heimat …'],
+          { do: () => { G.others.wind.leader = 'Kurz'; G.others.wind.lives = 9; arriveAtLake(); } },
+          ['sammy', 'Hier werden wir leben. Katzen des DonnerClans – unser neues Lager ist eine Steinmulde im Wald am Westufer.'],
+          ['erz', '— Ende von Buch 9: Morgenröte —'],
+        ]
+      },
+    ]
+  },
+  // ---------------- BUCH 10: STERNENGLANZ ----------------
+  {
+    ch: 10, title: 'Die neue Heimat', steps: [
+      { t: 'goto', at: 'lager', text: 'Erkunde die Steinmulde – das neue Lager', dlg: () => [['sammy', 'Felswände schützen uns, und es gibt Platz für alle Baue. Das ist gut. Brombeerkralle, erkunde mit einer Patrouille unser Territorium.']] },
+      { t: 'goto', at: 'buchenhain', text: 'Erkunde den Buchenhain', dlg: () => [['erz', 'Hohe Buchen, raschelndes Laub – und es riecht nach Eichhörnchen. Gute Jagdgründe!']] },
+      { t: 'goto', at: 'zweibeinernest', text: 'Erkunde das verlassene Zweibeinernest', dlg: () => [['erz', 'Ein altes, halb verfallenes Zweibeinernest. Zwischen den Steinen wachsen Katzenminze und andere Kräuter. Blattpfote wird sich freuen.']] },
+      { t: 'talk', who: 'blattjunges', text: 'Blattpfote hat etwas gespürt – sprich mit ihr', dlg: () => [['blattjunges', 'Brombeerkralle … ich habe geträumt. Oben in den Hügeln gibt es einen Teich, in dem die Sterne leuchten. Dort können Heiler mit dem SternenClan sprechen. Kommst du mit?']], done() { follow('blattjunges'); } },
+      {
+        t: 'goto', at: 'mondstein', text: 'Folge Blattpfote hinauf in die Hügel (Nordosten des Sees)', enter() { follow('blattjunges'); }, dlg: () => [
+          { do: () => ghosts(['blaustern', 'tuepfelblatt', 'gelbzahn', 'loewenherz']) },
+          ['erz', 'Ein Wasserfall plätschert in einen kleinen Teich. Das Wasser glänzt silbern im Mondlicht – und um ihn herum erscheinen Katzen aus Sternenlicht.'],
+          ['tuepfelblatt', 'Willkommen, Blattpfote. Dies ist der Mondsee. Hier werdet ihr uns von nun an finden.'],
+          ['blaustern', 'Ihr habt euren Weg gefunden. Der SternenClan ist euch gefolgt.'],
+          ['blattjunges', 'Der Mondsee … Brombeerkralle, wir haben es geschafft!'],
+          { do: () => { clearStoryEnts(); chron('Blattpfote findet den Mondsee. Der SternenClan ist den Clans an den See gefolgt.'); } },
+        ], done() { goHome('blattjunges'); }
+      },
+      { t: 'night', text: 'Erste Versammlung auf der Insel heute Nacht – warte bis es dunkel ist' },
+      {
+        t: 'goto', at: 'baumgeviert', text: 'Schwimm zur Großen Versammlung auf der Insel im See', enter() { spawnGathering(); const h = ensureCat('habichtfrost', { pre: 'Habicht', suf: 'frost', rank: 'krieger', clan: 'fluss', sex: 'm', age: 30, look: L('#5a3e26', '#24160c', 0.3, '#9fe0ff', { size: 1.12 }) }); h.hidden = false; h.x = LM.baumgeviert.x + 60; h.y = LM.baumgeviert.y + 30; h.ai = { m: 'hold' }; }, dlg: () => [
+          ['erz', 'Auf der Insel steht ein riesiger Baum. Die Anführer sitzen in seinen Ästen – so, wie früher auf dem Großfelsen.'],
+          ['habichtfrost', 'Du bist Brombeerkralle? Ich bin Habichtfrost vom FlussClan. Wir haben denselben Vater, du und ich: Tigerstern.'],
+          ['habichtfrost', 'Wir sind stark, Bruder. Eines Tages werden wir beide Anführer sein. Das ist unser Schicksal.'],
+          { who: 'player', text: 'Was sagst du?', choices: [{ t: '„Mein Schicksal bestimme ich selbst.“', fn: () => { G.flags.habicht = 0; } }, { t: '„Vielleicht hast du recht …“', fn: () => { G.flags.habicht = 1; return [['habichtfrost', 'Ich wusste, dass du mich verstehst.']]; } }] },
+        ], done() { for (const e of ENTS) if (e.gathering) e.gone = true; const h = catById('habichtfrost'); h.hidden = true; chron('Brombeerkralle trifft seinen Halbbruder Habichtfrost.'); }
+      },
+    ]
+  },
+  // ---------------- BUCH 11: DÄMMERUNG ----------------
+  {
+    ch: 11, title: 'Die Dachse', steps: [
+      { t: 'night', text: 'Du bist müde … schlafe (warte bis zur Nacht)' },
+      {
+        t: 'scene', dlg: () => [
+          { do: () => { const t = catById('tigerkralle'); const pc = P(); spawnClanCat('sternen', pc.x + 60, pc.y, { id: 'tigergeist', name: 'Tigerstern', look: Object.assign({}, t.look, { base: '#3a2818' }), star: true, hostile: false, truce: true, story: true, ai: 'leader' }); } },
+          ['erz', 'Im Traum stehst du in einem dunklen Wald ohne Sterne. Ein riesiger Tigerkater wartet auf dich.'],
+          ['tigergeist', 'Mein Sohn. Ich kann dich lehren, der stärkste Krieger aller Clans zu werden. Stärker als Feuerstern.'],
+          { who: 'player', text: 'Was antwortest du deinem Vater?', choices: [{ t: '„Ich will stark sein – aber auf meine Art.“', fn: () => { G.flags.tigerTraining = 0; } }, { t: '„Zeig es mir.“', fn: () => { G.flags.tigerTraining = 1; return [['tigergeist', 'Gut. Sehr gut. Wir sehen uns wieder, Brombeerkralle.']]; } }] },
+          { do: () => clearStoryEnts() },
+          ['erz', 'Du wachst auf – von Kampfgeschrei! Etwas Großes bricht durch die Felswände der Steinmulde!'],
+        ]
+      },
+      {
+        t: 'defeat', group: 'dachse', n: 4, at: 'lager', spawnNear: 900, text: 'Dachse greifen das Lager an! Beschütze die Kinderstube!',
+        spawn() { const k = denPos('kinder'); for (let i = 0; i < 4; i++) spawnBeast('dachs', k.x + rand(-60, 60), k.y + rand(-30, 60), { group: 'dachse', story: true }); const pc = P(); for (let i = 0; i < 3; i++) spawnClanCat('wind', LM.lager.x + rand(-40, 40), LM.lager.y - 120, { ally: true, hostile: false, story: true, lv: 2 }); spawnBeast('dachs', LM.lager.x, LM.lager.y - 150, { id: 'mitternacht_e', name: 'Mitternacht', hostile: false, tame: true, story: true, ai: 'leader' }); },
+        dlg: () => [
+          ['erz', 'Mitternacht ist gekommen – mit WindClan-Kriegern! Gemeinsam treibt ihr die Dachse aus dem Lager.'],
+          ['mitternacht_e', 'Ich habe versucht, meine Verwandten aufzuhalten. Sie hörten nicht. Es tut mir leid.'],
+          ['erz', 'Doch in der Kinderstube liegt Aschenpelz. Sie hat die Jungen beschützt – mit ihrem Leben.'],
+          { do: () => { const a = catById('aschenjunges'); if (a && a.alive) killCat(a); const b = catById('blattjunges'); b.suf = 'see'; setRank(b, 'heiler'); b.storyLock = true; chron('Dachse überfallen die Steinmulde. Aschenpelz stirbt. Blattsee wird Heilerin des DonnerClans.'); clearStoryEnts(); } },
+          ['blattjunges', 'Aschenpelz … meine Mentorin … Ich werde ihre Arbeit fortführen. Ich werde Blattsee heißen – so hat sie es sich gewünscht.'],
+          ['erz', '— Ende von Buch 11: Dämmerung —'],
+        ]
+      },
+    ]
+  },
+  // ---------------- BUCH 12: SONNENUNTERGANG ----------------
+  {
+    ch: 12, title: 'Sonnenuntergang', steps: [
+      { t: 'scene', dlg: () => [['blattjunges', 'Brombeerkralle! Ich hatte eine Vision vom SternenClan: „Bevor Frieden kommt, wird Blut Blut vergießen, und der See wird rot sein.“'], ['player', 'Blut wird Blut vergießen … Was soll das bedeuten?'], ['erz', 'Am Abend kehrt Feuerstern nicht von seiner Patrouille am Seeufer zurück.']] },
+      {
+        t: 'goto', who: 'sammy', near: 70, noPatrol: true, text: 'Suche Feuerstern am Seeufer', enter() { const f = catById('sammy'); f.x = LM.seeufer.x; f.y = LM.seeufer.y; f.ai = { m: 'hold' }; f.sleep = true; say(f, 'Hilfe … eine Falle!', 8); const h = catById('habichtfrost'); h.hidden = false; h.x = LM.seeufer.x + 50; h.y = LM.seeufer.y - 30; h.ai = { m: 'hold' }; }, dlg: () => [
+          ['erz', 'Feuerstern hängt in einer Fuchsfalle der Zweibeiner. Der Draht schnürt ihm die Kehle zu. Neben ihm steht Habichtfrost.'],
+          ['habichtfrost', 'Brombeerkralle. Endlich. Sieh ihn dir an – hilflos. Töte ihn! Dann wirst du Anführer des DonnerClans, und ich des FlussClans. So wie unser Vater es wollte.'],
+          ['sammy', '(würgend) Brombeer…kralle …'],
+          { who: 'player', text: 'Die Entscheidung deines Lebens:', choices: [{ t: 'Feuerstern befreien!', fn: () => { G.flags.treu = 1; } }, { t: 'Zögern …', fn: () => [['erz', 'Einen Herzschlag lang hörst du Tigersterns Stimme. Dann siehst du Eichhornpfotes Gesicht vor dir.'], ['player', 'NEIN! Ich bin nicht mein Vater!']] }] },
+          ['habichtfrost', 'Du Narr! Dann stirb mit ihm!'],
+        ]
+      },
+      {
+        t: 'defeat', group: 'habichtfrost', noPatrol: true, text: 'Kämpfe gegen Habichtfrost!', enter() { spar('habichtfrost'); const h = catById('habichtfrost'); h.hp = h.maxHp = 180; },
+        dlg: () => [
+          ['erz', 'Habichtfrost stolpert rückwärts – direkt auf einen spitzen Ast der Falle. Blut färbt das Wasser am Ufer rot.'],
+          ['habichtfrost', 'Tigerstern … hat … gesagt …'],
+          { do: () => { killCat(catById('habichtfrost')); chron('Habichtfrost stellt Feuerstern eine Falle. Brombeerkralle rettet Feuerstern; Habichtfrost stirbt.'); } },
+          ['erz', 'Blut hat Blut vergossen. Die Prophezeiung hat sich erfüllt. Du befreist Feuerstern aus der Falle.'],
+          ['sammy', 'Brombeerkralle … du hast mir das Leben gerettet. Ich habe dir zu lange misstraut. Du bist nicht dein Vater.'],
+          { do: () => { const f = catById('sammy'); f.sleep = false; f.ai = { m: 'home' }; setRank(P(), 'zweiter'); setStage('staffel2b'); } },
+          ['sammy', 'Ich sage diese Worte vor dem SternenClan: Brombeerkralle wird der neue Zweite Anführer des DonnerClans.'],
+          ['eichhornjunges', 'Ich wusste es immer. Ich bin stolz auf dich, Brombeerkralle.'],
+          ['erz', '— Ende von Buch 12: Sonnenuntergang —'],
+        ]
+      },
+      {
+        t: 'scene', dlg: () => [
+          ['erz', 'Du hast die zweite Staffel erlebt: die große Reise, die Zerstörung des Waldes und die neue Heimat am See.'],
+          ['erz', 'Das Leben am See geht weiter. Du bist Zweiter Anführer. Im Clan-Bildschirm (K) kannst du jetzt auch andere Katzen spielen – zum Beispiel Feuerstern.'],
+          { do: () => { G.freeplay = true; chron('Brombeerkralle wird Zweiter Anführer. Die Clans leben am See. (Ende der 2. Staffel)'); for (const c of G.cats) c.storyLock = c.rank === 'zweiter'; } },
         ]
       },
     ]

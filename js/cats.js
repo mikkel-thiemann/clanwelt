@@ -131,7 +131,9 @@ function spawnPrey(pc) {
   else {
     if (isWater(x, y) || inRoad(x, y)) return;
     for (const cp of OB.camps) if (dist(x, y, cp.lm.x, cp.lm.y) < cp.lm.r + 20) return;
-    const t = territoryAt(x, y), opts = Object.keys(PREY_T).filter(p => PREY_T[p].ter && PREY_T[p].ter.includes(t));
+    if (G.flags.zerstoert && x < OLD_W && chance(0.5 + G.flags.zerstoert * 0.4)) return;
+    let t = territoryAt(x, y); if (t === 'verlassen') t = 'donner'; if (t === 'berge' || t === 'kueste') t = 'hochland';
+    const opts = Object.keys(PREY_T).filter(p => PREY_T[p].ter && PREY_T[p].ter.includes(t));
     if (!opts.length) return;
     k = pick(opts);
   }
@@ -173,6 +175,7 @@ const BEASTS = {
   dachs: { name: 'Dachs', hp: 140, atk: 16, sp: 140, r: 15, col: '#555' },
   meute: { name: 'Anführer der Meute', hp: 9999, atk: 18, sp: 205, r: 18, col: '#3a2e26' },
   ratte: { name: 'Ratte', hp: 16, atk: 4, sp: 165, r: 6, col: '#6a625a' },
+  scharfzahn: { name: 'Scharfzahn', hp: 360, atk: 17, sp: 230, r: 20, col: '#b8925a' },
 };
 function spawnBeast(kind, x, y, o = {}) {
   const B = BEASTS[kind];
@@ -196,7 +199,7 @@ function isFoe(a, b) {
   if ((a.spar && b === pc) || (b.spar && a === pc)) return true;
   if (a.spar || b.spar) return false;
   if (a.beast && b.beast) return false;
-  if (a.beast || b.beast) return !(b.star || a.star);
+  if (a.beast || b.beast) return !(b.star || a.star || a.tame || b.tame);
   if (teamOf(a) === teamOf(b)) return false;
   if (a.truce || b.truce) return false;
   return !!(a.hostile || b.hostile);
@@ -331,11 +334,17 @@ function updateEnts(dt) {
     const e = ENTS[i];
     if (e.flash > 0) e.flash -= dt;
     if (e.sayT > 0) e.sayT -= dt;
-    if (e.gone || dist(e.x, e.y, pc.x, pc.y) > 3200 && !e.story) { ENTS.splice(i, 1); continue; }
+    if (e.gone || dist(e.x, e.y, pc.x, pc.y) > 3200 && !e.story && !e.persistent) { ENTS.splice(i, 1); continue; }
     if (e.fleeing) {
       const a = Math.atan2(e.y - pc.y, e.x - pc.x);
       moveEnt(e, Math.cos(a) * (e.speed || 170), Math.sin(a) * (e.speed || 170), dt);
       if (dist(e.x, e.y, pc.x, pc.y) > 700) ENTS.splice(i, 1);
+      continue;
+    }
+    if (e.kind === 'bagger') { // Zweibeiner-Monster fährt hin und her
+      const tg = e.leg ? e.b : e.a;
+      if (steer(e, tg.x, tg.y, 55, dt, 20)) e.leg = !e.leg;
+      if (dist(e.x, e.y, pc.x, pc.y) < 45 && !(pc.carHit > 0)) { pc.carHit = 1; hurt(pc, 25, e); toast('Vorsicht vor den Monstern der Zweibeiner!'); }
       continue;
     }
     if (e.followP) { // folgt dem Spieler (z. B. WindClan auf dem Heimweg, gerettete Junge)
@@ -433,7 +442,7 @@ function updateCat(c, dt, t) {
         ai.t = rand(3, 9);
         let r = c.rank === 'junges' ? 60 : c.rank === 'aeltester' ? 35 : 90;
         let cx = h.x, cy = h.y + 40;
-        if (c.clan === 'donner' && chance(0.35) && c.rank !== 'aeltester') { cx = LM.lager.x; cy = LM.lager.y; r = 150; }
+        if (c.clan === 'donner' && chance(0.35) && c.rank !== 'aeltester') { cx = LM.lager.x; cy = LM.lager.y; r = LM.lager.r - 90; }
         if (c.clan === 'donner' && c.rank === 'anfuehrer' && chance(0.3)) { const hs = denPos('hochstein'); cx = hs.x; cy = hs.y + 50; r = 10; }
         const a = Math.random() * TAU, d = Math.random() * r; ai.x = cx + Math.cos(a) * d; ai.y = cy + Math.sin(a) * d;
         ai.rest = chance(0.35);
@@ -444,6 +453,7 @@ function updateCat(c, dt, t) {
   }
 }
 function patrolRoutes() {
+  if (G.flags && G.flags.see) return [[LM.zweibeinernest, LM.buchenhain], [LM.seeufer, LM.zweibeinernest], [LM.buchenhain, LM.seeufer]];
   return [
     [LM.sonnenfelsen, LM.eulenbaum], [LM.donnerweg, LM.schlangenfelsen], [LM.baumgeviert, LM.schlucht],
     [LM.platane, LM.waldrand], [LM.eulenbaum, LM.donnerweg], [LM.schlucht, LM.platane]

@@ -73,7 +73,7 @@ function detailTexture() {
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
 }
 function buildTerrain3D() {
-  const geo = new THREE.PlaneGeometry(W, H, 260, 210); geo.rotateX(-Math.PI / 2); geo.translate(W / 2, 0, H / 2);
+  const geo = new THREE.PlaneGeometry(W, H, Math.round(W / 20), 210); geo.rotateX(-Math.PI / 2); geo.translate(W / 2, 0, H / 2);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i++) pos.setY(i, heightAt(pos.getX(i), pos.getZ(i)));
   geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(pos.count * 3), 3));
@@ -88,6 +88,8 @@ function recolorTerrain(s) {
     const x = pos.getX(i), z = pos.getZ(i);
     groundColor(x, z, o);
     const special = inRoad(x, z) || inRiver(x, z);
+    const zz = (G && G.flags && G.flags.zerstoert) || 0;
+    if (zz && x < OLD_W && z < 3440 && !special) { const k = zz * 0.75 * clamp(NOISE(x / 300 + 9, z / 300) * 1.6, 0, 1); o[0] = lerp(o[0], 118, k); o[1] = lerp(o[1], 92, k); o[2] = lerp(o[2], 64, k); }
     if (!special) {
       if (s === 3) { o[0] = lerp(o[0], 236, 0.6); o[1] = lerp(o[1], 240, 0.6); o[2] = lerp(o[2], 246, 0.6); }
       else if (s === 2) { o[0] = lerp(o[0], 150, 0.22); o[1] = lerp(o[1], 110, 0.15); o[2] = lerp(o[2], 40, 0.1); }
@@ -110,6 +112,15 @@ function buildWater() {
   const mat = new THREE.MeshPhongMaterial({ color: 0x3a78b0, map: wt, transparent: true, opacity: 0.84, shininess: 90, specular: 0x9fc4e8 });
   W3.water = new THREE.Mesh(geo, mat); SC.add(W3.water);
   const gorge = new THREE.Mesh(new THREE.PlaneGeometry(140, 430).rotateX(-Math.PI / 2), mat); gorge.position.set(3430, -58, 2755); SC.add(gorge);
+  // See (unregelmäßiger Rand)
+  const lv = [0, 0, 0], li = [], N = 96;
+  for (let i = 0; i <= N; i++) { const a = i / N * TAU, r = lakeR(a) + 12; lv.push(Math.cos(a) * r, 0, Math.sin(a) * r); if (i) li.push(0, i + 1, i); }
+  const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(lv, 3)); lg.setIndex(li); lg.computeVertexNormals();
+  const luv = []; for (let i = 0; i < lv.length; i += 3) luv.push(lv[i] / 130, lv[i + 2] / 130); lg.setAttribute('uv', new THREE.Float32BufferAttribute(luv, 2));
+  const lake = new THREE.Mesh(lg, mat); lake.position.set(LAKE.x, LAKE_LEVEL, LAKE.y); SC.add(lake);
+  const oc = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1900).rotateX(-Math.PI / 2), mat); oc.position.set(8200, OCEAN_LEVEL, 850); SC.add(oc);
+  const moon = new THREE.Mesh(new THREE.CircleGeometry(48, 32).rotateX(-Math.PI / 2), new THREE.MeshPhongMaterial({ color: 0x9fc8ff, emissive: 0x3a5a9a, shininess: 120, transparent: true, opacity: 0.9 }));
+  moon.position.set(LM0.mondsee.x, heightAt(LM0.mondsee.x, LM0.mondsee.y) + 3, LM0.mondsee.y); SC.add(moon); W3.mondsee = moon;
 }
 function roadTexture() {
   const c = document.createElement('canvas'); c.width = 64; c.height = 128; const g = c.getContext('2d');
@@ -151,15 +162,22 @@ function buildTrees() {
   const leafMat = () => windy(new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true }), 0.05, false);
   const cA = inst(blob, dec.length, true, leafMat()), cB = inst(blob, dec.length, true, leafMat()), cC = inst(blob, dec.length, true, leafMat());
   const cone = new THREE.ConeGeometry(1, 1, 9).translate(0, 0.5, 0), pL = inst(cone, pin.length * 3, true, windy(new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true }), 0.04, true));
-  W3.inst.trees = { dec, pin, cA, cB, cC, pL };
+  W3.inst.trees = { dec, pin, cA, cB, cC, pL, trunk, all: T };
   placeCanopies(1);
+}
+const felled = t => G && G.flags && G.flags.zerstoert && t.x < OLD_W && t.y < 3440 && hashStr(t.x + ':' + t.y) < G.flags.zerstoert && t.tr < 20;
+function placeTrunks() {
+  const { all, trunk } = W3.inst.trees;
+  all.forEach((t, i) => { const g = heightAt(t.x, t.y), h = felled(t) ? 5 : treeH(t) + (t.k === 'pine' ? 0 : 10); _o.position.set(t.x, g - 2, t.y); _o.rotation.set(0, t.c * 6, 0); _o.scale.set(t.tr, h, t.tr); _o.updateMatrix(); trunk.setMatrixAt(i, _o.matrix); });
+  trunk.instanceMatrix.needsUpdate = true;
 }
 function placeCanopies(s) {
   const { dec, pin, cA, cB, cC, pL } = W3.inst.trees;
   const bare = s === 3;
   dec.forEach((t, i) => {
     const g = heightAt(t.x, t.y), top = g + treeH(t) + 10, r = t.r * (bare && t.k !== 'willow' ? 0.55 : 1);
-    const set = (m, dx, dy, dz, k) => { _o.position.set(t.x + dx * r, top + dy * r, t.y + dz * r); _o.rotation.set(t.c, t.c * 4, 0); _o.scale.set(r * k, r * k * (t.k === 'willow' ? 1 : 0.72), r * k); _o.updateMatrix(); m.setMatrixAt(i, _o.matrix); };
+    const gone = felled(t) ? 0.0001 : 1;
+    const set = (m, dx, dy, dz, k) => { _o.position.set(t.x + dx * r, top + dy * r, t.y + dz * r); _o.rotation.set(t.c, t.c * 4, 0); _o.scale.set(r * k * gone, r * k * gone * (t.k === 'willow' ? 1 : 0.72), r * k * gone); _o.updateMatrix(); m.setMatrixAt(i, _o.matrix); };
     set(cA, 0, 0.1, 0, 1); set(cB, 0.45, 0.35, -0.3, 0.7); set(cC, -0.4, 0.25, 0.35, 0.65);
     let [c1, c2] = SEASON_TREE[s];
     if (t.k === 'willow') { c1 = s === 3 ? '#a8b0a0' : '#6a9a44'; c2 = s === 3 ? '#c8d0c8' : '#8ab85a'; }
@@ -171,7 +189,7 @@ function placeCanopies(s) {
   pin.forEach((t, i) => {
     const g = heightAt(t.x, t.y);
     for (let k = 0; k < 3; k++) {
-      _o.position.set(t.x, g + 16 + k * 24, t.y); _o.rotation.set(0, t.c * 5 + k, 0); const r = t.r * (1 - k * 0.24); _o.scale.set(r, 52 - k * 8, r); _o.updateMatrix();
+      _o.position.set(t.x, g + 16 + k * 24, t.y); _o.rotation.set(0, t.c * 5 + k, 0); const r = t.r * (1 - k * 0.24) * (felled(t) ? 0.0001 : 1); _o.scale.set(r, 52 - k * 8, r); _o.updateMatrix();
       pL.setMatrixAt(i * 3 + k, _o.matrix); pL.setColorAt(i * 3 + k, _c.set(s === 3 && k === 2 ? '#dfe8ea' : ['#1f4326', '#28552e', '#336638'][k]).multiplyScalar(0.9 + t.c * 0.2));
     }
   });
@@ -237,10 +255,10 @@ function buildGrass() {
   const mat = windy(new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide }), 0.35, true);
   const R = mulberry32(99), spots = [];
   let tries = 0;
-  while (spots.length < 26000 && tries++ < 90000) {
-    const x = R() * W, y = R() * H, t = territoryAt(x, y);
+  while (spots.length < 36000 && tries++ < 150000) {
+    const x = R() * W, y = R() * H, t = territoryAt(x, y, true);
     if (inRoad(x, y) || isWater(x, y) || (y < 3460 && Math.abs(x - riverX(y)) < 62)) continue;
-    const dens = { donner: 0.55, fluss: 1, wind: 0.8, zweibeiner: 0.35, schatten: 0.3, baumgeviert: 1, hochland: 0.25, donnerweg: 0 }[t] || 0;
+    const dens = { donner: 0.55, fluss: 1, wind: 0.8, zweibeiner: 0.35, schatten: 0.3, baumgeviert: 1, hochland: 0.3, donnerweg: 0, berge: 0.2, kueste: 0.3 }[t] || 0;
     if (R() > dens) continue;
     let bad = false; for (const cp of OB.camps) if (dist(x, y, cp.lm.x, cp.lm.y) < cp.lm.r - 30) { bad = true; break; }
     if (bad || (y > 3940 && y < 4140) || dist(x, y, LM.sandkuhle.x, LM.sandkuhle.y) < LM.sandkuhle.r) continue;
@@ -250,6 +268,14 @@ function buildGrass() {
   spots.forEach(([x, y], i) => { const s = 7 + R() * 7; _o.position.set(x, heightAt(x, y) - 0.5, y); _o.rotation.set(0, R() * 6.3, 0); _o.scale.set(s * 1.3, s, s * 1.3); _o.updateMatrix(); m.setMatrixAt(i, _o.matrix); });
   W3.grass = m; W3.grassSpots = spots; W3.grassN = spots.length;
   if (!GFX.hoch) m.count = Math.floor(spots.length / 3);
+}
+function destroyGrass(z) {
+  const m = W3.grass;
+  W3.grassSpots.forEach(([x, y], i) => {
+    if (x >= OLD_W || y > 3440 || hashStr(x + '/' + y) > z * 0.9) return;
+    m.getMatrixAt(i, _o.matrix); _o.matrix.decompose(_o.position, _o.quaternion, _o.scale); _o.scale.setScalar(0.001); _o.updateMatrix(); m.setMatrixAt(i, _o.matrix);
+  });
+  m.instanceMatrix.needsUpdate = true;
 }
 function colorGrass(s) {
   const m = W3.grass, o = [0, 0, 0];
@@ -315,10 +341,12 @@ function buildCamps() {
     h.scale.set(r * 0.35, r * 0.3, 1); h.position.set(x + Math.cos(a) * r * 0.86, g + r * 0.2, y + Math.sin(a) * r * 0.74); h.rotation.y = -a + Math.PI / 2; SC.add(h);
   };
   for (const k of ['heiler', 'krieger', 'schueler', 'kinder', 'aeltest', 'anfuehrer']) { const p = denPos(k); addDen(p.x, p.y, k === 'krieger' ? 48 : k === 'anfuehrer' ? 32 : 40, LM.lager.x, LM.lager.y); }
+  for (const k of ['heiler', 'krieger', 'schueler', 'kinder', 'aeltest', 'anfuehrer']) { const p = denPos(k, LM0.steinmulde); addDen(p.x, p.y, k === 'krieger' ? 48 : k === 'anfuehrer' ? 32 : 40, LM0.steinmulde.x, LM0.steinmulde.y); }
   for (const cp of OB.camps) if (cp.clan !== 'donner') for (let i = 0; i < 4; i++) { const a = i * 1.6 + 0.4; addDen(cp.lm.x + Math.cos(a) * 110, cp.lm.y + Math.sin(a) * 110, 36, cp.lm.x, cp.lm.y); }
   W3.pile = new THREE.Group(); const p = denPos('pile'); W3.pile.position.set(p.x, heightAt(p.x, p.y), p.y); SC.add(W3.pile);
 }
 function updatePile() {
+  const pp = denPos('pile'); W3.pile.position.set(pp.x, heightAt(pp.x, pp.y), pp.y);
   const n = Math.min(14, Math.ceil(G.clan.pile / 3));
   if (n === W3.pileN) return; W3.pileN = n;
   while (W3.pile.children.length) W3.pile.remove(W3.pile.children[0]);
@@ -443,6 +471,8 @@ function updateFire(t) {
   FIRELIGHT.position.set(F.x, heightAt(F.x, F.y) + 120, F.y); FIRELIGHT.intensity = 2.2 + Math.sin(t * 13) * 0.4;
 }
 function updateSeason() {
+  const z = (G.flags && G.flags.zerstoert) || 0;
+  if (z !== W3.destr) { W3.destr = z; placeTrunks(); placeCanopies(season()); if (z) { recolorTerrain(season()); destroyGrass(z); } }
   const s = season(); if (s === W3.season) return; W3.season = s;
   recolorTerrain(s); placeCanopies(s); colorBushes(s); colorGrass(s);
   for (const d of W3.dens) d.material.color.set(s === 3 ? '#8a9890' : s === 2 ? '#7a6a30' : '#3f6a30');
@@ -510,6 +540,7 @@ function syncModels(t, dt) {
   }
   for (const e of ENTS) {
     if (!near(e)) continue;
+    if (e.kind === 'bagger') { const m = useModel(e, () => makeBaggerModel()); placeEnt(m, e); m.userData.arm.rotation.z = Math.sin(t * 1.3 + e.x) * 0.3; if (Math.random() < 0.3) FX3.dust(e.x - Math.cos(e.dir) * 30, e.y - Math.sin(e.dir) * 30, 1); continue; }
     if (e.beast) { const m = useModel(e, () => makeBeastModel(e.kind)); placeEnt(m, e); e.speed = entSpeed(m, e, dt); animateBeast(m, e, t); footFx(m, e, e.speed); }
     else {
       const m = useModel(e, () => makeCatModel(e.look, { star: e.star, collar: e.collar })); placeEnt(m, e);
@@ -566,7 +597,7 @@ function footFx(m, e, spd) {
 }
 function placeEnt(m, e) {
   let y = surfaceY(e.x, e.y);
-  if (inRiver(e.x, e.y) && !inRoad(e.x, e.y)) y -= 4;
+  if ((inRiver(e.x, e.y) && !inRoad(e.x, e.y)) || inLake(e.x, e.y) || inOcean(e.x, e.y)) y -= 4;
   m.position.set(e.x, y, e.y);
   m.rotation.y = -e.dir;
 }

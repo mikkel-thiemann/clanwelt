@@ -211,7 +211,7 @@ const EVENTS = [
   {
     id: 'beute', when: () => clanStats().food < 50, text: 'Es gibt zu wenig Beute. Die Königinnen haben kaum Milch, und die Ältesten werden dünn. Soll der Clan sein Territorium erweitern?',
     choices: () => [
-      { t: 'Grenze Richtung WindClan verschieben', fn: () => { applyFx({ terr: 10, food: 12, rel: { wind: -18 } }); if (chance(0.6)) { Missions.add(makeMission('drive', { team: 'wind', n: 3, at: LM.schlucht, title: 'WindClan-Vergeltung' })); return [['erz', 'Der WindClan wird das nicht einfach hinnehmen …']]; } } },
+      { t: 'Grenze Richtung WindClan verschieben', fn: () => { applyFx({ terr: 10, food: 12, rel: { wind: -18 } }); if (chance(0.6)) { Missions.add(makeMission('drive', { team: 'wind', n: 3, at: G.flags.see ? { x: 7500, y: 3350, name: 'die WindClan-Grenze' } : LM.schlucht, title: 'WindClan-Vergeltung' })); return [['erz', 'Der WindClan wird das nicht einfach hinnehmen …']]; } } },
       { t: 'Mehr Jagdpatrouillen losschicken', fn: () => applyFx({ food: 12, morale: -5, health: -3 }) },
       { t: 'Ich jage selbst für den Clan', fn: () => Missions.add(makeMission('hunt', { n: 4 })) },
     ], log: (c, t) => `Hunger im Clan – Entscheidung: ${t}`
@@ -250,7 +250,7 @@ const EVENTS = [
     ]
   },
   {
-    id: 'fuchs', prep: () => ({ at: pick([LM.schlangenfelsen, LM.platane, LM.eulenbaum, LM.sonnenfelsen]) }), text: c => `Ein Fuchs streift durch das Territorium nahe ${c.at.name}!`,
+    id: 'fuchs', prep: () => ({ at: pick(donnerPlaces()) }), text: c => `Ein Fuchs streift durch das Territorium nahe ${c.at.name}!`,
     choices: c => [
       { t: 'Ich führe selbst eine Patrouille an', fn: () => Missions.add(makeMission('beast', { kind: 'fuchs', at: c.at })) },
       { t: 'Krieger schicken', fn: () => { if (chance(0.65)) applyFx({ morale: 3, terr: 2 }); else { const w = randWarrior(); if (w) { w.hurt = true; w.hp = 10; } applyFx({ morale: -4 }); return [['erz', 'Die Patrouille kehrt verletzt zurück. Der Fuchs ist noch da.']]; } } },
@@ -260,7 +260,7 @@ const EVENTS = [
   {
     id: 'dachs', when: () => moon() > 2, text: 'Ein Dachs wurde nahe der Großen Platane gesehen. Dachse sind gefährlich – selbst für erfahrene Krieger.',
     choices: () => [
-      { t: 'Mit Kriegern angreifen (Auftrag)', fn: () => Missions.add(makeMission('beast', { kind: 'dachs', at: LM.platane, allies: 2 })) },
+      { t: 'Mit Kriegern angreifen (Auftrag)', fn: () => Missions.add(makeMission('beast', { kind: 'dachs', at: pick(donnerPlaces()), allies: 2 })) },
       { t: 'Die Königinnen im Lager bewachen', fn: () => applyFx({ food: -5, health: 2 }) },
     ]
   },
@@ -287,7 +287,7 @@ const EVENTS = [
     ]
   },
   {
-    id: 'jungesweg', when: () => clanCats().some(c => c.rank === 'junges'), prep: () => ({ k: pick(clanCats().filter(c => c.rank === 'junges')), at: pick([LM.schlangenfelsen, LM.eulenbaum, LM.donnerweg, LM.platane, LM.sonnenfelsen]) }),
+    id: 'jungesweg', when: () => clanCats().some(c => c.rank === 'junges'), prep: () => ({ k: pick(clanCats().filter(c => c.rank === 'junges')), at: pick(donnerPlaces()) }),
     text: c => `${catName(c.k)} ist aus der Kinderstube verschwunden! Die Mutter ist außer sich.`,
     choices: c => [
       { t: 'Ich suche selbst!', fn: () => Missions.add(makeMission('kit', { kit: c.k.id, at: c.at })) },
@@ -330,7 +330,8 @@ const EVENTS = [
 ];
 const PROPHECIES = ['„Wenn der Schnee schmilzt, wird ein Stern fallen.“', '„Drei Pfoten werden den Wald vor dem Sturm bewahren.“', '„Das Wasser wird zurückkehren, wenn die Blätter fallen.“',
   '„Ein Schatten wächst im Kiefernwald.“', '„Wolken werden den Mond verhüllen, doch Licht findet einen Weg.“', '„Nur der Mut eines Jungen wird die Dunkelheit brechen.“'];
-function borderPoint(k) { return k === 'schatten' ? { x: 2600, y: 1560, name: 'die Grenze am Donnerweg' } : k === 'fluss' ? { x: 1320, y: 2200, name: 'die Sonnenfelsen' } : { x: 3450, y: 2300, name: 'die WindClan-Grenze' }; }
+function donnerPlaces() { return G.flags.see ? [LM.buchenhain, LM.zweibeinernest, LM.seeufer] : [LM.schlangenfelsen, LM.platane, LM.eulenbaum, LM.sonnenfelsen]; }
+function borderPoint(k) { if (G.flags.see) return k === 'schatten' ? { x: 6900, y: 2600, name: 'die SchattenClan-Grenze' } : k === 'fluss' ? { x: 6950, y: 3650, name: 'die FlussClan-Grenze' } : { x: 7450, y: 3450, name: 'die WindClan-Grenze' }; return k === 'schatten' ? { x: 2600, y: 1560, name: 'die Grenze am Donnerweg' } : k === 'fluss' ? { x: 1320, y: 2200, name: 'die Sonnenfelsen' } : { x: 3450, y: 2300, name: 'die WindClan-Grenze' }; }
 
 // ===== Aufträge (Missionen) =====
 function makeMission(type, o = {}) {
@@ -344,7 +345,7 @@ function makeMission(type, o = {}) {
   if (type === 'drive') { m.title = m.title || `${CLAN_NAMES[m.team]}-Krieger vertreiben`; m.title += ` (${m.at.name})`; m.rw = { xp: 60, rep: 5, terr: 6, morale: 4, rel: { [m.team]: -6 } }; }
   if (type === 'herbs') { m.title = `${m.n} × ${HERBS[m.kind].n} sammeln`; m.rw = { xp: 30, health: 10 }; }
   if (type === 'kit') { m.title = `${catName(catById(m.kit))} finden (${m.at.name})`; m.rw = { xp: 40, morale: 8, rep: 5 }; m.exp = day() + 2; }
-  if (type === 'gathering') { m.title = 'Große Versammlung (Vollmond-Nacht am Baumgeviert)'; m.exp = day() + 2; m.rw = { rep: 3 }; }
+  if (type === 'gathering') { m.title = `Große Versammlung (Vollmond-Nacht – ${LM.baumgeviert.name})`; m.exp = day() + 2; m.rw = { rep: 3 }; }
   return m;
 }
 const Missions = {
@@ -417,7 +418,7 @@ function offerMission(giver) {
   if (G.stage !== 'schueler' && chance(0.4)) opts.push('beast');
   const t = pick(opts);
   let m;
-  if (t === 'beast') m = makeMission('beast', { kind: 'fuchs', at: pick([LM.schlangenfelsen, LM.platane, LM.eulenbaum]) });
+  if (t === 'beast') m = makeMission('beast', { kind: 'fuchs', at: pick(donnerPlaces()) });
   else m = makeMission(t, { n: randi(2, 3) });
   Missions.add(m);
   const lines = { hunt: `Der Frischbeutehaufen wird kleiner. Fang ${m.n} Stück Beute und bring sie ins Lager.`, patrol: `Geh auf Grenzpatrouille und erneuere die Duftmarken: ${m.pts && m.pts.map(p => p.name).join(' und ')}.`, beast: `Man hat einen Fuchs nahe ${m.at && m.at.name} gerochen. Vertreibe ihn!` };
@@ -468,7 +469,7 @@ function gatheringDialog() {
 let foreignT = 0;
 function foreignPatrols(dt) {
   const pc = P(), t = territoryAt(pc.x, pc.y);
-  if (!['schatten', 'fluss', 'wind'].includes(t) || G.stage === 'hauskaetzchen' || Story.noPatrols() || (t === 'wind' && G.flags.windExil)) { foreignT = 0; return; }
+  if (!['schatten', 'fluss', 'wind'].includes(t) || G.stage === 'hauskaetzchen' || Story.noPatrols() || (t === 'wind' && G.flags.windExil) || G.flags.zerstoert || (G.flags.see && pc.x < OLD_W)) { foreignT = 0; return; }
   foreignT += dt;
   if (foreignT > 12 && !ENTS.some(e => e.warnT !== undefined && !e.defeated)) {
     foreignT = 0;
@@ -485,7 +486,7 @@ function foreignPatrols(dt) {
 function populateCamps() {
   const pc = P();
   for (const cp of OB.camps) {
-    if (cp.clan === 'donner' || (cp.clan === 'wind' && G.flags.windExil)) continue;
+    if (cp.clan === 'donner' || (cp.clan === 'wind' && G.flags.windExil && !cp.lake) || cp.lake !== !!G.flags.see || G.flags.zerstoert) continue;
     const near = dist(pc.x, pc.y, cp.lm.x, cp.lm.y) < 900;
     const have = ENTS.filter(e => e.campOf === cp.clan);
     if (near && !have.length) for (let i = 0; i < 6; i++) spawnClanCat(cp.clan, cp.lm.x + rand(-100, 100), cp.lm.y + rand(-100, 100), { hostile: false, campOf: cp.clan, wander: { x: cp.lm.x, y: cp.lm.y, r: 140 }, rank: pick(['krieger', 'krieger', 'koenigin', 'aeltester', 'schueler']) });

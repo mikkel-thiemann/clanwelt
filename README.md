@@ -13,12 +13,16 @@ Du entdeckst den Wald, triffst den DonnerClan und wirst Schüler, Krieger, Zweit
 Danach geht die Geschichte weiter: Neue Junge werden geboren, Schüler werden Krieger, Krieger werden alt,
 Freunde sterben, neue Feinde tauchen auf. Du führst den Clan durch viele Monde.
 
-- **Offene Welt:** DonnerClan-Wald, SchattenClan-Kiefernwald und Sumpf, FlussClan-Fluss, WindClan-Moor,
+- **Offene Welt:** Berge, Küste mit Meer, der große See mit den neuen Clan-Lagern, DonnerClan-Wald, SchattenClan-Kiefernwald und Sumpf, FlussClan-Fluss, WindClan-Moor,
   Donnerweg mit Monstern, Baumgeviert, Hochfelsen mit dem Mondstein, Zweibeinerort
 - **Story nach der ersten Staffel (Buch 1–6):** In die Wildnis · Feuer und Eis · Geheimnisse des Waldes · Vor dem Sturm · Pfad der Gefahr · Stunde der Finsternis
   – Rotschweifs Tod, das zerrissene Halsband, Gelbzahn als Gefangene, Rabenpfotes Geheimnis, die Ratten in der Scheune,
   die gestohlenen Jungen, die Heimkehr des WindClans, Silberfluss, die Flut, Wolkenjunges, Tigerkralles Verrat,
   der Waldbrand, Tigerstern, die Hundemeute, neun Leben am Mondstein, BlutClan und Geißel
+- **Staffel 2 „Die neue Prophezeiung“ (Buch 7–12):** Mitternacht · Mondschein · Morgenröte · Sternenglanz · Dämmerung · Sonnenuntergang
+  – du spielst Brombeerkralle: die Reise zum Wassernest der Sonne, der Dachs Mitternacht, der Stamm des eilenden Wassers
+  und Scharfzahn, die Zerstörung des Waldes durch die Zweibeiner, die große Wanderung aller vier Clans,
+  die neue Heimat am See mit Insel und Mondsee, der Dachsangriff, Tigersterns Geist und Habichtfrosts Falle
 - **Jagen:** Schleichen, anpirschen und springen. Mäuse, Amseln, Eichhörnchen, Kaninchen, Frösche und Fische
 - **Kämpfen:** Übungskämpfe, Grenzkämpfe, Füchse, Dachse und die Hundemeute
 - **Überleben:** Hunger, Ausdauer, Kräuter, Tag und Nacht, vier Jahreszeiten, Wetter

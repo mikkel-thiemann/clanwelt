@@ -68,7 +68,7 @@ const Dlg = {
 };
 
 // ---------- Große Titel (Buch-Anfang) ----------
-const BOOKS = ['', 'In die Wildnis', 'Feuer und Eis', 'Geheimnisse des Waldes', 'Vor dem Sturm', 'Pfad der Gefahr', 'Stunde der Finsternis'];
+const BOOKS = ['', 'In die Wildnis', 'Feuer und Eis', 'Geheimnisse des Waldes', 'Vor dem Sturm', 'Pfad der Gefahr', 'Stunde der Finsternis', 'Mitternacht', 'Mondschein', 'Morgenröte', 'Sternenglanz', 'Dämmerung', 'Sonnenuntergang'];
 function titleCard(top, main) {
   const d = $('titlecard'); d.innerHTML = `<div class="tc1">${top}</div><div class="tc2">${main}</div>`;
   d.classList.remove('show'); void d.offsetWidth; d.classList.add('show');
@@ -98,7 +98,7 @@ const UI = {
     $('lives').textContent = pc.rank === 'anfuehrer' ? '✦'.repeat(G.player.lives) + ` ${G.player.lives} Leben` : '';
     // Aufgaben
     let h = '';
-    if (!Story.done()) { const q = Story.quest(); h += `<div class="ch">Buch ${q.ch} · ${q.title}</div><h4>➤ ${Story.text() || ''}</h4>`; }
+    if (!Story.done()) { const q = Story.quest(); h += `<div class="ch">${q.ch > 6 ? 'Staffel 2 · ' : ''}Buch ${q.ch} · ${q.title}</div><h4>➤ ${Story.text() || ''}</h4>`; }
     else if (G.freeplay) h += `<div class="ch">Freies Spiel</div><h4>Führe deinen Clan durch die Monde</h4>`;
     if (G.missions.length) h += '<div class="ms">' + G.missions.map(m => `<div>◆ ${m.title}${m.n > 1 && m.type !== 'drive' && m.type !== 'beast' ? ` (${Math.min(m.prog, m.n)}/${m.n})` : ''}${m.type === 'herbs' && m.prog >= m.n ? ' → zum Heiler' : ''}</div>`).join('') + '</div>';
     if (G.eventQ.length && !Dlg.open) h += `<div class="ms">⚠ Eine Entscheidung wartet (weg von Kämpfen)</div>`;
@@ -190,9 +190,9 @@ function clanPanel() {
   return h;
 }
 const relWord = r => r < 20 ? 'Feindschaft' : r < 40 ? 'Misstrauen' : r < 60 ? 'Neutral' : r < 80 ? 'Freundlich' : 'Eng verbunden';
-const STAGE_ORDER = [['hauskaetzchen', 'Hauskätzchen'], ['schueler', 'Schüler'], ['krieger', 'Krieger'], ['zweiter', 'Zweiter Anführer'], ['anfuehrer', 'Anführer'], ['generation', 'Neue Generation']];
+const STAGE_ORDER = [['hauskaetzchen', 'Hauskätzchen'], ['schueler', 'Schüler'], ['krieger', 'Krieger'], ['zweiter', 'Zweiter Anführer'], ['anfuehrer', 'Anführer'], ['staffel2', 'Staffel 2'], ['staffel2b', 'Zweiter Anführer'], ['generation', 'Neue Generation']];
 function chronPanel() {
-  const cards = STAGE_ORDER.filter(([k]) => G.stages[k] || k !== 'generation').map(([k, t]) => {
+  const cards = STAGE_ORDER.filter(([k]) => G.stages[k] || !['generation', 'staffel2', 'staffel2b'].includes(k)).map(([k, t]) => {
     const s = G.stages[k];
     return `<div class="stage ${s ? '' : 'locked'}">${s ? `<img src="${portraitURL(s.look, 72)}" style="width:${Math.round(44 + s.size * 28)}px">` : '<div class="q">?</div>'}<b>${s ? s.name : '???'}</b><span>${t}</span><span class="small">${s ? 'Mond ' + (s.moon + 1) : ''}</span></div>`;
   });

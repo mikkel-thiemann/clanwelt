@@ -21,6 +21,7 @@ function newGame() {
     clan: { pile: 34, health: 80, morale: 70, terr: 80 }, others: newOtherClans(),
     missions: [], chron: [], prophecies: [], herbsTaken: {}, seen: {}, eventQ: [], evSeen: {}, lastDay: 0, freeplay: false, weather: null
   };
+  applyRelocation(false);
   createStartCats();
   setStage('hauskaetzchen');
   chron('Sammy, ein junges Hauskätzchen, lebt am Rand des Waldes.');
@@ -39,6 +40,8 @@ function loadGame() {
   if (!d) return false;
   ENTS.length = PREY.length = CARS.length = FX.length = 0;
   G = d;
+  applyRelocation(!!(G.flags && G.flags.see));
+  if (G.flags && G.flags.zerstoert && !G.flags.see) spawnBulldozers();
   for (const c of G.cats) { c.spar = false; c.kx = c.ky = 0; if (c.ai && c.ai.m !== 'follow' && c.ai.m !== 'hold') c.ai = { m: 'home' }; if (!c.ai) c.ai = { m: 'home' }; }
   for (const m of G.missions) { m.spawned = false; if (m.type === 'kit') { m.placed = false; m.stage = 0; } }
   startPlay();
@@ -301,7 +304,7 @@ addEventListener('resize', resize);
 function render(t, dt) {
   if (!G || !R3) return;
   const pc = P(), title = state === 'title';
-  const tx = title ? LM.lager.x : pc.x, tz = title ? LM.lager.y : pc.y;
+  const tx = title ? LM0.lager.x : pc.x, tz = title ? LM0.lager.y : pc.y;
   render3D(t, dt, tx, tz, title);
   octx.clearRect(0, 0, VW, VH);
   if (title) { hideLabels(); return; }
