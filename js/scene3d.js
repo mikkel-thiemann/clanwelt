@@ -347,7 +347,9 @@ function buildRocks() {
   const m = inst(geo, OB.rocks.length);
   OB.rocks.forEach((r, i) => {
     const g = heightAt(r.x, r.y), hoch = dist(r.x, r.y, hs.x, hs.y) < 5, big = r.r > 50;
-    const hy = hoch ? r.r * 1.9 : big ? r.r * 1.3 : r.r * 0.65;
+    const hoch2 = dist(r.x, r.y, denPos('hochstein', LM0.steinmulde).x, denPos('hochstein', LM0.steinmulde).y) < 5;
+    const hy = hoch || hoch2 ? r.r * 1.9 : big ? r.r * 1.3 : r.r * 0.65;
+    if (hoch || hoch2) (W3.rockTops = W3.rockTops || []).push({ x: r.x, y: r.y, top: g + hy * 0.35 + hy * 0.72 });
     _o.position.set(r.x, g + hy * 0.35, r.y); _o.rotation.set((r.x % 3) * 0.3, r.y % 6, (r.y % 5) * 0.1); _o.scale.set(r.r, hy, r.r); _o.updateMatrix();
     m.setMatrixAt(i, _o.matrix); const v = r.col; m.setColorAt(i, srgb(v, v - 4, v - 12));
   });
@@ -526,6 +528,11 @@ function updateSky(tx, tz, dt, t) {
   PLIGHT.intensity = (1 - f) * 1.1; PLIGHT.position.set(tx, surfaceY(tx, tz) + 60, tz);
   W3.stars.position.copy(CAMERA.position); W3.stars.material.opacity = (1 - f) * 0.9 * (G.weather ? 0.2 : 1);
   W3.moon.position.set(CAMERA.position.x - 1500, CAMERA.position.y + 1300, CAMERA.position.z - 2000); W3.moon.material.opacity = 1 - f;
+  // Traumszenen: SternenClan (blau, Sterne) oder Wald der Finsternis (rot, dunkel)
+  const dm = typeof dreamMode === 'function' ? dreamMode() : null;
+  document.body.classList.toggle('dream', dm === 'stern'); document.body.classList.toggle('nightmare', dm === 'finster');
+  if (dm === 'stern') { sky.set(0x2a3a8a); W3.skyU.hor.value.set(0x3a4aa0); W3.skyU.top.value.set(0x080c30); W3.skyU.sunAmt.value = 0; SC.fog.color.set(0x2a3478); SC.fog.near = 120; SC.fog.far = 900; W3.stars.material.opacity = 1; HEMI.intensity = 0.7; HEMI.color.set(0x9fb4ff); SUN.intensity = 0.4; SUN.color.set(0xbfd0ff); if (Math.random() < 0.6) FX3.sparkle(tx + rand(-200, 200), surfaceY(tx, tz) + rand(10, 80), tz + rand(-200, 200), '#cfe0ff', 2); }
+  if (dm === 'finster') { sky.set(0x2a0808); W3.skyU.hor.value.set(0x4a1010); W3.skyU.top.value.set(0x0a0202); W3.skyU.sunAmt.value = 0; SC.fog.color.set(0x220606); SC.fog.near = 60; SC.fog.far = 500; W3.stars.material.opacity = 0; HEMI.intensity = 0.35; HEMI.color.set(0xff8a7a); SUN.intensity = 0.25; SUN.color.set(0xff6a50); }
   // Wetter
   const w = G.weather, r = W3.rain; r.visible = !!w;
   if (w) {
@@ -566,6 +573,11 @@ function updateCamera(dt, tx, tz, title) {
     const side = angDiff(CAMS.yaw, a + Math.PI / 2) < Math.PI / 2 && angDiff(CAMS.yaw, a + Math.PI / 2) > -Math.PI / 2 ? 1 : -1;
     yaw = a + side * Math.PI / 2; pitch = 0.16; dst = 58 + dist(sp_.x, sp_.y, pc.x, pc.y) * 0.45;
   } else if (!title && Dlg.open) { dst = CAMS.dist * 0.75; pitch = Math.max(0.2, CAMS.pitch - 0.1); }
+  // Zeremonie: Blick von hinter dem Clan hinauf zum Hochstein
+  if (!title && G.ceremony && Dlg.open && W3.rockTops) {
+    const hs = denPos('hochstein'), rt = W3.rockTops.find(t => dist(t.x, t.y, hs.x, hs.y) < 60);
+    if (rt) { const a = Math.atan2(hs.y - LM.lager.y, hs.x - LM.lager.x); tx = hs.x - Math.cos(a) * 60; tz = hs.y - Math.sin(a) * 60; ty = rt.top - 30; yaw = a; pitch = 0.05; dst = 300; }
+  }
   CAMS.cy = lerp(CAMS.cy === undefined ? yaw : CAMS.cy, CAMS.cy === undefined ? yaw : CAMS.cy + angDiff(CAMS.cy, yaw), 1 - Math.pow(0.02, dt));
   CAMS.cp = lerp(CAMS.cp === undefined ? pitch : CAMS.cp, pitch, 1 - Math.pow(0.02, dt));
   CAMS.cd = lerp(CAMS.cd === undefined ? dst : CAMS.cd, dst, 1 - Math.pow(0.02, dt));
@@ -624,7 +636,7 @@ function syncModels(t, dt) {
       const m = useModel(e, () => makeCatModel(e.look, { star: e.star, collar: e.collar })); placeEnt(m, e);
       m.scale.setScalar((e.rank === 'anfuehrer' ? 1.08 : 1) * (e.look.size || 1) * (e.kit ? 0.55 : 1));
       const spd = entSpeed(m, e, dt);
-      animateCat(m, e, t, dt, { speed: spd, wind: e.wind > 0, fight: e.hostile && !e.defeated, flash: e.flash });
+      animateCat(m, e, t, dt, { speed: spd, wind: e.wind > 0, fight: e.hostile && !e.defeated, flash: e.flash, sleep: !!e.corpse });
       if (e.star) m.position.y += 6 + Math.sin(t * 1.5 + e.x) * 3;
       footFx(m, e, spd);
     }
@@ -675,6 +687,7 @@ function footFx(m, e, spd) {
 }
 function placeEnt(m, e) {
   let y = surfaceY(e.x, e.y);
+  if (e.onRock && W3.rockTops) { const t = W3.rockTops.find(t => dist(t.x, t.y, e.x, e.y) < 60); if (t) y = t.top; }
   if ((inRiver(e.x, e.y) && !inRoad(e.x, e.y)) || inLake(e.x, e.y) || inOcean(e.x, e.y)) y -= 4;
   m.position.set(e.x, y, e.y);
   m.rotation.y = -e.dir;

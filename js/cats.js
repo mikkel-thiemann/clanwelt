@@ -215,7 +215,7 @@ function moveEnt(e, vx, vy, dt) {
   if (isWater(e.x, e.y) && !e.beast) f = e.team === 'fluss' ? 0.85 : 0.5;
   if (e.kx || e.ky) { vx += e.kx; vy += e.ky; e.kx *= Math.pow(0.002, dt); e.ky *= Math.pow(0.002, dt); if (Math.abs(e.kx) + Math.abs(e.ky) < 5) e.kx = e.ky = 0; }
   const ox = e.x, oy = e.y;
-  e.x += vx * f * dt; e.y += vy * f * dt; collide(e, e.r || 10);
+  e.x += vx * f * dt; e.y += vy * f * dt; if (!e.onRock) collide(e, e.r || 10);
   const sp = Math.hypot(vx, vy);
   if (sp > 5) { const a = Math.atan2(vy, vx); e.dir += angDiff(e.dir, a) * Math.min(1, dt * 12); e.phase = (e.phase || 0) + dt * sp * 0.09; e.moving = true; }
   else e.moving = false;
@@ -341,6 +341,7 @@ function updateEnts(dt) {
       if (dist(e.x, e.y, pc.x, pc.y) > 700) ENTS.splice(i, 1);
       continue;
     }
+    if (e.corpse) continue;
     if (e.kind === 'bagger') { // Zweibeiner-Monster fährt hin und her
       const tg = e.leg ? e.b : e.a;
       if (steer(e, tg.x, tg.y, 55, dt, 20)) e.leg = !e.leg;
@@ -432,7 +433,8 @@ function updateCat(c, dt, t) {
       break;
     case 'hold':
       moveEnt(c, 0, 0, dt);
-      if (dist(c.x, c.y, pc.x, pc.y) < 150) c.dir += angDiff(c.dir, Math.atan2(pc.y - c.y, pc.x - c.x)) * dt * 3;
+      if (ai.face !== undefined) c.dir += angDiff(c.dir, ai.face) * Math.min(1, dt * 4);
+      else if (dist(c.x, c.y, pc.x, pc.y) < 150) c.dir += angDiff(c.dir, Math.atan2(pc.y - c.y, pc.x - c.x)) * dt * 3;
       break;
     case 'patrol': {
       const wp = ai.wp[ai.i];

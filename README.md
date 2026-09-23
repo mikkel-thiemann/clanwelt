@@ -36,6 +36,10 @@ Freunde sterben, neue Feinde tauchen auf. Du führst den Clan durch viele Monde.
   Merkmale aus den Büchern (Löwenherz' Mähne, Blausterns silberne Schnauze, Graustreifs Rückenstreif, Rabenpfotes weiße Schwanzspitze …)
 - **Katzen führen dich:** Wer dir etwas zeigt, läuft voraus und wartet auf dich
 - **Das Lager wie im Buch:** Senke mit Ginstertunnel, Hochstein mit Anführerhöhle, Ältestenbau im umgestürzten Baum, Heilerbau am Felsspalt
+- **Erzählkunst:** Film-Szenen mit Kinobalken und Untertiteln, Zeremonien am Hochstein mit dem ganzen Clan,
+  Totenwachen, Traumszenen (SternenClan und Wald der Finsternis), „Was bisher geschah“ zu jedem Buch,
+  Clan-Katzen, die sich über die Geschichte unterhalten, Älteste, die den Jungen Geschichten erzählen,
+  Figuren, die je nach Buch Neues zu sagen haben, und Gedanken an wichtigen Orten
 - **Grafik-Einstellung:** Im Menü zwischen „Schön“ und „Schnell“ umschalten (für langsamere Geräte)
 
 ## Steuerung

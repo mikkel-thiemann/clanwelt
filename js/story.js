@@ -127,6 +127,8 @@ const QUESTS = [
         dlg: () => [
           ['erz', 'Im Kampf reißt Langschweif dir das Halsband vom Hals. Es liegt zerfetzt im Staub.'],
           ['blaustern', 'Genug! Das Halsband ist fort. Der SternenClan hat gesprochen: Dein altes Leben ist vorbei.'],
+          CEREMONY('blaustern', []),
+          ['erz', 'Blaustern springt auf den Hochstein. Der ganze Clan versammelt sich darunter.'],
           ['blaustern', 'Von diesem Tag an, bis du deinen Kriegernamen erhältst, heißt du Feuerpfote – denn dein Fell leuchtet wie eine Flamme. Ich selbst werde deine Mentorin sein.'],
           { do: () => { renamePlayer('schueler'); P().mentor = 'blaustern'; setStage('schueler'); goHome('langschweif'); chron('Sammy verlässt die Zweibeiner und wird Feuerpfote, Schüler im DonnerClan. Blaustern ist seine Mentorin.'); } },
           ['alle', 'Feuerpfote! Feuerpfote!'],
@@ -134,7 +136,7 @@ const QUESTS = [
           ['erz', 'Da kommen Tigerkralle und sein Schüler Rabenpfote ins Lager. Rabenpfote blutet an der Schulter.'],
           ['tigerkralle', 'Blaustern. Wir haben an den Sonnenfelsen gegen den FlussClan gekämpft. Rotschweif ist tot. Er hat Eichenherz getötet, bevor er fiel.'],
           ['blaustern', 'Rotschweif … Ich sage diese Worte vor dem SternenClan, damit sein Geist mich hört: Löwenherz wird der neue Zweite Anführer des DonnerClans.'],
-          { do: () => { setRank(catById('loewenherz'), 'zweiter'); goHome('tigerkralle'); goHome('loewenherz'); goHome('blaustern'); chron('Rotschweif stirbt an den Sonnenfelsen. Löwenherz wird Zweiter Anführer.'); } },
+          { do: () => { setRank(catById('loewenherz'), 'zweiter'); endCeremony(); goHome('tigerkralle'); goHome('loewenherz'); goHome('blaustern'); chron('Rotschweif stirbt an den Sonnenfelsen. Löwenherz wird Zweiter Anführer.'); } },
           ['graupfote', 'Komm, Feuerpfote. Ich zeig dir das Lager!'],
         ]
       },
@@ -255,6 +257,7 @@ const QUESTS = [
     ch: 1, title: 'Feuerherz', steps: [
       {
         t: 'scene', dlg: () => [
+          CEREMONY('blaustern', ['graupfote']),
           ['erz', 'Blaustern springt auf den Hochstein. „Alle Katzen, die alt genug sind, ihre eigene Beute zu jagen, sollen sich hier versammeln!“'],
           ['blaustern', 'Ich, Blaustern, Anführerin des DonnerClans, rufe meine Kriegerahnen an, auf diese beiden Schüler herabzublicken. Sie haben hart trainiert, um euer edles Gesetz zu verstehen.'],
           ['blaustern', 'Feuerpfote, Graupfote – versprecht ihr, das Gesetz der Krieger zu achten und euren Clan zu beschützen, selbst wenn es euer Leben kostet?'],
@@ -263,6 +266,7 @@ const QUESTS = [
           ['blaustern', 'Feuerpfote, von diesem Moment an heißt du Feuerherz. Der SternenClan ehrt deinen Mut und deine Stärke. Graupfote, du heißt von nun an Graustreif.'],
           { do: () => { renamePlayer('krieger', 'herz'); const g = catById('graupfote'); setRank(g, 'krieger'); setStage('krieger'); chron('Feuerpfote wird Krieger: Feuerherz! Graupfote heißt nun Graustreif. (Ende von Buch 1)'); gainXp(P(), 60); } },
           ['alle', 'Feuerherz! Graustreif! Feuerherz! Graustreif!'],
+          CEREMONY_END,
           ['erz', 'In der Nacht haltet ihr schweigend Wache über das Lager – so will es die Tradition.'],
           ['erz', '— Ende von Buch 1: In die Wildnis —'],
         ]
@@ -274,10 +278,12 @@ const QUESTS = [
     ch: 2, title: 'Aschenpfote', steps: [
       {
         t: 'scene', dlg: () => [
+          CEREMONY('blaustern', ['aschenjunges', 'farnjunges']),
           ['blaustern', 'Frostfells Junge sind sechs Monde alt. Aschenjunges, von heute an heißt du Aschenpfote. Feuerherz wird dein Mentor.'],
           { do: () => { const a = catById('aschenjunges'); a.age = Math.max(6, a.age); setRank(a, 'schueler'); a.mentor = P().id; const f = catById('farnjunges'); if (f) { f.age = Math.max(6, f.age); setRank(f, 'schueler'); f.mentor = 'graupfote'; f.storyLock = false; } const d = catById('dornenjunges'); if (d) { d.age = Math.max(6, d.age); setRank(d, 'schueler'); d.mentor = 'mausefell'; d.storyLock = false; } ['sandpfote', 'staubpfote'].forEach(id => { const c = catById(id); if (c && c.rank === 'schueler') { setRank(c, 'krieger'); c.storyLock = false; } }); chron('Feuerherz wird Mentor von Aschenpfote, Graustreif von Farnpfote.'); } },
           ['blaustern', 'Farnjunges, du heißt Farnpfote. Graustreif wird dein Mentor.'],
           ['aschenjunges', 'Ich werde die beste Kriegerin im ganzen Wald! Wann fangen wir an, Feuerherz?'],
+          CEREMONY_END,
         ]
       },
       { t: 'goto', at: 'sandkuhle', text: 'Trainiere mit Aschenpfote in der Sandkuhle', enter() { follow('aschenjunges'); }, dlg: () => [['erz', 'Aschenpfote übt den Jagdkauer – und stolpert über ihren eigenen Schwanz. Beim dritten Versuch klappt es!'], ['aschenjunges', 'Hast du das gesehen?! Ich bin ein Naturtalent!']], done() { gainXp(catById('aschenjunges'), 50); } },
@@ -365,9 +371,11 @@ const QUESTS = [
           ['blaustern', 'Tigerkralle, du bist verbannt. Wenn wir dich nach Sonnenaufgang in unserem Territorium finden, werden wir dich töten.'],
           ['tigerkralle', 'Ihr werdet mich wiedersehen. Das schwöre ich euch!'],
           { do: () => { const t = catById('tigerkralle'); t.clan = 'einzel'; t.rank = 'einzel'; t.hidden = true; G.flags.tigerVerbannt = moon(); chron('Tigerkralle versucht, Blaustern zu töten, und wird verbannt.'); } },
+          CEREMONY('blaustern', []),
           ['blaustern', 'Der Clan braucht einen neuen Zweiten Anführer. Ich sage diese Worte vor dem SternenClan: Feuerherz wird der neue Zweite Anführer des DonnerClans.'],
           { do: () => { setRank(P(), 'zweiter'); setStage('zweiter'); chron('Feuerherz wird Zweiter Anführer. (Ende von Buch 3)'); gainXp(P(), 80); } },
           ['alle', 'Feuerherz! Feuerherz!'],
+          CEREMONY_END,
           ['erz', '— Ende von Buch 3: Geheimnisse des Waldes —'],
         ], done() { goHome('blaustern'); }
       },
@@ -472,7 +480,7 @@ const QUESTS = [
     ch: 6, title: 'Neun Leben', steps: [
       { t: 'night', text: 'Warte bis zur Nacht (E an deinem Bau)' },
       {
-        t: 'goto', at: 'mondstein', guide: 'aschenjunges', guideSay: 'Ich kenne den Weg zum Mondstein. Folge mir, Feuerherz.', text: 'Folge Aschenpelz zum Mondstein', enter() { follow('aschenjunges'); }, dlg: () => [
+        t: 'goto', at: 'mondstein', dream: 'stern', guide: 'aschenjunges', guideSay: 'Ich kenne den Weg zum Mondstein. Folge mir, Feuerherz.', text: 'Folge Aschenpelz zum Mondstein', enter() { follow('aschenjunges'); }, dlg: () => [
           ['erz', 'Tief im Berg glänzt der Mondstein wie ein gefrorener Stern. Du legst dich hin und berührst ihn mit der Nase …'],
           { do: () => ghosts(['rotschweif', 'loewenherz', 'tuepfelblatt', 'gelbzahn', 'buntgesicht', 'silberfluss', 'blaustern']) },
           ['erz', 'Katzen aus Sternenlicht umringen dich. Der SternenClan ist gekommen.'],
@@ -489,8 +497,8 @@ const QUESTS = [
         ]
       },
       {
-        t: 'goto', at: 'lager', text: 'Kehre als Feuerstern ins Lager zurück', enter() { follow('aschenjunges'); }, dlg: () => [['alle', 'Feuerstern! Feuerstern!'], {
-          who: 'player', text: 'Du ernennst deinen Zweiten Anführer:', choices: clanCats().filter(c => c.rank === 'krieger' && c !== P()).sort((a, b) => (b.id === 'weisspelz') - (a.id === 'weisspelz') || (b.id === 'graupfote') - (a.id === 'graupfote')).slice(0, 3).map(c => ({ t: catName(c) + (c.id === 'weisspelz' ? ' (wie im Buch)' : ''), fn: () => { setRank(c, 'zweiter'); chron(`${catName(c)} wird Zweiter Anführer.`); return [[c.id, 'Ich werde dich nicht enttäuschen, Feuerstern.']]; } }))
+        t: 'goto', at: 'lager', text: 'Kehre als Feuerstern ins Lager zurück', enter() { follow('aschenjunges'); }, dlg: () => [CEREMONY('sammy', []), ['erz', 'Du springst auf den Hochstein. Zum ersten Mal blickst du als Anführer auf deinen Clan hinab.'], ['alle', 'Feuerstern! Feuerstern!'], {
+          who: 'player', text: 'Du ernennst deinen Zweiten Anführer:', choices: clanCats().filter(c => c.rank === 'krieger' && c !== P()).sort((a, b) => (b.id === 'weisspelz') - (a.id === 'weisspelz') || (b.id === 'graupfote') - (a.id === 'graupfote')).slice(0, 3).map(c => ({ t: catName(c) + (c.id === 'weisspelz' ? ' (wie im Buch)' : ''), fn: () => { setRank(c, 'zweiter'); chron(`${catName(c)} wird Zweiter Anführer.`); return [[c.id, 'Ich werde dich nicht enttäuschen, Feuerstern.'], CEREMONY_END]; } }))
         }], done() { goHome('aschenjunges'); }
       },
     ]
@@ -560,7 +568,7 @@ const QUESTS = [
       },
       { t: 'night', text: 'Leg dich im Kriegerbau schlafen (warte bis zur Nacht)' },
       {
-        t: 'scene', dlg: () => [
+        t: 'scene', dream: 'stern', dlg: () => [
           { do: () => ghosts(['blaustern']) },
           ['erz', 'Im Traum stehst du in einem Wald aus Sternenlicht. Eine blaugraue Kätzin tritt auf dich zu.'],
           ['blaustern', 'Brombeerkralle. Ein großes Unheil kommt über den Wald. Eine Katze aus jedem Clan muss aufbrechen.'],
@@ -684,7 +692,7 @@ const QUESTS = [
       { t: 'goto', at: 'zweibeinernest', guide: 'sandpfote', text: 'Folge Sandsturm zum verlassenen Zweibeinernest', done() { goHome('sandpfote'); }, dlg: () => [['erz', 'Ein altes, halb verfallenes Zweibeinernest. Zwischen den Steinen wachsen Katzenminze und andere Kräuter. Blattpfote wird sich freuen.']] },
       { t: 'talk', who: 'blattjunges', text: 'Blattpfote hat etwas gespürt – sprich mit ihr', dlg: () => [['blattjunges', 'Brombeerkralle … ich habe geträumt. Oben in den Hügeln gibt es einen Teich, in dem die Sterne leuchten. Dort können Heiler mit dem SternenClan sprechen. Kommst du mit?']], done() { follow('blattjunges'); } },
       {
-        t: 'goto', at: 'mondstein', guide: 'blattjunges', guideSay: 'Hier hinauf! Ich spüre es – es ist ganz nah!', text: 'Folge Blattpfote hinauf in die Hügel', enter() { follow('blattjunges'); }, dlg: () => [
+        t: 'goto', at: 'mondstein', dream: 'stern', guide: 'blattjunges', guideSay: 'Hier hinauf! Ich spüre es – es ist ganz nah!', text: 'Folge Blattpfote hinauf in die Hügel', enter() { follow('blattjunges'); }, dlg: () => [
           { do: () => ghosts(['blaustern', 'tuepfelblatt', 'gelbzahn', 'loewenherz']) },
           ['erz', 'Ein Wasserfall plätschert in einen kleinen Teich. Das Wasser glänzt silbern im Mondlicht – und um ihn herum erscheinen Katzen aus Sternenlicht.'],
           ['tuepfelblatt', 'Willkommen, Blattpfote. Dies ist der Mondsee. Hier werdet ihr uns von nun an finden.'],
@@ -709,7 +717,7 @@ const QUESTS = [
     ch: 11, title: 'Die Dachse', steps: [
       { t: 'night', text: 'Du bist müde … schlafe (warte bis zur Nacht)' },
       {
-        t: 'scene', dlg: () => [
+        t: 'scene', dream: 'finster', dlg: () => [
           { do: () => { const t = catById('tigerkralle'); const pc = P(); spawnClanCat('sternen', pc.x + 60, pc.y, { id: 'tigergeist', name: 'Tigerstern', look: Object.assign({}, t.look, { base: '#3a2818' }), star: true, hostile: false, truce: true, story: true, ai: 'leader' }); } },
           ['erz', 'Im Traum stehst du in einem dunklen Wald ohne Sterne. Ein riesiger Tigerkater wartet auf dich.'],
           ['tigergeist', 'Mein Sohn. Ich kann dich lehren, der stärkste Krieger aller Clans zu werden. Stärker als Feuerstern.'],
@@ -806,7 +814,7 @@ const Story = {
     this.finishing = true;
     const lines = st.dlg ? st.dlg() : null;
     const end = () => { this.finishing = false; if (st.done) st.done(); this.advance(); };
-    if (lines && lines.length) Dlg.show(lines, end); else end();
+    if (lines && lines.length) Dlg.show(lines, end, { cine: true }); else end();
   },
   advance(silent) {
     const prev = this.step();
@@ -817,7 +825,7 @@ const Story = {
       G.story.q++; G.story.s = 0;
       if (!silent) toast(`✔ Abgeschlossen: ${q.title}`);
       const nq = this.quest();
-      if (nq) { if (nq.ch !== q.ch) setTimeout(() => titleCard('Buch ' + nq.ch, BOOKS[nq.ch]), 600); else setTimeout(() => toast(`📖 ${nq.title}`), 1200); }
+      if (nq) { if (nq.ch !== q.ch) setTimeout(() => titleCard((nq.ch > 6 ? 'Staffel 2 · ' : '') + 'Buch ' + nq.ch, BOOKS[nq.ch], RECAP[nq.ch]), 600); else setTimeout(() => toast(`📖 ${nq.title}`), 1200); }
       saveGame();
     }
     this.enter();

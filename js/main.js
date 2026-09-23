@@ -27,7 +27,7 @@ function newGame() {
   chron('Sammy, ein junges Hauskätzchen, lebt am Rand des Waldes.');
   startPlay();
   Story.enter();
-  setTimeout(() => titleCard('Buch 1', BOOKS[1]), 300);
+  setTimeout(() => titleCard('Buch 1', BOOKS[1], 'Ein junger roter Kater namens Sammy lebt bei seinen Zweibeinern. Jede Nacht träumt er vom Wald hinter dem Zaun …'), 300);
 }
 function saveGame() {
   if (!G) return;
@@ -101,7 +101,7 @@ function findInteract() {
   const take = (d, o) => { if (d < bd) { bd = d; best = o; } };
   const st = Story.step(), storyWho = st && st.t === 'talk' ? st.who : null;
   for (const c of G.cats) { if (!c.alive || c.hidden || c === pc || c.spar) continue; const d = dist(pc.x, pc.y, c.x, c.y); if (d < 62) take(c.id === storyWho ? d - 60 : d, { type: 'cat', c, label: `Sprechen mit ${catName(c)}` }); }
-  for (const e of ENTS) { if (e.hostile || e.defeated || e.kind !== 'cat') continue; const d = dist(pc.x, pc.y, e.x, e.y); if (d < 62) take(d, { type: 'ent', e, label: `Sprechen mit ${e.name}` }); }
+  for (const e of ENTS) { if (e.hostile || e.defeated || e.kind !== 'cat' || e.corpse) continue; const d = dist(pc.x, pc.y, e.x, e.y); if (d < 62) take(d, { type: 'ent', e, label: `Sprechen mit ${e.name}` }); }
   if (pc.clan === 'donner') { const p = denPos('pile'), d = dist(pc.x, pc.y, p.x, p.y); if (d < 55) take(d - 20, { type: 'pile', label: G.player.carry.length ? 'Beute auf den Frischbeutehaufen legen' : `Frischbeutehaufen (${Math.floor(G.clan.pile)} Stück) – F: fressen` }); }
   const den = playerDen(); if (den) { const d = dist(pc.x, pc.y, den.x, den.y + 20); if (d < 60) take(d + 10, { type: 'den', label: 'Ausruhen / Schlafen' }); }
   OB.herbs.forEach((h, i) => { if (!herbAvailable(i)) return; const d = dist(pc.x, pc.y, h.x, h.y); if (d < 34) take(d - 30, { type: 'herb', i, label: `${HERBS[h.k].n} pflücken` }); });
@@ -155,6 +155,7 @@ const LORE = ['Kennst du das Gesetz der Krieger? Verteidige deinen Clan – auch
   'Weißt du, warum der Donnerweg so heißt? Weil die Monster donnern wie ein Sturm!', 'Bei der Großen Versammlung herrscht Frieden – so will es der SternenClan seit Anbeginn.',
   'Die Ältesten und die Jungen werden zuerst gefüttert. So war es immer.', 'Ich habe einmal einen Dachs gesehen, so groß wie ein Fuchs und doppelt so wütend!'];
 function greet(c) {
+  const sg_ = storyGreet(c); if (sg_ && chance(0.8)) return sg_;
   const pc = P(), n = catName(pc), st = clanStats();
   if (c.id === 'wulle') return pc.clan === 'haus' ? pick(['Die Zweibeiner haben heute ein neues Kissen gekauft. Herrlich!', 'Hast du von den wilden Katzen gehört? Brrr.']) : pick([`Sammy?! Bist du das? Du riechst nach Wald … und nach Abenteuer.`, 'Ist das Leben im Wald nicht kalt? Hier gibt es warmes Futter, weißt du.']);
   if (c.id === 'mikusch') return 'Die Mäuse in der Scheune sind fett. Rabenpfote geht es gut hier.';
@@ -229,6 +230,7 @@ function updatePlayer(dt) {
   if (raw.y < -0.3 && CAMS.dragT > 1.2 && !pc.lungeT) CAMS.yaw += angDiff(CAMS.yaw, pc.dir) * Math.min(1, dt * 1.2);
   if (pressed.has('KeyQ')) { pl.sneak = !pl.sneak; toast(pl.sneak ? 'Du schleichst (Beute hört dich kaum).' : 'Du läufst normal.'); }
   const moving = inp.x || inp.y;
+  if (moving && pc.onRock) { pc.onRock = false; const hs = denPos('hochstein'); pc.x = hs.x + (pc.x - hs.x) * 1.8 + 40; pc.y = hs.y + 75; }
   let sp = pl.sneak ? 78 : 150 + pc.sk.tempo * 6;
   const wantRun = (keys.has('ShiftLeft') || keys.has('ShiftRight') || touchRun) && !pl.sneak && moving;
   if (wantRun && pl.stamina > 1) { sp = 250 + pc.sk.tempo * 12; pl.stamina -= dt * 22; pc.running = true; }
@@ -388,6 +390,7 @@ function frame(ts) {
       foreignPatrols(dt);
       campT -= dt; if (campT <= 0) { campT = 1; populateCamps(); }
       Clan.process();
+      campChatter(dt); checkThoughts(dt); syncVigils(dt);
       saveT += dt; if (saveT > 30) { saveT = 0; saveGame(); }
     }
     pressed.clear();

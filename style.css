@@ -159,3 +159,20 @@ h3 { color: var(--gold); margin: 12px 0 6px; font-size: 15px; }
 .choice { transition: transform .12s, background .12s; }
 .choice:hover { transform: translateX(4px); }
 #hud .box, #topright .box { backdrop-filter: blur(4px); }
+
+/* ===== Film-Modus bei Story-Szenen ===== */
+#cineTop, #cineBot { position: fixed; left: 0; right: 0; height: 0; background: #000; z-index: 9; pointer-events: none; transition: height .6s ease; }
+#cineTop { top: 0; } #cineBot { bottom: 0; }
+body.cine #cineTop, body.cine #cineBot { height: 9vh; }
+#hud, #topright, #menubar, #hint, #carry, #toasts { transition: opacity .5s; }
+body.cine #hud, body.cine #topright, body.cine #menubar, body.cine #hint, body.cine #carry { opacity: 0; pointer-events: none; }
+body.cine #dialog.narr { background: transparent; border: none; box-shadow: none; justify-content: center; bottom: 11vh; }
+body.cine #dialog.narr #dlgText { font-size: clamp(17px, 2.3vw, 24px); text-align: center; text-shadow: 0 2px 6px #000, 0 0 18px #000; color: #f4ecd8; font-family: Georgia, 'Times New Roman', serif; }
+body.cine #dialog.narr #dlgNext { right: 50%; }
+#titlecard .tc3 { max-width: 640px; margin: 18px auto 0; font-size: clamp(14px, 1.8vw, 18px); font-style: italic; color: #e8dcc0; text-shadow: 0 2px 6px #000; font-family: Georgia, serif; }
+#titlecard .tc3 b { color: var(--gold); font-style: normal; }
+#titlecard.show { animation-duration: 7s; }
+/* ===== Traum-Stimmung ===== */
+#dreamFx { position: fixed; inset: 0; pointer-events: none; z-index: 3; opacity: 0; transition: opacity 1.2s; }
+body.dream #dreamFx { opacity: 1; background: radial-gradient(ellipse at center, rgba(120,150,255,0) 45%, rgba(40,60,160,.55) 100%); }
+body.nightmare #dreamFx { opacity: 1; background: radial-gradient(ellipse at center, rgba(120,0,0,0) 35%, rgba(60,0,0,.75) 100%); }

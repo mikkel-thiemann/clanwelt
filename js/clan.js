@@ -149,6 +149,7 @@ const Clan = {
 function news(text, quiet) { toast(text); chron(text); }
 function killCat(c, text) {
   c.alive = false; c.deathMoon = moon();
+  if (c.clan === 'donner' && c !== P()) addVigil(c);
   if (c.ai) c.ai = { m: 'home' };
   if (text) news(text);
   for (const k of G.cats) { if (k.mentor === c.id) k.mentor = null; if (k.ai && k.ai.tgt === c.id) k.ai = { m: 'home' }; }
@@ -173,7 +174,7 @@ function ceremonyApprentice(c, leader) {
     news(`${kitName} heißt jetzt ${catName(c)}. Mentor: ${catName(m)}.`);
     return [['erz', `„${catName(c)}, von diesem Tag an bis zu deinem Kriegernamen heißt du so. ${m === P() ? 'Ich selbst' : catName(m)} werde dich ausbilden.“`], [c.id, 'Ich werde mir große Mühe geben!']];
   }
-  Dlg.show([['erz', `${kitName} ist sechs Monde alt geworden. Es ist Zeit für die Schülerzeremonie!`], { who: 'player', text: 'Wer soll Mentor werden?', choices: opts }]);
+  Dlg.show([CEREMONY(P().id, [c.id]), ['erz', `${kitName} ist sechs Monde alt geworden. Es ist Zeit für die Schülerzeremonie!`], { who: 'player', text: 'Wer soll Mentor werden?', choices: opts }, CEREMONY_END], null, { cine: true });
 }
 function ceremonyWarrior(c, leader) {
   const old = catName(c);
@@ -181,11 +182,12 @@ function ceremonyWarrior(c, leader) {
   const sufs = [c.suf].concat(shuffle(SUFFIXES.filter(s => s !== c.suf)).slice(0, 2));
   const canon = c.id.endsWith('junges');
   Dlg.show([
+    CEREMONY(P().id, [c.id]),
     ['erz', `${old} hat die Ausbildung abgeschlossen. Der ganze Clan versammelt sich unter dem Hochstein.`],
     ['player', `${old}, versprichst du, das Gesetz der Krieger zu achten und deinen Clan zu beschützen – selbst wenn es dein Leben kostet?`],
     [c.id, 'Ich verspreche es.'],
-    { who: 'player', text: 'Welchen Kriegernamen gibst du?', choices: sufs.map(s => ({ t: c.pre + s + (canon && s === c.suf ? ' (wie in den Büchern)' : ''), fn: () => { c.suf = s; setRank(c, 'krieger'); news(`${old} ist jetzt ein Krieger: ${catName(c)}!`); applyFx({ morale: 3 }, true); return [['alle', `${catName(c)}! ${catName(c)}!`]]; } })) }
-  ]);
+    { who: 'player', text: 'Welchen Kriegernamen gibst du?', choices: sufs.map(s => ({ t: c.pre + s + (canon && s === c.suf ? ' (wie in den Büchern)' : ''), fn: () => { c.suf = s; setRank(c, 'krieger'); news(`${old} ist jetzt ein Krieger: ${catName(c)}!`); applyFx({ morale: 3 }, true); return [['alle', `${catName(c)}! ${catName(c)}!`], CEREMONY_END]; } })) }
+  ], null, { cine: true });
 }
 function birth(q, leader) {
   const n = randi(1, 3), kits = [];

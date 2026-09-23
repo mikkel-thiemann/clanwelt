@@ -12,9 +12,10 @@ function whoInfo(who) {
 }
 const Dlg = {
   open: false, lines: [], pending: [], cb: null, typing: 0, full: '', choosing: false,
-  show(lines, cb) {
-    if (this.open) { this.pending.push({ lines, cb }); return; }
-    this.lines = lines.slice(); this.cb = cb || null; this.open = true;
+  show(lines, cb, opt) {
+    if (this.open) { this.pending.push({ lines, cb, opt }); return; }
+    this.lines = lines.slice(); this.cb = cb || null; this.open = true; this.cine = !!(opt && opt.cine);
+    document.body.classList.toggle('cine', this.cine);
     $('dialog').classList.remove('hidden');
     this.next();
   },
@@ -25,9 +26,9 @@ const Dlg = {
     while (line && line.do && !line.text) { line.do(); line = this.lines.shift(); }
     if (!line) {
       this.speaker = null;
-      this.open = false; $('dialog').classList.add('hidden');
+      this.open = false; document.body.classList.remove('cine'); $('dialog').classList.add('hidden');
       const cb = this.cb; this.cb = null; if (cb) cb();
-      if (!this.open && this.pending.length) { const p = this.pending.shift(); this.show(p.lines, p.cb); }
+      if (!this.open && this.pending.length) { const p = this.pending.shift(); this.show(p.lines, p.cb, p.opt); }
       return;
     }
     if (Array.isArray(line)) line = { who: line[0], text: line[1] };
@@ -69,8 +70,8 @@ const Dlg = {
 
 // ---------- Große Titel (Buch-Anfang) ----------
 const BOOKS = ['', 'In die Wildnis', 'Feuer und Eis', 'Geheimnisse des Waldes', 'Vor dem Sturm', 'Pfad der Gefahr', 'Stunde der Finsternis', 'Mitternacht', 'Mondschein', 'Morgenröte', 'Sternenglanz', 'Dämmerung', 'Sonnenuntergang'];
-function titleCard(top, main) {
-  const d = $('titlecard'); d.innerHTML = `<div class="tc1">${top}</div><div class="tc2">${main}</div>`;
+function titleCard(top, main, sub) {
+  const d = $('titlecard'); d.innerHTML = `<div class="tc1">${top}</div><div class="tc2">${main}</div>` + (sub ? `<div class="tc3"><b>Was bisher geschah:</b> ${sub}</div>` : '');
   d.classList.remove('show'); void d.offsetWidth; d.classList.add('show');
 }
 

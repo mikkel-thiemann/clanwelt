@@ -85,6 +85,7 @@
     <p class="credit">Ein Fan-Spiel nach der Buchreihe „Warrior Cats“ von Erin Hunter.</p>
   </div>
 </div>
+<div id="cineTop"></div><div id="cineBot"></div><div id="dreamFx"></div>
 <div id="fade"></div>
 <div id="titlecard"></div>
 
@@ -96,8 +97,8 @@ try {
   const [a, b, c, d] = await Promise.all(['postprocessing/EffectComposer.js', 'postprocessing/RenderPass.js', 'postprocessing/UnrealBloomPass.js', 'postprocessing/OutputPass.js'].map(f => import('three/addons/' + f)));
   window.THREE_ADDONS = { EffectComposer: a.EffectComposer, RenderPass: b.RenderPass, UnrealBloomPass: c.UnrealBloomPass, OutputPass: d.OutputPass };
 } catch (e) { console.warn('Bloom nicht verfügbar', e); }
-const files = ['util', 'world', 'models', 'cats', 'clan', 'story', 'ui', 'scene3d', 'fx3d', 'main'];
-for (const f of files) await new Promise((ok, fail) => { const s = document.createElement('script'); s.src = 'js/' + f + '.js?v=' + (location.hostname === 'localhost' ? Date.now() : 6); s.onload = ok; s.onerror = fail; document.body.appendChild(s); });
+const files = ['util', 'world', 'models', 'cats', 'clan', 'story', 'tales', 'ui', 'scene3d', 'fx3d', 'main'];
+for (const f of files) await new Promise((ok, fail) => { const s = document.createElement('script'); s.src = 'js/' + f + '.js?v=' + (location.hostname === 'localhost' ? Date.now() : 7); s.onload = ok; s.onerror = fail; document.body.appendChild(s); });
 </script>
 </body>
 </html>
