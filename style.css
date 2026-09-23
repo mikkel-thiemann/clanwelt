@@ -50,7 +50,7 @@ button { font-family: inherit; cursor: pointer; }
 
 #dialog { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); width: min(780px, 94vw); display: flex; gap: 14px; background: rgba(18, 22, 14, .95); border: 2px solid #b8904a; border-radius: 16px; padding: 14px; z-index: 10; box-shadow: 0 8px 30px rgba(0, 0, 0, .6); cursor: pointer; }
 #dialog.narr { border-color: #6a7a9a; background: rgba(14, 18, 30, .95); }
-#dlgPortrait { width: 96px; height: 96px; border-radius: 12px; border: 2px solid #b8904a; flex: none; }
+#dlgPortrait { width: 128px; height: 128px; border-radius: 14px; border: 2px solid #b8904a; flex: none; }
 .dlgBody { flex: 1; min-width: 0; position: relative; }
 #dlgName { color: var(--gold); font-weight: bold; font-size: 16px; margin-bottom: 4px; }
 #dlgText { font-size: 16px; line-height: 1.45; min-height: 46px; }

@@ -38,7 +38,7 @@ const Dlg = {
     $('dlgName').textContent = isNarr ? '' : (w.all ? w.name : nameOf(w) + (w.rank && RANKS[w.rank] && !w.name ? ' · ' + rankName(w) : ''));
     const pc = $('dlgPortrait'), g = pc.getContext('2d');
     pc.style.display = isNarr || w.all ? 'none' : 'block';
-    if (!isNarr && w.look) drawPortrait(g, w.look, 96, 96, { star: w.alive === false });
+    if (!isNarr && w.look) drawPortrait(g, w.look, 160, 160, { star: w.alive === false });
     $('dialog').classList.toggle('narr', isNarr);
     this.full = line.text || ''; this.typing = 0; $('dlgText').textContent = '';
     const box = $('dlgChoices'); box.innerHTML = '';

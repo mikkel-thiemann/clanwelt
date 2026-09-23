@@ -232,7 +232,7 @@ function leafTexture() {
 function buildBushes() {
   const kinds = { wall: [], fern: [], bramble: [], heather: [], reed: [], garden: [] };
   for (const b of OB.bushes) (kinds[b.k] || kinds.fern).push(b);
-  const ico1 = new THREE.IcosahedronGeometry(1, 1), reed = frondGeo(9, 0.05, 1.0, 0.15, true), fern = frondGeo(9, 0.2, 0.55, 1, false), heath = frondGeo(14, 0.07, 0.6, 0.55, true);
+  const ico1 = new THREE.IcosahedronGeometry(1, 3), reed = frondGeo(9, 0.05, 1.0, 0.15, true), fern = frondGeo(9, 0.2, 0.55, 1, false), heath = frondGeo(14, 0.07, 0.6, 0.55, true);
   W3.inst.bush = {};
   for (const k in kinds) {
     const arr = kinds[k], leafy = k === 'fern' || k === 'reed' || k === 'heather';
@@ -628,7 +628,7 @@ function syncModels(t, dt) {
     const m = useModel(c, () => makeCatModel(c.look, { collar: c.id === 'sammy' && c.clan === 'haus' ? '#c0392b' : (c.collar || null) }));
     placeEnt(m, c); m.scale.setScalar(catSize(c));
     const spd = entSpeed(m, c, dt);
-    animateCat(m, c, t, dt, { speed: spd, sleep: c.sleep && !c.moving, sneak: c === pc && G.player.sneak, player: c === pc, lungeP: c.lungeT > 0 ? 1 - c.lungeT / 0.17 : undefined, wind: c.wind > 0, flash: c.flash, fight: !!c.spar || nearestFoe(c, 180) && isFighterRank(c.rank) });
+    animateCat(m, c, t, dt, { near: dist(c.x, c.y, CAMERA.position.x, CAMERA.position.z) < 380, speed: spd, sleep: c.sleep && !c.moving, sneak: c === pc && G.player.sneak, player: c === pc, lungeP: c.lungeT > 0 ? 1 - c.lungeT / 0.17 : undefined, wind: c.wind > 0, flash: c.flash, fight: !!c.spar || nearestFoe(c, 180) && isFighterRank(c.rank) });
     footFx(m, c, spd);
   }
   for (const e of ENTS) {
@@ -639,7 +639,7 @@ function syncModels(t, dt) {
       const m = useModel(e, () => makeCatModel(e.look, { star: e.star, collar: e.collar })); placeEnt(m, e);
       m.scale.setScalar((e.rank === 'anfuehrer' ? 1.08 : 1) * (e.look.size || 1) * (e.kit ? 0.55 : 1));
       const spd = entSpeed(m, e, dt);
-      animateCat(m, e, t, dt, { speed: spd, wind: e.wind > 0, fight: e.hostile && !e.defeated, flash: e.flash, sleep: !!e.corpse });
+      animateCat(m, e, t, dt, { near: dist(e.x, e.y, CAMERA.position.x, CAMERA.position.z) < 380, speed: spd, wind: e.wind > 0, fight: e.hostile && !e.defeated, flash: e.flash, sleep: !!e.corpse });
       if (e.star) m.position.y += 6 + Math.sin(t * 1.5 + e.x) * 3;
       footFx(m, e, spd);
     }

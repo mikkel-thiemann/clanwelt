@@ -55,7 +55,7 @@ function furTexture(look) {
     }
     g.fillRect(Wd / 2 - 4, 0, 8, Ht - 30);
     // „M“ auf der Stirn (vorderes Ende)
-    g.strokeStyle = look.stripe; g.lineWidth = 3; g.beginPath(); g.moveTo(Wd / 2 - 14, Ht - 6); g.lineTo(Wd / 2 - 7, Ht - 22); g.lineTo(Wd / 2, Ht - 10); g.lineTo(Wd / 2 + 7, Ht - 22); g.lineTo(Wd / 2 + 14, Ht - 6); g.stroke();
+    if (!look.noM) { g.strokeStyle = look.stripe; g.lineWidth = 3; g.beginPath(); g.moveTo(Wd / 2 - 14, Ht - 6); g.lineTo(Wd / 2 - 7, Ht - 22); g.lineTo(Wd / 2, Ht - 10); g.lineTo(Wd / 2 + 7, Ht - 22); g.lineTo(Wd / 2 + 14, Ht - 6); g.stroke(); }
   }
   if (look.dorsal) { g.fillStyle = look.dorsal; g.fillRect(Wd / 2 - 7, 0, 14, Ht - 40); }
   if (look.muzzle) { g.fillStyle = look.muzzle; g.beginPath(); g.ellipse(Wd / 2, Ht, 40, 26, 0, 0, TAU); g.fill(); }
@@ -70,78 +70,144 @@ function legTexture(look) {
   const c = document.createElement('canvas'); c.width = 32; c.height = 64; const g = c.getContext('2d');
   g.fillStyle = look.white > 0.3 ? '#f2eee6' : look.base; g.fillRect(0, 0, 32, 64);
   if (look.white > 0.3 && look.white < 0.6) { g.fillStyle = look.base; g.fillRect(0, 0, 32, 40 - look.white * 40); }
-  if (look.stripe && look.white <= 0.3) { g.fillStyle = look.stripe; for (let y = 6; y < 58; y += 11) g.fillRect(0, y, 32, 3.5); }
+  if (look.stripe && look.white <= 0.3) { g.globalAlpha = 0.55; g.fillStyle = look.stripe; for (let y = 8; y < 44; y += 14) g.fillRect(0, y, 32, 4); g.globalAlpha = 1; }
   for (let i = 0; i < 200; i++) { g.fillStyle = Math.random() < 0.5 ? 'rgba(0,0,0,.06)' : 'rgba(255,255,255,.06)'; g.fillRect(Math.random() * 32, Math.random() * 64, 1, 3); }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; FURTEX.set(key, t); return t;
 }
 let _tailCyl = null;
 const TAILCYL = () => _tailCyl || (_tailCyl = new THREE.CylinderGeometry(0.92, 1, 1, 8, 1, true));
 const _ta = new THREE.Vector3(), _tb = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
+// ----- Glatter Katzenkörper aus Querschnitten (statt einzelner Kugeln) -----
+// Schlüssel: x-Position, halbe Höhe, halbe Breite, Mitte (y)
+const BODY_KEYS = [[-14.2, 0.4, 0.4, 1.0], [-13.2, 3.4, 3.1, 0.8], [-10, 5.9, 5.2, 0.4], [-6.5, 6.3, 5.5, 0.2], [-2, 5.1, 4.5, 0.8], [2.5, 5.7, 4.8, 0.1], [6.5, 6.7, 5.3, -0.4], [9.8, 5.8, 4.7, 0.6], [12.2, 4.2, 3.8, 1.6], [13.4, 0.5, 0.5, 2.2]];
+const LOFTS = new Map();
+function loftGeo(fat = 1, fluffy = 1) {
+  const key = fat + '|' + fluffy; if (LOFTS.has(key)) return LOFTS.get(key);
+  const seg = 30, rad = 20, K = BODY_KEYS, x0 = K[0][0], x1 = K[K.length - 1][0];
+  const pos = [], uv = [], idx = [];
+  for (let s = 0; s <= seg; s++) {
+    const x = x0 + (x1 - x0) * s / seg;
+    let i = 0; while (i < K.length - 2 && K[i + 1][0] < x) i++;
+    const a = K[i], b = K[i + 1], t = (x - a[0]) / (b[0] - a[0]), e = t * t * (3 - 2 * t);
+    const ry = lerp(a[1], b[1], e) * fluffy, rz = lerp(a[2], b[2], e) * fat * fluffy, cy = lerp(a[3], b[3], e);
+    for (let r = 0; r <= rad; r++) {
+      const th = r / rad * TAU;
+      pos.push(x, cy - Math.cos(th) * ry, Math.sin(th) * rz);
+      uv.push(r / rad, 1 - s / seg);
+    }
+  }
+  for (let s = 0; s < seg; s++) for (let r = 0; r < rad; r++) { const a = s * (rad + 1) + r, b = a + rad + 1; idx.push(a, b, a + 1, b, b + 1, a + 1); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals();
+  LOFTS.set(key, g); return g;
+}
+const BAKED = new Map();
+function bakedSphere(sx, sy, sz, seg = 20) {
+  const key = [sx, sy, sz, seg].join('|'); if (BAKED.has(key)) return BAKED.get(key);
+  const g = new THREE.SphereGeometry(1, seg, Math.round(seg * 0.7)).rotateZ(Math.PI / 2).scale(sx, sy, sz); BAKED.set(key, g); return g;
+}
+// ----- Fell: hauchdünne Haarschichten ergeben einen weichen, pelzigen Rand -----
+let _hairTex = null;
+function hairTex() {
+  if (_hairTex) return _hairTex;
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+  g.fillStyle = '#000'; g.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 16000; i++) { const v = Math.random() * 255 | 0; g.fillStyle = `rgb(${v},${v},${v})`; g.beginPath(); g.ellipse(Math.random() * 256, Math.random() * 256, 1.3, 2.6, Math.random() * 0.6 - 0.3, 0, TAU); g.fill(); }
+  _hairTex = new THREE.CanvasTexture(c); _hairTex.wrapS = _hairTex.wrapT = THREE.RepeatWrapping; _hairTex.repeat.set(4, 7);
+  return _hairTex;
+}
+const SHELLS = 5;
+function shellMaterials(tex, sc = 1) {
+  const out = [];
+  for (let k = 1; k <= SHELLS; k++) {
+    const m = toonMat({ map: tex, alphaMap: hairTex(), alphaTest: 0.12 + k * 0.13, color: new THREE.Color(1, 1, 1).multiplyScalar(0.82 + k * 0.05) });
+    const off = (k * 0.42 * sc).toFixed(3), droop = (k * 0.1 * sc).toFixed(3);
+    m.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>\n transformed += normal * ${off}; transformed.y -= ${droop};`); };
+    m.customProgramCacheKey = () => 'shell' + k + '|' + sc;
+    out.push(m);
+  }
+  return out;
+}
+function addShells(mesh, mats, list) { for (const m of mats) { const s = new THREE.Mesh(mesh.geometry, m); mesh.add(s); list.push(s); } }
+
 function makeCatModel(look, opts = {}) {
   const g = geos(), root = new THREE.Group(), body = new THREE.Group(); root.add(body);
-  const mFur = addRim(toonMat({ map: furTexture(look) }));
+  const bodyTex = furTexture(Object.assign({}, look, { noM: true })), headTex = furTexture(look);
+  const mFur = addRim(toonMat({ map: bodyTex }));
+  const mHead = addRim(toonMat({ map: headTex }));
   const mBase = addRim(toonMat({ color: look.base }));
   const mLegT = addRim(toonMat({ map: legTexture(look) }));
-  const mWhite = toonMat({ color: 0xf2eee6 });
+  const mWhite = addRim(toonMat({ color: 0xf2eee6 }));
   const mStripe = look.stripe ? toonMat({ color: look.stripe }) : mBase;
   const W_ = look.white > 0.3, mPaw = W_ ? mWhite : mBase, mFace = look.white > 0.35 ? mWhite : (look.muzzle ? toonMat({ color: look.muzzle }) : mBase);
-  const mats = [mFur, mBase, mWhite, mStripe, mLegT];
-  const fat = look.fat ? 1.3 : 1, earS = look.earS || 1, tailL = look.tailL || 1;
+  const mats = [mFur, mHead, mBase, mWhite, mStripe, mLegT];
+  const fat = look.fat ? 1.3 : 1, earS = look.earS || 1, tailL = look.tailL || 1, fl = look.long ? 1.12 : 1;
+  const shellsB = shellMaterials(bodyTex), shellsH = shellMaterials(headTex, 0.22), shellsL = shellMaterials(legTexture(look), 0.18), shellsLB = shellMaterials(bodyTex, 0.12), shells = [];
   const spine = new THREE.Group(); spine.position.set(0, 14, 0); body.add(spine);
-  const cs = [8.6, 6.4, 6.0 * fat], hs = [8.8, 6.0, 5.8 * fat];
-  const chest = mk(g.sr, mFur, cs[0], cs[1], cs[2], 4.6, 0.5, 0, spine); chest.castShadow = true;
-  const hips = mk(g.sr, mFur, hs[0], hs[1], hs[2], -5, 0, 0, spine); hips.castShadow = true;
-  if (look.long) { mk(g.lo, mBase, 6.5, 7.2, 7.4 * fat, 6, 1.2, 0, spine); mk(g.lo, mBase, 6.8, 6.8, 7 * fat, -4.5, 0.6, 0, spine); }
+  const torso = new THREE.Mesh(loftGeo(fat, fl), mFur); torso.castShadow = true; spine.add(torso);
+  addShells(torso, shellsB, shells);
+  const hips = new THREE.Object3D(); spine.add(hips);
   const neck = new THREE.Group(); neck.position.set(10.5, 2.2, 0); spine.add(neck);
-  mk(g.sr, mFur, 3.4, 4.3, 3.6, 0.8, 1.8, 0, neck);
-  if (look.long || look.mane) mk(g.lo, mBase, look.mane ? 5.4 : 4.2, look.mane ? 6.6 : 5.2, look.mane ? 7.8 : 5.8, 0, 1.2, 0, neck);
+  const neckM = new THREE.Mesh(bakedSphere(3.6 * fl, 4.4 * fl, 3.7 * fl * fat), mFur); neckM.position.set(0.6, 1.6, 0); neck.add(neckM); addShells(neckM, shellsB, shells);
+  if (look.mane) { const mn = new THREE.Mesh(bakedSphere(5.2, 6.4, 7.4), mBase); mn.position.set(0, 1.2, 0); neck.add(mn); addShells(mn, shellsB, shells); }
   const head = new THREE.Group(); head.position.set(3.4, 4.6, 0); neck.add(head);
-  const skull = mk(g.sr, mFur, 4.9, 4.4, 5.0, 0, 0, 0, head); skull.castShadow = true;
+  const skull = new THREE.Mesh(bakedSphere(4.8, 4.3, 5.0), mHead); skull.castShadow = true; head.add(skull); addShells(skull, shellsH, shells);
   const flat = look.flatface ? 0.75 : 1;
-  for (const sd of [-1, 1]) mk(g.lo, mFace, 2.6, 2.3, 2.4, 1.6, -1.4, sd * 2.1, head);
+  for (const sd of [-1, 1]) {
+    mk(g.lo, mFace, 2.6, 2.3, 2.4, 1.6, -1.4, sd * 2.1, head);
+    // flauschige Wangenbüschel
+    for (let k = 0; k < 3; k++) { const t = mk(g.cone, mFace, 0.9, 2.6, 0.9, 0.6 - k * 1.1, -2.1 + k * 0.3, sd * (3.6 + k * 0.1), head); t.rotation.set(sd * (1.9 + k * 0.15), 0, -0.5 + k * 0.25); }
+  }
   mk(g.s, mFace, 2.2 * flat, 1.8, 2.4, 3.6 + flat * 0.3, -1.7, 0, head);
   mk(g.lo, sharedMat('#c9707e'), 0.7, 0.55, 0.9, 3.9 + flat * 1.9, -0.95, 0, head);
+  // Anime-Augen: dunkler Lidstrich, große Iris, schmale Pupille, zwei Glanzpunkte
   const eyeM = new THREE.MeshBasicMaterial({ color: new THREE.Color(look.eye).multiplyScalar(1.7) }); mats.push(eyeM);
   const eyes = [];
   for (const sd of [-1, 1]) {
-    const eg = new THREE.Group(); eg.position.set(3.55, 0.85, sd * 1.95); eg.rotation.y = -sd * 0.35; head.add(eg);
-    mk(g.lo, eyeM, 1.0, 1.3, 1.35, 0, 0.1, 0, eg);
-    mk(g.lo, sharedMat('#050505'), 0.4, 1.1, 0.35, 0.7, 0.05, 0, eg);
+    const eg = new THREE.Group(); eg.position.set(3.75, 0.9, sd * 2.0); eg.rotation.set(sd * 0.12, -sd * 0.35, 0); head.add(eg);
+    mk(g.lo, sharedMat('#0a0604'), 1.0, 1.5, 1.65, -0.18, 0.12, 0, eg);
+    mk(g.lo, eyeM, 1.0, 1.28, 1.35, 0, 0.1, 0, eg);
+    mk(g.lo, sharedMat('#050505'), 0.4, 1.1, 0.32, 0.7, 0.05, 0, eg);
     mk(g.lo, new THREE.MeshBasicMaterial({ color: 0xffffff }), 0.32, 0.32, 0.32, 0.85, 0.55, sd * 0.25, eg);
     mk(g.lo, new THREE.MeshBasicMaterial({ color: 0xffffff }), 0.15, 0.15, 0.15, 0.85, -0.35, -sd * 0.2, eg);
     eyes.push(eg);
   }
   const ears = [];
   for (const sd of [-1, 1]) {
-    const ep = new THREE.Group(); ep.position.set(-0.9, 3.3, sd * 2.4); head.add(ep);
-    mk(g.cone, mBase, 2.5 * earS, 5.2 * earS, 1.7 * earS, 0, 2.3 * earS, 0, ep);
-    mk(g.cone, sharedMat('#d99a9a'), 1.5 * earS, 3.6 * earS, 0.8 * earS, 0.55, 2.1 * earS, 0, ep);
+    const ep = new THREE.Group(); ep.position.set(-0.9, 3.2, sd * 2.4); head.add(ep);
+    mk(g.cone, mBase, 2.7 * earS, 5.8 * earS, 1.8 * earS, 0, 2.6 * earS, 0, ep);
+    mk(g.cone, sharedMat('#d99a9a'), 1.6 * earS, 4.0 * earS, 0.8 * earS, 0.55, 2.3 * earS, 0, ep);
+    for (let k = 0; k < 3; k++) { const tf = mk(g.cone, mWhite, 0.35, 2.2 * earS, 0.35, 0.8, 1.2 + k * 0.5, (k - 1) * 0.4, ep); tf.rotation.z = -0.3 + k * 0.1; }
     ep.userData.s = sd; ears.push(ep);
   }
-  const wv = []; for (const sd of [-1, 1]) for (let i = -1; i <= 1; i++) wv.push(4.6, -1.8, sd * 1.4, 6.8, -1.5 + i * 0.8, sd * (7 + Math.abs(i)));
+  const wv = []; for (const sd of [-1, 1]) for (let i = -1; i <= 1; i++) wv.push(4.6, -1.8, sd * 1.4, 7.4, -1.5 + i * 0.9, sd * (7.5 + Math.abs(i)));
   head.add(new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(wv, 3)), whiskerMat()));
   const legs = [];
+  const legGeoU = LEGU(), legGeoL = LEGL();
   for (const [lx, lz, front] of [[7.4, 2.9, 1], [7.4, -2.9, 1], [-7.2, 3.2, 0], [-7.2, -3.2, 0]]) {
     const up = new THREE.Group(); up.position.set(lx, -0.6, lz); spine.add(up);
-    mk(g.cyl, front ? mLegT : mFur, front ? 1.55 : 2.5, 7.2, front ? 1.55 : 2.2, 0, -3.4, 0, up);
+    const um = new THREE.Mesh(legGeoU, front ? mLegT : mFur); um.scale.set(front ? 1.7 : 2.6, 7.2, front ? 1.7 : 2.3); um.position.y = -3.4; up.add(um); addShells(um, front ? shellsL : shellsLB, shells);
     const knee = new THREE.Group(); knee.position.set(0, -7.0, 0); up.add(knee);
-    mk(g.cyl, mLegT, 1.3, 6.8, 1.3, 0, -3.3, 0, knee);
-    mk(g.lo, mPaw, 1.8, 1.0, 2.0, 0.6, -6.7, 0, knee);
+    const lm = new THREE.Mesh(legGeoL, mLegT); lm.scale.set(1.35, 6.8, 1.35); lm.position.y = -3.3; knee.add(lm);
+    mk(g.s, mPaw, 1.9, 1.1, 2.1, 0.6, -6.7, 0, knee);
     legs.push({ up, knee, front });
   }
   const tail = [], tailSeg = [];
-  const tr0 = look.long ? 2.3 : 1.5, NT = 14;
+  const tr0 = look.long ? 2.6 : 1.8, NT = 14;
   for (let i = 0; i < NT; i++) {
-    const r = tr0 * (1 - i * 0.045);
+    const r = tr0 * (1 - i * 0.04);
     const mm = (i >= NT - 2 && (look.white > 0.55 || look.tailtip)) ? mWhite : (look.stripe && i % 3 === 2 && i > 2 ? mStripe : mBase);
     const tm = mk(g.lo, mm, r, r, r, -12.5 - i * 2, 1.5, 0, spine); tm.userData.r = r; tail.push(tm);
     if (i < NT - 1) { const sg = mk(TAILCYL(), mm, r, 1, r, 0, 0, 0, spine); sg.userData.r = r; tailSeg.push(sg); }
   }
-  if (opts.star) for (const m of mats.concat([sharedMat('#050505')])) { m.transparent = true; m.opacity = 0.55; if (m.emissive) m.emissive.set('#5a78c8'); }
-  if (opts.collar) mk(new THREE.TorusGeometry(1, 0.25, 6, 16), sharedMat(opts.collar), 3.8, 3.8, 3.8, 0.8, 1.2, 0, neck).rotation.set(0, Math.PI / 2, 0.5);
-  root.userData = { body, spine, neck, head, legs, tail, tailSeg, eyes, ears, chest, hips, cs, hs, tailL, mats, mFur, mBase, pose: null, st: { blinkT: rand(1, 4), earT: rand(1, 5), earI: 0, still: 0, groomT: 0 } };
+  if (opts.star) for (const m of mats.concat([sharedMat('#050505')], shellsB, shellsH)) { m.transparent = true; m.opacity = 0.55; if (m.emissive) m.emissive.set('#5a78c8'); }
+  if (opts.collar) mk(new THREE.TorusGeometry(1, 0.25, 6, 16), sharedMat(opts.collar), 4.2, 4.2, 4.2, 0.8, 1.2, 0, neck).rotation.set(0, Math.PI / 2, 0.5);
+  root.userData = { body, spine, neck, head, legs, tail, tailSeg, eyes, ears, chest: torso, hips, cs: [1, 1, 1], hs: [1, 1, 1], tailL, shells, mats, mFur, mBase, pose: null, st: { blinkT: rand(1, 4), earT: rand(1, 5), earI: 0, still: 0, groomT: 0 } };
   return root;
 }
+let _legU = null, _legL = null;
+const LEGU = () => _legU || (_legU = new THREE.CylinderGeometry(1, 0.75, 1, 12));
+const LEGL = () => _legL || (_legL = new THREE.CylinderGeometry(0.9, 0.75, 1, 12));
+
 // Zielhaltung je Zustand; die echte Haltung gleitet weich dorthin
 function catPoseTarget(state, ph, t, o, st) {
   const T = { y: 0, pitch: 0, neck: 0, headP: 0, headY: 0, up: [0, 0, 0, 0], kn: [0, 0, 0, 0], tLift: 1, tCurl: 0, tSway: 0.35, tFreq: 2.2, fluff: 1, ear: 0 };
@@ -172,6 +238,7 @@ function catPoseTarget(state, ph, t, o, st) {
 }
 function animateCat(m, e, t, dt, o) {
   const u = m.userData, st = u.st;
+  if (u.shells && o.near !== undefined && u.shellsOn !== o.near) { u.shellsOn = o.near; for (const s of u.shells) s.visible = o.near; }
   if (st.seed === undefined) st.seed = (e.ox || Math.random() * 10) * 0.37;
   const spd = o.speed || 0;
   let state;

@@ -20,7 +20,7 @@ const KuwaharaShader = {
   vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
   fragmentShader: `
     uniform sampler2D tDiffuse; uniform vec2 res; varying vec2 vUv;
-    #define R 3
+    #define R 4
     void main(){
       vec2 px = 1.0 / res;
       vec3 m0=vec3(0.),m1=vec3(0.),m2=vec3(0.),m3=vec3(0.),s0=vec3(0.),s1=vec3(0.),s2=vec3(0.),s3=vec3(0.);
