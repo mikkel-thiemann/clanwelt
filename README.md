@@ -54,6 +54,8 @@ Freunde sterben, neue Feinde tauchen auf. Du führst den Clan durch viele Monde.
 | Shift | Rennen |
 | Q | Schleichen an/aus |
 | Leertaste | Springen: Beute fangen oder angreifen |
+| R / Linksklick | Pfotenhieb im Stehen (gleicher Schaden wie der Sprung) |
+| Klick ins Bild | Maus einfangen zum Umsehen, Esc gibt sie frei |
 | E | Sprechen, Beute ablegen, Kräuter pflücken, schlafen |
 | F | Fressen |
 | H | Kräuter benutzen |

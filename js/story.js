@@ -90,7 +90,7 @@ const QUESTS = [
           ['tuepfelblatt', '(Die Heilerin blickt zu den Sternen) Blaustern … der SternenClan hat zu mir gesprochen: „Feuer allein kann unseren Clan retten.“'],
           ['blaustern', 'Feuer? Aber Feuer ist der Feind aller Clans … Was kann das bedeuten?'],
           ['erz', 'Zur selben Zeit, am Rand des Waldes, lebt ein kleiner roter Kater bei seinen Zweibeinern. Sein Name ist Sammy.'],
-          ['erz', 'Steuerung: WASD = laufen (in Blickrichtung) · Maus ziehen = Kamera drehen · Mausrad = Zoom · Shift = rennen · Q = schleichen · Leertaste = springen/angreifen · E = sprechen'],
+          ['erz', 'Steuerung: WASD = laufen (in Blickrichtung) · Maus ziehen = Kamera drehen · Mausrad = Zoom · Shift = rennen · Q = schleichen · Leertaste = springen · R = Pfotenhieb · Klick ins Bild = Maus zum Umsehen · E = sprechen'],
           ['player', 'Schon wieder dieser Traum … eine Maus im Mondlicht, und ich jage sie durch den Wald …'],
         ]
       },
@@ -106,7 +106,7 @@ const QUESTS = [
       { t: 'goto', at: 'waldrand', text: 'Schlüpf durch die Lücke im Zaun und geh zum Waldrand', dlg: () => [['player', 'Der Wald … er riecht nach Moos, nach Erde … und nach Beute.'], ['erz', 'Tipp: Q = schleichen. Die Beute hört dich dann kaum. Mit der Leertaste springst du sie an. Ein „!“ heißt: Die Beute wird misstrauisch.']] },
       { t: 'catch', n: 1, text: 'Fang deine erste Maus', dlg: () => [['player', 'Ich hab sie! Meine erste eigene Beute!'], ['erz', 'Plötzlich springt dich etwas Graues aus dem Farn an!']] },
       {
-        t: 'defeat', group: 'graupfote', text: 'Ein fremder Kater greift an! Wehr dich (Leertaste)', enter() { spar('graupfote'); say(catById('graupfote'), 'Das ist DonnerClan-Territorium!'); },
+        t: 'defeat', group: 'graupfote', text: 'Ein fremder Kater greift an! Wehr dich (R = Hieb, Leertaste = Sprung)', enter() { spar('graupfote'); say(catById('graupfote'), 'Das ist DonnerClan-Territorium!'); },
         dlg: () => [
           ['graupfote', 'Uff! Schon gut, schon gut! Du bist stark … für ein Hauskätzchen. Ich bin Graupfote, Schüler im DonnerClan.'],
           { do: () => { const p = nearPlayer(90); place('blaustern', p.x, p.y); place('loewenherz', p.x + 40, p.y + 20); } },

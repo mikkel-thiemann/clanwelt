@@ -210,7 +210,7 @@ function eat() {
     else toast('Du frisst aus deinem Napf. Trockenfutter … schmeckt nach nichts.');
     return;
   }
-  toast('Du hast keine Beute. Fang etwas (Leertaste) oder friss am Frischbeutehaufen.');
+  toast('Du hast keine Beute. Fang etwas (Leertaste oder R) oder friss am Frischbeutehaufen.');
 }
 function useHerb() {
   const pc = P(); const ks = Object.keys(G.player.herbs).filter(k => G.player.herbs[k] > 0).sort((a, b) => HERBS[b].heal - HERBS[a].heal);
@@ -227,7 +227,7 @@ function updatePlayer(dt) {
   const fx = Math.cos(CAMS.yaw), fz = Math.sin(CAMS.yaw);
   const inp = { x: fx * -raw.y - fz * raw.x, y: fz * -raw.y + fx * raw.x };
   CAMS.dragT += dt;
-  if (raw.y < -0.3 && CAMS.dragT > 1.2 && !pc.lungeT) CAMS.yaw += angDiff(CAMS.yaw, pc.dir) * Math.min(1, dt * 1.2);
+  if (raw.y < -0.3 && CAMS.dragT > 1.2 && !pc.lungeT && !document.pointerLockElement) CAMS.yaw += angDiff(CAMS.yaw, pc.dir) * Math.min(1, dt * 1.2);
   if (pressed.has('KeyQ')) { pl.sneak = !pl.sneak; toast(pl.sneak ? 'Du schleichst (Beute hört dich kaum).' : 'Du läufst normal.'); }
   const moving = inp.x || inp.y;
   if (moving && pc.onRock) { pc.onRock = false; const hs = denPos('hochstein'); pc.x = hs.x + (pc.x - hs.x) * 1.8 + 40; pc.y = hs.y + 75; }
@@ -244,10 +244,14 @@ function updatePlayer(dt) {
     pc.lungeT = 0.17; pc.hitDone = false; pc.caught = false; pl.stamina -= 6; pc.atkCd = 0.45;
     if (moving) pc.dir = Math.atan2(inp.y, inp.x);
   }
-  if (pc.lungeT > 0) {
-    pc.lungeT -= dt;
-    moveEnt(pc, Math.cos(pc.dir) * 520, Math.sin(pc.dir) * 520, dt); pc.moving = true;
-    const hx = pc.x + Math.cos(pc.dir) * 16, hy = pc.y + Math.sin(pc.dir) * 16;
+  // R (oder Linksklick bei eingefangener Maus): Pfotenhieb im Stehen – gleicher Schaden wie der Sprung
+  if ((pressed.has('KeyR') || pressed.has('Mouse0')) && pc.atkCd <= 0 && !(pc.lungeT > 0) && pl.stamina >= 3) {
+    pc.swipeT = 0.28; pc.hitDone = false; pc.caught = false; pl.stamina -= 3; pc.atkCd = 0.4;
+    if (moving) pc.dir = Math.atan2(inp.y, inp.x);
+    else { const f = fighters().filter(f => isFoe(pc, f)).sort((a, b) => dist(pc.x, pc.y, a.x, a.y) - dist(pc.x, pc.y, b.x, b.y))[0]; if (f && dist(pc.x, pc.y, f.x, f.y) < 90) pc.dir = Math.atan2(f.y - pc.y, f.x - pc.x); }
+  }
+  const strike = (reach) => {
+    const hx = pc.x + Math.cos(pc.dir) * reach, hy = pc.y + Math.sin(pc.dir) * reach;
     if (!pc.caught) for (const p of PREY) {
       if (p.st === 'fly' || p.gone) continue;
       if (dist(hx, hy, p.x, p.y) < 16 + PREY_T[p.k].sz) { p.gone = true; pc.caught = true; catchPrey(p); break; }
@@ -256,7 +260,13 @@ function updatePlayer(dt) {
       if (!isFoe(pc, f)) continue;
       if (dist(hx, hy, f.x, f.y) < 22 + (f.r || 10)) { pc.hitDone = true; hurt(f, atkOf(pc) * rand(0.85, 1.2) * (pl.hunger <= 0 ? 0.7 : 1), pc); break; }
     }
-  } else moveEnt(pc, inp.x * sp, inp.y * sp, dt);
+  };
+  if (pc.swipeT > 0) { pc.swipeT -= dt; if (pc.swipeT < 0.2) strike(24); }
+  if (pc.lungeT > 0) {
+    pc.lungeT -= dt;
+    moveEnt(pc, Math.cos(pc.dir) * 520, Math.sin(pc.dir) * 520, dt); pc.moving = true;
+    strike(16);
+  } else moveEnt(pc, inp.x * sp * (pc.swipeT > 0 ? 0.4 : 1), inp.y * sp * (pc.swipeT > 0 ? 0.4 : 1), dt);
   // Hunger & Heilung
   pl.hunger = Math.max(0, pl.hunger - dt * (pc.running ? 0.18 : 0.1));
   if (pl.hunger <= 0) { pc.hp = Math.max(1, pc.hp - dt * 1.2); if (Math.random() < dt / 12) toast('Du hast großen Hunger! Friss etwas (F).'); }
@@ -364,10 +374,23 @@ function drawArrows() {
   }
 }
 // Kamera mit Maus drehen
-let mouseDrag = null;
-$('game').addEventListener('mousedown', e => { mouseDrag = { x: e.clientX, y: e.clientY }; });
+let mouseDrag = null, lockHint = false;
+// Maus: Klick ins Spiel fängt die Maus ein (Kamera folgt der Maus ohne Ziehen), Esc gibt sie frei
+const canLock = () => !isTouch && state === 'play' && !Dlg.open && !UI.panel;
+$('game').addEventListener('mousedown', e => {
+  if (document.pointerLockElement) { if (e.button === 0) pressed.add('Mouse0'); return; }
+  if (e.button === 0 && canLock() && $('game').requestPointerLock) {
+    try { const r = $('game').requestPointerLock(); if (r && r.catch) r.catch(() => { }); } catch (err) { }
+    if (!lockHint) { lockHint = true; toast('Maus bewegen = umsehen · Linksklick oder R = Pfotenhieb · Esc = Maus freigeben'); }
+    return;
+  }
+  mouseDrag = { x: e.clientX, y: e.clientY };
+});
 addEventListener('mouseup', () => mouseDrag = null);
 addEventListener('mousemove', e => {
+  if (document.pointerLockElement) {
+    CAMS.yaw += e.movementX * 0.0032; CAMS.pitch = clamp(CAMS.pitch + e.movementY * 0.0024, 0.05, 1.25); CAMS.dragT = 0; return;
+  }
   if (!mouseDrag) return;
   CAMS.yaw += (e.clientX - mouseDrag.x) * 0.006; CAMS.pitch = clamp(CAMS.pitch + (e.clientY - mouseDrag.y) * 0.004, 0.05, 1.25);
   mouseDrag = { x: e.clientX, y: e.clientY }; CAMS.dragT = 0;
@@ -399,6 +422,7 @@ function frame(ts) {
     const hint = $('hint');
     if (it) { hint.textContent = (isTouch ? '' : 'E: ') + it.label; hint.classList.remove('hidden'); } else hint.classList.add('hidden');
   } else pressed.clear();
+  if (document.pointerLockElement && !canLock()) document.exitPointerLock();
   if (!window.NORENDER) render(gameT, dt);
   requestAnimationFrame(frame);
 }

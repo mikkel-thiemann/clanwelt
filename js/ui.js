@@ -211,7 +211,7 @@ function menuPanel() {
 }
 const HELP_HTML = `<table class="help">
 <tr><td>WASD / Pfeiltasten</td><td>Laufen (in Blickrichtung der Kamera)</td></tr><tr><td>Maus ziehen</td><td>Kamera drehen</td></tr><tr><td>Mausrad</td><td>Näher heran / weiter weg zoomen</td></tr><tr><td>Shift</td><td>Rennen (kostet Ausdauer)</td></tr>
-<tr><td>Q</td><td>Schleichen an/aus – Beute hört dich kaum</td></tr><tr><td>Leertaste</td><td>Springen: Beute fangen oder angreifen</td></tr>
+<tr><td>Q</td><td>Schleichen an/aus – Beute hört dich kaum</td></tr><tr><td>Leertaste</td><td>Springen: Beute fangen oder angreifen</td></tr><tr><td>R / Linksklick</td><td>Pfotenhieb im Stehen (gleicher Schaden wie der Sprung)</td></tr><tr><td>Klick ins Bild</td><td>Maus einfangen: umsehen ohne Ziehen (Esc = freigeben)</td></tr>
 <tr><td>E</td><td>Sprechen, Beute ablegen, Kräuter pflücken, schlafen</td></tr><tr><td>F</td><td>Fressen (getragene Beute oder vom Haufen)</td></tr>
 <tr><td>H</td><td>Kräuter benutzen (heilen)</td></tr><tr><td>M</td><td>Karte</td></tr><tr><td>K</td><td>Clan-Bildschirm</td></tr><tr><td>J</td><td>Lebensweg & Chronik</td></tr>
 <tr><td>L</td><td>Fähigkeiten verbessern</td></tr><tr><td>Esc</td><td>Pause-Menü</td></tr><tr><td>1–4</td><td>Antwort im Gespräch wählen</td></tr></table>

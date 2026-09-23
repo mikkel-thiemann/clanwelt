@@ -642,7 +642,7 @@ function syncModels(t, dt) {
     const m = useModel(c, () => makeCatModel(c.look, { collar: c.id === 'sammy' && c.clan === 'haus' ? '#c0392b' : (c.collar || null) }));
     placeEnt(m, c); m.scale.setScalar(catSize(c));
     const spd = entSpeed(m, c, dt);
-    animateCat(m, c, t, dt, { near: dist(c.x, c.y, CAMERA.position.x, CAMERA.position.z) < 380, speed: spd, sleep: c.sleep && !c.moving, sneak: c === pc && G.player.sneak, player: c === pc, lungeP: c.lungeT > 0 ? 1 - c.lungeT / 0.17 : undefined, wind: c.wind > 0, flash: c.flash, fight: !!c.spar || nearestFoe(c, 180) && isFighterRank(c.rank) });
+    animateCat(m, c, t, dt, { near: dist(c.x, c.y, CAMERA.position.x, CAMERA.position.z) < 380, speed: spd, sleep: c.sleep && !c.moving, sneak: c === pc && G.player.sneak, player: c === pc, lungeP: c.lungeT > 0 ? 1 - c.lungeT / 0.17 : undefined, wind: c.wind > 0 || c.swipeT > 0, flash: c.flash, fight: !!c.spar || nearestFoe(c, 180) && isFighterRank(c.rank) });
     footFx(m, c, spd);
   }
   for (const e of ENTS) {
