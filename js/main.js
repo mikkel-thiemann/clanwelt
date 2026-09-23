@@ -3,7 +3,7 @@
 let G = null;
 const ENTS = [], PREY = [], CARS = [], FX = [];
 const SEASONS = ['Blattfrische', 'Blattgrüne', 'Blattfall', 'Blattleere'];
-const SAVE_KEY = 'clanwelt_save_v1';
+const SAVE_KEY = 'clanwelt_save_v2';
 let state = 'title', gameT = 0;
 
 const day = () => Math.floor(G.time / 1440);
@@ -17,7 +17,7 @@ function newGame() {
   G = {
     v: 1, time: 8 * 60, nextId: 1, cats: [], playTime: 0,
     player: { catId: 'sammy', hunger: 85, stamina: 100, carry: [], herbs: {}, rep: 20, lives: 0, sneak: false, points: 0, invul: 0 },
-    story: { q: 0, s: 0, prog: 0 }, flags: {}, stage: 'hauskaetzchen', stages: {},
+    story: { q: 0, s: 0, prog: 0 }, flags: { windExil: true }, stage: 'hauskaetzchen', stages: {},
     clan: { pile: 34, health: 80, morale: 70, terr: 80 }, others: newOtherClans(),
     missions: [], chron: [], prophecies: [], herbsTaken: {}, seen: {}, eventQ: [], evSeen: {}, lastDay: 0, freeplay: false, weather: null
   };
@@ -46,7 +46,7 @@ function loadGame() {
 }
 function startPlay() {
   state = 'play'; $('title').classList.add('hidden'); $('hud').classList.remove('hidden'); $('topright').classList.remove('hidden'); $('menubar').classList.remove('hidden');
-  const pc = P(); cam.x = pc.x; cam.y = pc.y;
+  CAMS.snap = true; CAMS.pitch = 0.34; CAMS.dist = 105; CAMS.yaw = -Math.PI / 2;
   if (isTouch) $('touch').classList.remove('hidden');
 }
 function showTitle() {
@@ -144,6 +144,7 @@ function sleepUntil(hh) {
 function restHeal(f) { const pc = P(); pc.hp = Math.min(pc.maxHp, pc.hp + pc.maxHp * f); G.player.stamina = 100; }
 function fade(fn) { const f = $('fade'); f.classList.add('on'); setTimeout(() => { fn(); setTimeout(() => f.classList.remove('on'), 150); }, 450); }
 
+const DEN_LABELS = { anfuehrer: 'Anführerbau', heiler: 'Heilerbau', krieger: 'Kriegerbau', schueler: 'Schülerbau', kinder: 'Kinderstube', aeltest: 'Ältestenbau' };
 const LORE = ['Kennst du das Gesetz der Krieger? Verteidige deinen Clan – auch wenn es dein Leben kostet.', 'Früher, als ich jung war, gab es so viele Mäuse, dass wir sie gar nicht alle fangen konnten!',
   'Der SternenClan spricht durch die Heiler. Achte auf Zeichen am Himmel.', 'Ein Krieger tötet nicht ohne Grund. Das unterscheidet uns von Einzelläufern.',
   'Weißt du, warum der Donnerweg so heißt? Weil die Monster donnern wie ein Sturm!', 'Bei der Großen Versammlung herrscht Frieden – so will es der SternenClan seit Anbeginn.',
@@ -215,7 +216,12 @@ function carryCap() { return 2 + (P().sk.jagd >= 3 ? 1 : 0); }
 
 // ===== Spieler =====
 function updatePlayer(dt) {
-  const pc = P(), pl = G.player, inp = inputVec();
+  const pc = P(), pl = G.player, raw = inputVec();
+  // Eingabe relativ zur Kamera
+  const fx = Math.cos(CAMS.yaw), fz = Math.sin(CAMS.yaw);
+  const inp = { x: fx * -raw.y - fz * raw.x, y: fz * -raw.y + fx * raw.x };
+  CAMS.dragT += dt;
+  if (raw.y < -0.3 && CAMS.dragT > 1.2 && !pc.lungeT) CAMS.yaw += angDiff(CAMS.yaw, pc.dir) * Math.min(1, dt * 1.2);
   if (pressed.has('KeyQ')) { pl.sneak = !pl.sneak; toast(pl.sneak ? 'Du schleichst (Beute hört dich kaum).' : 'Du läufst normal.'); }
   const moving = inp.x || inp.y;
   let sp = pl.sneak ? 78 : 150 + pc.sk.tempo * 6;
@@ -281,119 +287,85 @@ function timeTick(dt) {
 }
 
 // ===== Kamera & Zeichnen =====
-const cv = $('game'), ctx = cv.getContext('2d');
-let dpr = 1, VW = 0, VH = 0, zoom = 1, nightCv = null;
-const cam = { x: 2100, y: 3700 };
+const ov = $('ov'), octx = ov.getContext('2d');
+let VW = 0, VH = 0;
 function resize() {
-  dpr = Math.min(2, window.devicePixelRatio || 1); VW = innerWidth; VH = innerHeight;
-  cv.width = VW * dpr; cv.height = VH * dpr;
-  zoom = clamp(Math.min(VW / 1150, VH / 820), 0.62, 1.35);
-  nightCv = document.createElement('canvas'); nightCv.width = VW; nightCv.height = VH;
+  VW = innerWidth; VH = innerHeight; ov.width = VW; ov.height = VH;
+  resize3D();
   if (UI.panel === 'map') drawBigMap();
 }
 addEventListener('resize', resize);
-const weather = [];
-function render(t) {
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.fillStyle = '#0b0f0a'; ctx.fillRect(0, 0, VW, VH);
-  if (!G) return;
+function render(t, dt) {
+  if (!G || !R3) return;
+  const pc = P(), title = state === 'title';
+  const tx = title ? LM.lager.x : pc.x, tz = title ? LM.lager.y : pc.y;
+  render3D(t, dt, tx, tz, title);
+  octx.clearRect(0, 0, VW, VH);
+  if (title) { hideLabels(); return; }
+  drawArrows();
+  updateLabels(pc);
+  if (pc.hp < pc.maxHp * 0.3) { const g = octx.createRadialGradient(VW / 2, VH / 2, VH * 0.3, VW / 2, VH / 2, VH * 0.8); g.addColorStop(0, 'rgba(120,0,0,0)'); g.addColorStop(1, `rgba(140,0,0,${0.35 + Math.sin(t * 5) * 0.1})`); octx.fillStyle = g; octx.fillRect(0, 0, VW, VH); }
+  if (G.fire && dist(pc.x, pc.y, G.fire.x, G.fire.y) < G.fire.r + 200) { octx.fillStyle = `rgba(255,120,30,${0.12 + Math.sin(t * 7) * 0.03})`; octx.fillRect(0, 0, VW, VH); }
+}
+// Namen, Sprechblasen, Schadenszahlen als HTML über der 3D-Szene
+const labelPool = [];
+function label(i) {
+  let d = labelPool[i];
+  if (!d) { d = document.createElement('div'); d.className = 'lbl'; $('labels').appendChild(d); labelPool[i] = d; }
+  return d;
+}
+function hideLabels() { for (const d of labelPool) d.style.display = 'none'; }
+function updateLabels(pc) {
+  let n = 0;
+  const put = (x, y, z, html, cls) => {
+    const p = project(x, y, z); if (!p.vis || p.x < -50 || p.x > VW + 50 || p.y < -30 || p.y > VH + 30) return;
+    const d = label(n++); d.style.display = 'block'; d.className = 'lbl ' + (cls || ''); if (d._h !== html) { d.innerHTML = html; d._h = html; }
+    d.style.transform = `translate(${p.x | 0}px,${p.y | 0}px) translate(-50%,-100%)`;
+  };
+  const all = G.cats.filter(c => c.alive && !c.hidden).concat(ENTS);
+  const named = new Set(all.filter(e => e !== pc && !e.hostile && !e.spar && dist(e.x, e.y, pc.x, pc.y) < 130).sort((a, b) => dist(a.x, a.y, pc.x, pc.y) - dist(b.x, b.y, pc.x, pc.y)).slice(0, 3));
+  for (const e of all) {
+    if (dist(e.x, e.y, pc.x, pc.y) > 900) continue;
+    const top = surfaceY(e.x, e.y) + (e.beast ? 38 : 30 * (e.kind === 'cat' ? 1 : catSize(e)));
+    const showName = e !== pc && (named.has(e) || e.hostile || e.spar);
+    const hpBar = (e.hostile || e.spar || e.boss) && e.hp < e.maxHp && e.maxHp < 5000 ? `<div class="hpb"><i style="width:${clamp(e.hp / e.maxHp, 0, 1) * 100}%"></i></div>` : '';
+    const bub = e.sayT > 0 && e.sayText ? `<div class="bub">${e.sayText}</div>` : '';
+    if (showName || hpBar || bub) put(e.x, top, e.y, bub + (showName ? `<span class="${e.hostile || e.spar ? 'foe' : (e.team && e.team !== 'donner' ? 'oth' : '')}">${e.beast ? e.name : nameOf(e)}</span>` : '') + hpBar);
+  }
+  for (const f of FX) put(f.x, surfaceY(f.x, f.y) + 40 + (1.1 - f.t) * 30, f.y, `<b style="color:${f.col}">${f.text}</b>`, 'fx');
+  for (const p of PREY) if (p.st2 === 'alert' && p.st !== 'flee' && dist(p.x, p.y, pc.x, pc.y) < 400) put(p.x, surfaceY(p.x, p.y) + 16, p.y, '<b class="alert">!</b>', 'fx');
+  for (let i = n; i < labelPool.length; i++) labelPool[i].style.display = 'none';
+}
+function drawArrows() {
   const pc = P();
-  let fx = pc.x, fy = pc.y;
-  if (state === 'title') { fx = 2300 + Math.sin(t * 0.05) * 400; fy = 2500 + Math.cos(t * 0.04) * 300; }
-  cam.x = lerp(cam.x, fx, state === 'title' ? 1 : 0.12); cam.y = lerp(cam.y, fy, state === 'title' ? 1 : 0.12);
-  const hw = VW / 2 / zoom, hh = VH / 2 / zoom;
-  cam.x = clamp(cam.x, hw, W - hw); cam.y = clamp(cam.y, hh, H - hh);
-  const v = { x0: cam.x - hw, y0: cam.y - hh, x1: cam.x + hw, y1: cam.y + hh };
-  ctx.setTransform(dpr * zoom, 0, 0, dpr * zoom, dpr * (VW / 2 - cam.x * zoom), dpr * (VH / 2 - cam.y * zoom));
-  drawGround(ctx, v);
-  drawLow(ctx, v, t);
-  // Beute am Boden
-  for (const p of PREY) if (vis(p, v, 20) && p.st !== 'fly') {
-    drawPreyShape(ctx, p.k, p.x, p.y, p.dir, false);
-    if (p.st2 === 'alert' && p.st !== 'flee') { ctx.fillStyle = '#ffe14a'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('!', p.x, p.y - 12); }
-  }
-  // Katzen & Wesen nach Y sortiert
-  const list = [];
-  for (const c of G.cats) if (c.alive && !c.hidden && vis(c, v, 40)) list.push(c);
-  for (const e of ENTS) if (vis(e, v, 50)) list.push(e);
-  for (const c of CARS) if (vis(c, v, 60)) list.push(c);
-  list.sort((a, b) => a.y - b.y);
-  for (const e of list) {
-    if (e.sp && e.lane !== undefined) { drawCar(ctx, e); continue; }
-    if (e.beast) { drawBeast(ctx, e, t); continue; }
-    const s = e.kind === 'cat' ? (e.rank === 'anfuehrer' ? 1.1 : 1) * (e.look.size || 1) : catSize(e);
-    drawCatShape(ctx, e.look, e.x, e.y, e.dir, s, { phase: e.phase, moving: e.moving, sleep: e.sleep && !e.moving, sneak: e === pc && G.player.sneak, t: t + (e.ox || 0), flash: e.flash, carry: e === pc && G.player.carry[0], star: e.alive === false });
-  }
-  // Fliegende Vögel
-  for (const p of PREY) if (p.st === 'fly' && vis(p, v, 30)) drawPreyShape(ctx, p.k, p.x, p.y - (p.z || 0), p.dir, false, p.flap);
-  drawHigh(ctx, v, pc.x, pc.y, t);
-  // Namen, Sprechblasen, Lebensbalken
-  ctx.textAlign = 'center';
-  const named = new Set(list.filter(e => e !== pc && !(e.lane !== undefined && e.sp) && !e.hostile && !e.spar && dist(e.x, e.y, pc.x, pc.y) < 110)
-    .sort((a, b) => dist(a.x, a.y, pc.x, pc.y) - dist(b.x, b.y, pc.x, pc.y)).slice(0, 3));
-  for (const e of list) {
-    if (e.lane !== undefined && e.sp) continue;
-    const nm = e.beast ? e.name : nameOf(e);
-    if (e !== pc && (named.has(e) || e.hostile || e.spar) && state === 'play') {
-      ctx.font = '11px Trebuchet MS'; ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillText(nm, e.x + 1, e.y - 25);
-      ctx.fillStyle = e.hostile || e.spar ? '#ff9a8a' : (e.team && e.team !== 'donner' ? '#cfe0ff' : '#fff3c4'); ctx.fillText(nm, e.x, e.y - 26);
-    }
-    if ((e.hostile || e.spar || e === pc) && e.hp < e.maxHp && e.maxHp < 5000) { ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(e.x - 16, e.y - 22, 32, 4); ctx.fillStyle = e === pc ? '#6ee06e' : '#ff5050'; ctx.fillRect(e.x - 16, e.y - 22, 32 * clamp(e.hp / e.maxHp, 0, 1), 4); }
-    if (e.sayT > 0 && e.sayText) bubble(e.x, e.y - 40, e.sayText);
-  }
-  for (const f of FX) { ctx.globalAlpha = clamp(f.t, 0, 1); ctx.font = 'bold 14px Trebuchet MS'; ctx.fillStyle = '#000'; ctx.fillText(f.text, f.x + 1, f.y + 1); ctx.fillStyle = f.col; ctx.fillText(f.text, f.x, f.y); ctx.globalAlpha = 1; }
-  // Zielmarkierungen in der Welt
-  if (state === 'play') for (const tg of targets()) if (vis(tg, v, 0)) { const bob = Math.sin(t * 4) * 5; ctx.fillStyle = tg.col; ctx.beginPath(); ctx.moveTo(tg.x, tg.y - 34 + bob); ctx.lineTo(tg.x - 8, tg.y - 48 + bob); ctx.lineTo(tg.x + 8, tg.y - 48 + bob); ctx.fill(); }
-  // ---- Bildschirm-Ebene ----
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  drawNight(pc);
-  drawWeather(t);
-  if (state === 'play') drawArrows(v);
-  if (state === 'play' && pc.hp < pc.maxHp * 0.3) { const g = ctx.createRadialGradient(VW / 2, VH / 2, VH * 0.3, VW / 2, VH / 2, VH * 0.8); g.addColorStop(0, 'rgba(120,0,0,0)'); g.addColorStop(1, `rgba(140,0,0,${0.35 + Math.sin(t * 5) * 0.1})`); ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH); }
-}
-function bubble(x, y, text) {
-  ctx.font = '12px Trebuchet MS'; const w = ctx.measureText(text).width + 14;
-  ctx.fillStyle = 'rgba(255,250,235,.95)'; roundRect(ctx, x - w / 2, y - 18, w, 20, 8); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(x - 5, y + 2); ctx.lineTo(x + 5, y + 2); ctx.lineTo(x, y + 8); ctx.fill();
-  ctx.fillStyle = '#2a2014'; ctx.fillText(text, x, y - 4);
-}
-function nightAlpha() { const h = hour(); if (h >= 21 || h < 5) return 0.62; if (h >= 18.5) return (h - 18.5) / 2.5 * 0.62; if (h < 7) return (7 - h) / 2 * 0.62; return 0; }
-function drawNight(pc) {
-  const a = nightAlpha(); if (a <= 0.01) return;
-  const g = nightCv.getContext('2d');
-  g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, VW, VH);
-  g.fillStyle = `rgba(8,12,38,${a})`; g.fillRect(0, 0, VW, VH);
-  const sx = (pc.x - cam.x) * zoom + VW / 2, sy = (pc.y - cam.y) * zoom + VH / 2, r = 260 * zoom;
-  g.globalCompositeOperation = 'destination-out';
-  const gr = g.createRadialGradient(sx, sy, r * 0.2, sx, sy, r); gr.addColorStop(0, 'rgba(0,0,0,.75)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
-  g.fillStyle = gr; g.fillRect(0, 0, VW, VH);
-  ctx.drawImage(nightCv, 0, 0);
-  if (a > 0.4) { ctx.fillStyle = 'rgba(255,255,255,.7)'; for (let i = 0; i < 40; i++) { const x = (i * 97.3) % VW, y = (i * 53.7) % (VH * 0.3); ctx.globalAlpha = (a - 0.4) * 2 * (0.4 + (i % 3) * 0.2); ctx.fillRect(x, y, 1.5, 1.5); } ctx.globalAlpha = 1; }
-}
-function drawWeather(t) {
-  if (!G.weather) { weather.length = 0; return; }
-  while (weather.length < 140) weather.push({ x: Math.random() * VW, y: Math.random() * VH, s: rand(0.6, 1.4) });
-  ctx.strokeStyle = 'rgba(190,210,255,.45)'; ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1;
-  for (const p of weather) {
-    if (G.weather === 'regen') { p.y += 16 * p.s; p.x -= 3; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x + 3, p.y - 12 * p.s); ctx.stroke(); }
-    else { p.y += 1.3 * p.s; p.x += Math.sin(t + p.s * 10) * 0.6; ctx.beginPath(); ctx.arc(p.x, p.y, 1.8 * p.s, 0, TAU); ctx.fill(); }
-    if (p.y > VH) { p.y = -10; p.x = Math.random() * VW; } if (p.x < 0) p.x = VW;
-  }
-}
-function drawArrows(v) {
   for (const tg of targets()) {
-    if (vis(tg, v, -40)) continue;
-    const sx = (tg.x - cam.x) * zoom + VW / 2, sy = (tg.y - cam.y) * zoom + VH / 2;
-    const a = Math.atan2(sy - VH / 2, sx - VW / 2);
-    const m = 46, ex = clamp(sx, m, VW - m), ey = clamp(sy, m + (VW < 700 ? 110 : 0), VH - m);
-    ctx.save(); ctx.translate(ex, ey); ctx.rotate(a);
-    ctx.fillStyle = tg.col; ctx.strokeStyle = 'rgba(0,0,0,.6)'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(18, 0); ctx.lineTo(-10, -12); ctx.lineTo(-4, 0); ctx.lineTo(-10, 12); ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.restore();
-    const d = Math.round(dist(tg.x, tg.y, P().x, P().y) / 10);
-    ctx.font = 'bold 11px Trebuchet MS'; ctx.textAlign = 'center'; ctx.fillStyle = '#000'; ctx.fillText(d + ' m', ex + 1, ey + 27); ctx.fillStyle = tg.col; ctx.fillText(d + ' m', ex, ey + 26);
+    const p = project(tg.x, surfaceY(tg.x, tg.y) + 20, tg.y);
+    const on = p.vis && p.x > 40 && p.x < VW - 40 && p.y > 40 && p.y < VH - 40;
+    const d = Math.round(dist(tg.x, tg.y, pc.x, pc.y) / 10);
+    if (on) { if (d > 12) { octx.font = 'bold 12px Trebuchet MS'; octx.textAlign = 'center'; octx.fillStyle = '#000'; octx.fillText(d + ' m', p.x + 1, p.y - 40); octx.fillStyle = tg.col; octx.fillText(d + ' m', p.x, p.y - 41); } continue; }
+    // Richtung relativ zur Kamera
+    const a = Math.atan2(tg.y - pc.y, tg.x - pc.x) - CAMS.yaw - Math.PI / 2;
+    const cx = VW / 2 + Math.sin(-a) * 0, r = Math.min(VW, VH) * 0.42;
+    let ex = VW / 2 + Math.cos(a) * r, ey = VH / 2 + Math.sin(a) * r;
+    ex = clamp(ex, 40, VW - 40); ey = clamp(ey, 40 + (VW < 700 ? 110 : 0), VH - 40);
+    octx.save(); octx.translate(ex, ey); octx.rotate(a);
+    octx.fillStyle = tg.col; octx.strokeStyle = 'rgba(0,0,0,.6)'; octx.lineWidth = 2;
+    octx.beginPath(); octx.moveTo(18, 0); octx.lineTo(-10, -12); octx.lineTo(-4, 0); octx.lineTo(-10, 12); octx.closePath(); octx.fill(); octx.stroke();
+    octx.restore();
+    octx.font = 'bold 11px Trebuchet MS'; octx.textAlign = 'center'; octx.fillStyle = '#000'; octx.fillText(d + ' m', ex + 1, ey + 27); octx.fillStyle = tg.col; octx.fillText(d + ' m', ex, ey + 26);
   }
 }
+// Kamera mit Maus drehen
+let mouseDrag = null;
+$('game').addEventListener('mousedown', e => { mouseDrag = { x: e.clientX, y: e.clientY }; });
+addEventListener('mouseup', () => mouseDrag = null);
+addEventListener('mousemove', e => {
+  if (!mouseDrag) return;
+  CAMS.yaw += (e.clientX - mouseDrag.x) * 0.006; CAMS.pitch = clamp(CAMS.pitch + (e.clientY - mouseDrag.y) * 0.004, 0.05, 1.25);
+  mouseDrag = { x: e.clientX, y: e.clientY }; CAMS.dragT = 0;
+});
+$('game').addEventListener('wheel', e => { CAMS.dist = clamp(CAMS.dist * (e.deltaY > 0 ? 1.1 : 0.9), 45, 340); e.preventDefault(); }, { passive: false });
+$('game').addEventListener('contextmenu', e => e.preventDefault());
 
 // ===== Hauptschleife =====
 let lastT = 0, saveT = 0, campT = 0;
@@ -418,7 +390,7 @@ function frame(ts) {
     const hint = $('hint');
     if (it) { hint.textContent = (isTouch ? '' : 'E: ') + it.label; hint.classList.remove('hidden'); } else hint.classList.add('hidden');
   } else pressed.clear();
-  if (!window.NORENDER) render(gameT);
+  if (!window.NORENDER) render(gameT, dt);
   requestAnimationFrame(frame);
 }
 
@@ -431,6 +403,12 @@ function setupTouch() {
   addEventListener('touchmove', e => { for (const t of e.changedTouches) if (t.identifier === sid) { let dx = t.clientX - cx, dy = t.clientY - cy; const l = Math.hypot(dx, dy), m = 50; if (l > m) { dx *= m / l; dy *= m / l; } touchVec.x = dx / m; touchVec.y = dy / m; knob.style.transform = `translate(${dx}px,${dy}px)`; touchRun = l > 58; } }, { passive: false });
   const end = e => { for (const t of e.changedTouches) if (t.identifier === sid) { sid = null; touchVec.x = touchVec.y = 0; knob.style.transform = ''; touchRun = false; } };
   addEventListener('touchend', end); addEventListener('touchcancel', end);
+  // Kamera mit dem Finger drehen (überall außer Joystick und Tasten)
+  let cid = null, lx = 0, ly = 0;
+  $('game').addEventListener('touchstart', e => { const t = e.changedTouches[0]; if (cid === null) { cid = t.identifier; lx = t.clientX; ly = t.clientY; } }, { passive: true });
+  addEventListener('touchmove', e => { for (const t of e.changedTouches) if (t.identifier === cid) { CAMS.yaw += (t.clientX - lx) * 0.008; CAMS.pitch = clamp(CAMS.pitch + (t.clientY - ly) * 0.005, 0.05, 1.25); lx = t.clientX; ly = t.clientY; CAMS.dragT = 0; } }, { passive: true });
+  const cend = e => { for (const t of e.changedTouches) if (t.identifier === cid) cid = null; };
+  addEventListener('touchend', cend); addEventListener('touchcancel', cend);
   document.querySelectorAll('#touch [data-key]').forEach(b => {
     b.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); const k = b.dataset.key; if (Dlg.open) { Dlg.next(); return; } pressed.add(k); }, { passive: false });
   });
@@ -441,7 +419,7 @@ function init() {
   resize();
   $('loading').textContent = 'Der Wald wächst …';
   setTimeout(() => {
-    buildTerrain(); buildObjects();
+    buildTerrain(); buildObjects(); init3D();
     $('loading').classList.add('hidden'); $('titleBtns').classList.remove('hidden');
     G = null;
     // Hintergrund für den Titelbildschirm

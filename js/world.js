@@ -20,6 +20,10 @@ const LM = {
   windlager: { x: 4350, y: 2300, r: 200, name: 'WindClan-Lager' },
   scheune: { x: 4170, y: 850, r: 120, name: 'Scheune' },
   mondstein: { x: 4750, y: 520, r: 70, name: 'Mondstein (Hochfelsen)' },
+  prinzessin: { x: 1700, y: 3700, r: 120, name: 'Prinzessins Garten' },
+  tunnel: { x: 3240, y: 260, r: 110, name: 'Tunnel am Donnerweg' },
+  trittsteine: { x: 1160, y: 2760, r: 90, name: 'Trittsteine' },
+  korb: { x: 2100, y: 3890, r: 40, name: 'Dein Körbchen' },
 };
 const TERR_NAMES = {
   donner: 'DonnerClan-Territorium', schatten: 'SchattenClan-Territorium', fluss: 'FlussClan-Territorium',
@@ -49,7 +53,7 @@ function territoryAt(x, y) {
 }
 
 // ===== Boden vorberechnen =====
-const TS = 0.33;
+const TS = 0.2;
 let terrainCanvas = null;
 function groundColor(x, y, o) {
   const n = NOISE(x / 220, y / 220), m = NOISE(x / 35 + 300, y / 35 + 300), j = (m - 0.5) * 18;
@@ -255,153 +259,37 @@ function inBush(x, y) {
   return false;
 }
 
-// ===== Zeichnen der Welt =====
-const SEASON_TREE = [['#5fa83e', '#7cc454'], ['#2f7a2a', '#3f9434'], ['#c7702a', '#d9a23a'], ['#9aa0a0', '#c9cfd2']];
-function drawGround(ctx, v) {
-  const sx = Math.max(0, v.x0 * TS), sy = Math.max(0, v.y0 * TS);
-  const sw = Math.min(terrainCanvas.width - sx, (v.x1 - v.x0) * TS + 2), sh = Math.min(terrainCanvas.height - sy, (v.y1 - v.y0) * TS + 2);
-  ctx.imageSmoothingEnabled = true;
-  ctx.drawImage(terrainCanvas, sx, sy, sw, sh, sx / TS, sy / TS, sw / TS, sh / TS);
-  const s = season();
-  if (s === 3) { ctx.fillStyle = 'rgba(235,242,250,0.38)'; ctx.fillRect(v.x0, v.y0, v.x1 - v.x0, v.y1 - v.y0); }
-  else if (s === 2) { ctx.fillStyle = 'rgba(200,120,40,0.10)'; ctx.fillRect(v.x0, v.y0, v.x1 - v.x0, v.y1 - v.y0); }
-  else if (s === 0) { ctx.fillStyle = 'rgba(160,230,120,0.06)'; ctx.fillRect(v.x0, v.y0, v.x1 - v.x0, v.y1 - v.y0); }
-}
-const vis = (o, v, r) => o.x + r > v.x0 && o.x - r < v.x1 && o.y + r > v.y0 && o.y - r < v.y1;
-function polyPath(ctx, pts, x, y, s) { ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(x + p[0] * s, y + p[1] * s) : ctx.moveTo(x + p[0] * s, y + p[1] * s)); ctx.closePath(); }
 
-function drawLow(ctx, v, t) {
+// ===== Höhen (nur für die 3D-Darstellung) =====
+function baseH(x, y) { return (NOISE(x / 650 + 7, y / 650 + 3) - 0.5) * 70 + (NOISE(x / 180 + 40, y / 180 + 9) - 0.5) * 10; }
+function flatTo(h, x, y, cx, cy, r, level, edge = 90) {
+  const d = dist(x, y, cx, cy); if (d > r + edge) return h;
+  const k = clamp((d - r) / edge, 0, 1), s = k * k * (3 - 2 * k); return lerp(level, h, s);
+}
+function roadLevel(x, y) { return x >= ROAD_X1 - 46 && y < roadY(ROAD_X1) - 30 ? baseH(ROAD_X1, y) + 1.5 : baseH(Math.min(x, ROAD_X1), roadY(Math.min(x, ROAD_X1))) + 1.5; }
+function waterLevel(y) { return baseH(riverX(y), y) - 7; }
+function heightAt(x, y) {
+  let h = baseH(x, y);
+  for (const k of ['lager', 'schattenlager', 'flusslager', 'windlager', 'sonnenfelsen', 'scheune']) { const l = LM[k]; h = flatTo(h, x, y, l.x, l.y, l.r, baseH(l.x, l.y) + (k === 'sonnenfelsen' ? 5 : 0)); }
+  h = flatTo(h, x, y, LM.baumgeviert.x, LM.baumgeviert.y, LM.baumgeviert.r - 20, baseH(LM.baumgeviert.x, LM.baumgeviert.y) - 22, 70);
+  h = flatTo(h, x, y, LM.sandkuhle.x, LM.sandkuhle.y, LM.sandkuhle.r - 20, baseH(LM.sandkuhle.x, LM.sandkuhle.y) - 7, 40);
+  if (y > 3300) h = lerp(h, 0, clamp((y - 3300) / 150, 0, 1));
+  // Straße
+  let rd = 1e9;
+  if (x < ROAD_X1 + 46) rd = Math.abs(y - roadY(Math.min(x, ROAD_X1)));
+  if (y < roadY(ROAD_X1)) rd = Math.min(rd, Math.abs(x - ROAD_X1));
+  if (rd < 110) { const k = clamp((rd - 50) / 60, 0, 1), s = k * k * (3 - 2 * k); h = lerp(roadLevel(x, y) - 1.5, h, s); }
+  // Fluss
+  if (y < 3460) { const d = Math.abs(x - riverX(y)); if (d < 75) { const k = clamp((d - 42) / 33, 0, 1), s = k * k * (3 - 2 * k); h = lerp(baseH(riverX(y), y) - 17, h, s); } }
+  if (marshPool(x, y)) h -= 5;
   // Schlucht
-  if (vis({ x: 3430, y: 2755 }, v, 260)) {
-    ctx.fillStyle = '#2a2420'; ctx.fillRect(3385, 2560, 90, 390);
-    ctx.fillStyle = '#2d5d86'; ctx.fillRect(3412, 2560, 36, 390);
-    ctx.strokeStyle = '#6a5a48'; ctx.lineWidth = 6; ctx.strokeRect(3385, 2560, 90, 390);
-  }
-  // flache Steine, Höhle, Körbchen
-  for (const f of OB.flats) {
-    if (!vis(f, v, 120)) continue;
-    if (f.k === 'slab') { ctx.fillStyle = f.big ? '#8d8a84' : '#9a958c'; polyPath(ctx, f.pts, f.x, f.y, f.r); ctx.fill(); ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 2; ctx.stroke(); }
-    else if (f.k === 'cave') { ctx.fillStyle = '#121016'; ctx.beginPath(); ctx.ellipse(f.x, f.y, 34, 22, 0, 0, TAU); ctx.fill(); }
-    else if (f.k === 'bed') { ctx.fillStyle = '#b44'; ctx.beginPath(); ctx.ellipse(f.x, f.y, 22, 15, 0, 0, TAU); ctx.fill(); ctx.fillStyle = '#e8d8c0'; ctx.beginPath(); ctx.ellipse(f.x, f.y, 15, 9, 0, 0, TAU); ctx.fill(); }
-  }
-  // Lager-Baue
-  if (vis(LM.lager, v, 320)) drawCampDens(ctx);
-  for (const cp of OB.camps) if (cp.clan !== 'donner' && vis(cp.lm, v, 260)) {
-    ctx.fillStyle = 'rgba(40,30,20,.25)'; ctx.beginPath(); ctx.arc(cp.lm.x, cp.lm.y, cp.lm.r - 20, 0, TAU); ctx.fill();
-    for (let i = 0; i < 4; i++) { const a = i * 1.6 + 0.4; drawDen(ctx, cp.lm.x + Math.cos(a) * 110, cp.lm.y + Math.sin(a) * 110, 34, '#35502e'); }
-  }
-  // Büsche
-  const s = season();
-  for (const b of OB.bushes) {
-    if (!vis(b, v, b.r + 4)) continue;
-    drawBush(ctx, b, s);
-  }
-  // Kräuter
-  const st = typeof Story !== 'undefined' ? Story.herbHighlight() : null;
-  OB.herbs.forEach((h, i) => {
-    if (!vis(h, v, 20) || !herbAvailable(i)) return;
-    const info = HERBS[h.k];
-    if (st && (st === h.k || st === 'any')) { ctx.strokeStyle = `rgba(255,230,120,${0.5 + Math.sin(t * 4) * 0.3})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(h.x, h.y, 13, 0, TAU); ctx.stroke(); }
-    ctx.fillStyle = '#3d6b2a'; for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.ellipse(h.x + Math.cos(k * 1.6) * 5, h.y + Math.sin(k * 1.6) * 5, 5, 2.5, k * 1.6, 0, TAU); ctx.fill(); }
-    ctx.fillStyle = info.col;
-    if (h.k === 'spinnweben') { ctx.strokeStyle = 'rgba(240,240,255,.8)'; ctx.lineWidth = 1; for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.arc(h.x, h.y, 3 + k * 3, 0, TAU); ctx.stroke(); } }
-    else { for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.arc(h.x + Math.cos(k * 2.1) * 4, h.y + Math.sin(k * 2.1) * 4, 2.6, 0, TAU); ctx.fill(); } }
-  });
-  // Felsen
-  for (const r of OB.rocks) {
-    if (!vis(r, v, r.r + 5)) continue;
-    ctx.fillStyle = 'rgba(0,0,0,.25)'; polyPath(ctx, r.pts, r.x + 4, r.y + 5, 1); ctx.fill();
-    const c = r.col + (s === 3 ? 40 : 0);
-    ctx.fillStyle = `rgb(${c},${c - 4},${c - 12})`; polyPath(ctx, r.pts, r.x, r.y, 1); ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,.12)'; polyPath(ctx, r.pts, r.x - r.r * 0.15, r.y - r.r * 0.2, 0.55); ctx.fill();
-  }
-  // Zäune
-  for (const R of OB.rects) {
-    if (R.kind !== 'fence' || !vis({ x: R.x + R.w / 2, y: R.y + R.h / 2 }, v, Math.max(R.w, R.h))) continue;
-    ctx.fillStyle = '#8a6a44'; ctx.fillRect(R.x, R.y, R.w, R.h);
-    ctx.fillStyle = '#6a4e30';
-    if (R.w > R.h) for (let x = R.x; x < R.x + R.w; x += 22) ctx.fillRect(x, R.y - 2, 4, R.h + 4);
-    else for (let y = R.y; y < R.y + R.h; y += 22) ctx.fillRect(R.x - 2, y, R.w + 4, 4);
-  }
+  if (x > 3360 && x < 3500 && y > 2540 && y < 2970) { const k = Math.min(x - 3360, 3500 - x, y - 2540, 2970 - y); h = lerp(h, -70, clamp(k / 25, 0, 1)); }
+  // Hochfelsen
+  const hd = dist(x, y, 4750, 280); if (hd < 420) h += 110 * Math.pow(1 - hd / 420, 1.6);
+  return h;
 }
-function drawDen(ctx, x, y, r, col) {
-  ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(x + 3, y + 5, r, r * 0.8, 0, 0, TAU); ctx.fill();
-  ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.8, 0, 0, TAU); ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,.08)'; ctx.beginPath(); ctx.ellipse(x - r * 0.25, y - r * 0.25, r * 0.5, r * 0.35, 0, 0, TAU); ctx.fill();
-  ctx.fillStyle = '#1a140e'; ctx.beginPath(); ctx.ellipse(x, y + r * 0.55, r * 0.35, r * 0.2, 0, 0, TAU); ctx.fill();
-}
-const DEN_LABELS = { anfuehrer: 'Anführerbau', heiler: 'Heilerbau', krieger: 'Kriegerbau', schueler: 'Schülerbau', kinder: 'Kinderstube', aeltest: 'Ältestenbau' };
-function drawCampDens(ctx) {
-  const s = season();
-  const col = s === 3 ? '#6f8078' : s === 2 ? '#6a5a2a' : '#3f6a30';
-  for (const k of ['heiler', 'krieger', 'schueler', 'kinder', 'aeltest']) { const p = denPos(k); drawDen(ctx, p.x, p.y, k === 'krieger' ? 46 : 38, col); }
-  const a = denPos('anfuehrer'); drawDen(ctx, a.x, a.y, 30, '#6d6760');
-  // Frischbeutehaufen
-  const p = denPos('pile'), n = Math.min(12, Math.ceil(G.clan.pile / 4));
-  ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(p.x, p.y + 3, 24, 14, 0, 0, TAU); ctx.fill();
-  for (let i = 0; i < n; i++) { const an = i * 2.4, d = 4 + i * 1.3; drawPreyShape(ctx, ['maus', 'amsel', 'wuehlmaus', 'eichhoernchen'][i % 4], p.x + Math.cos(an) * d, p.y + Math.sin(an) * d * 0.6, an, true); }
-}
-function drawBush(ctx, b, s) {
-  const x = b.x, y = b.y, r = b.r;
-  if (b.k === 'wall') {
-    ctx.fillStyle = s === 3 ? '#4d5a4f' : '#2d4424'; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
-    ctx.strokeStyle = '#5a3a2a'; ctx.lineWidth = 2; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.arc(x + (i - 1) * 7, y, r * 0.6, i, i + 2); ctx.stroke(); }
-    return;
-  }
-  const cols = { fern: s === 2 ? '#8a6a2a' : s === 3 ? '#6a7060' : '#3e7a32', bramble: '#2f4e28', heather: s === 3 ? '#8a8090' : '#7a4f7e', reed: s === 3 ? '#a09a80' : '#7a8a4a', garden: '#3a7a3a' };
-  ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(x + 3, y + 4, r, r * 0.8, 0, 0, TAU); ctx.fill();
-  ctx.fillStyle = cols[b.k] || '#3a6a2a';
-  if (b.k === 'fern' || b.k === 'reed') {
-    for (let i = 0; i < 7; i++) { const a = i / 7 * TAU + x; ctx.beginPath(); ctx.ellipse(x + Math.cos(a) * r * 0.45, y + Math.sin(a) * r * 0.45, r * 0.6, r * 0.18, a, 0, TAU); ctx.fill(); }
-  } else {
-    ctx.beginPath(); ctx.arc(x, y, r * 0.8, 0, TAU); ctx.fill();
-    ctx.beginPath(); ctx.arc(x - r * 0.4, y - r * 0.2, r * 0.5, 0, TAU); ctx.arc(x + r * 0.4, y + r * 0.1, r * 0.5, 0, TAU); ctx.fill();
-    if (b.k === 'bramble' && s === 1) { ctx.fillStyle = '#5a1030'; for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.arc(x + Math.cos(i * 2 + x) * r * 0.5, y + Math.sin(i * 2 + y) * r * 0.5, 2.2, 0, TAU); ctx.fill(); } }
-    if (b.k === 'garden') { ctx.fillStyle = ['#e85a8a', '#f5d03a', '#fff'][Math.floor(x) % 3]; for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.arc(x + Math.cos(i * 1.3) * r * 0.5, y + Math.sin(i * 1.3) * r * 0.5, 2.2, 0, TAU); ctx.fill(); } }
-  }
-}
-function drawHigh(ctx, v, px, py, t) {
-  const s = season();
-  for (const tr of OB.trees) {
-    if (!vis(tr, v, tr.r + 10)) continue;
-    const near = dist(px, py, tr.x, tr.y) < tr.r + 6;
-    ctx.globalAlpha = near ? 0.3 : 0.93;
-    if (tr.k === 'pine') {
-      ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.arc(tr.x + 8, tr.y + 10, tr.r, 0, TAU); ctx.fill();
-      const layers = [['#1f3d24', 1], ['#28512c', 0.72], ['#33653a', 0.45]];
-      for (const [c, f] of layers) {
-        ctx.fillStyle = s === 3 && f < 0.5 ? '#d8e2e6' : c; ctx.beginPath();
-        for (let i = 0; i < 16; i++) { const a = i / 16 * TAU, rr = tr.r * f * (i % 2 ? 0.72 : 1); i ? ctx.lineTo(tr.x + Math.cos(a) * rr, tr.y + Math.sin(a) * rr) : ctx.moveTo(tr.x + rr, tr.y); }
-        ctx.closePath(); ctx.fill();
-      }
-    } else {
-      const bare = s === 3 && tr.k !== 'willow';
-      ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.arc(tr.x + 10, tr.y + 12, tr.r * (bare ? 0.5 : 1), 0, TAU); ctx.fill();
-      if (bare) {
-        ctx.strokeStyle = '#5a4a3a'; ctx.lineWidth = 3;
-        for (let i = 0; i < 6; i++) { const a = i + tr.c * 6; ctx.beginPath(); ctx.moveTo(tr.x, tr.y); ctx.lineTo(tr.x + Math.cos(a) * tr.r * 0.8, tr.y + Math.sin(a) * tr.r * 0.8); ctx.stroke(); }
-        ctx.fillStyle = 'rgba(240,245,250,.5)'; ctx.beginPath(); ctx.arc(tr.x, tr.y, tr.r * 0.35, 0, TAU); ctx.fill();
-      } else {
-        let [c1, c2] = SEASON_TREE[s];
-        if (tr.k === 'willow') { c1 = '#5a8a3a'; c2 = '#7aa84a'; }
-        if (tr.k === 'birch' && s < 2) { c1 = '#6aa84a'; c2 = '#8cc86a'; }
-        if (s === 2 && tr.c > 0.6) { c1 = '#a8402a'; c2 = '#c8603a'; }
-        ctx.fillStyle = c1; ctx.beginPath();
-        for (let i = 0; i < 5; i++) { const a = i / 5 * TAU + tr.c * 3; ctx.moveTo(tr.x + Math.cos(a) * tr.r * 0.4 + tr.r * 0.6, tr.y + Math.sin(a) * tr.r * 0.4); ctx.arc(tr.x + Math.cos(a) * tr.r * 0.4, tr.y + Math.sin(a) * tr.r * 0.4, tr.r * 0.6, 0, TAU); }
-        ctx.fill();
-        ctx.fillStyle = c2; ctx.beginPath(); ctx.arc(tr.x - tr.r * 0.2, tr.y - tr.r * 0.22, tr.r * 0.45, 0, TAU); ctx.fill();
-      }
-    }
-    ctx.globalAlpha = 1;
-  }
-  // Häuser (Dächer)
-  for (const h of OB.houses) {
-    if (!vis({ x: h.x + h.w / 2, y: h.y + h.h / 2 }, v, 200)) continue;
-    ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(h.x + 10, h.y + 12, h.w, h.h);
-    ctx.fillStyle = h.roof; ctx.fillRect(h.x, h.y, h.w, h.h);
-    ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fillRect(h.x, h.y, h.w, h.h / 2);
-    ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(h.x, h.y + h.h / 2); ctx.lineTo(h.x + h.w, h.y + h.h / 2); ctx.stroke();
-    if (s === 3) { ctx.fillStyle = 'rgba(240,245,255,.6)'; ctx.fillRect(h.x, h.y, h.w, h.h / 2); }
-    if (!h.barn) { ctx.fillStyle = '#7a6a5a'; ctx.fillRect(h.x + h.w * 0.7, h.y + 15, 22, 22); }
-  }
+function surfaceY(x, y) {
+  if (inRoad(x, y)) return roadLevel(x, y);
+  if (inRiver(x, y)) return Math.max(heightAt(x, y), waterLevel(y) - 5);
+  return heightAt(x, y);
 }

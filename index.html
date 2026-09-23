@@ -10,6 +10,8 @@
 </head>
 <body>
 <canvas id="game"></canvas>
+<canvas id="ov"></canvas>
+<div id="labels"></div>
 
 <div id="hud" class="hidden">
   <div class="box" id="stats">
@@ -85,12 +87,12 @@
 </div>
 <div id="fade"></div>
 
-<script src="js/util.js"></script>
-<script src="js/world.js"></script>
-<script src="js/cats.js"></script>
-<script src="js/clan.js"></script>
-<script src="js/story.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/main.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+window.THREE = THREE;
+const files = ['util', 'world', 'models', 'cats', 'clan', 'story', 'ui', 'scene3d', 'main'];
+for (const f of files) await new Promise((ok, fail) => { const s = document.createElement('script'); s.src = 'js/' + f + '.js?v=' + (location.hostname === 'localhost' ? Date.now() : 3); s.onload = ok; s.onerror = fail; document.body.appendChild(s); });
+</script>
 </body>
 </html>

@@ -6,16 +6,16 @@ function createStartCats() {
     { id: 'sammy', fixed: 'Sammy', pre: 'Feuer', suf: 'herz', rank: 'hauskaetzchen', clan: 'haus', age: 6, sex: 'm', look: L('#e0782a', '#a8480f', 0, '#6fc23a'), sk: { jagd: 0, kampf: 0, ausdauer: 0, tempo: 1 }, storyLock: true },
     { id: 'wulle', fixed: 'Wulle', rank: 'hauskaetzchen', clan: 'haus', age: 14, sex: 'm', look: L('#2d2a2a', null, 0.6, '#e8b923', { size: 1.12 }) },
     { id: 'blaustern', pre: 'Blau', suf: 'stern', rank: 'anfuehrer', age: 110, sex: 'w', look: L('#8a9aab', null, 0.15, '#4fa3d9'), storyLock: true },
-    { id: 'loewenherz', pre: 'Löwen', suf: 'herz', rank: 'zweiter', age: 70, sex: 'm', look: L('#e0b453', null, 0, '#79b94a', { long: true, size: 1.1 }), storyLock: true },
+    { id: 'loewenherz', pre: 'Löwen', suf: 'herz', rank: 'krieger', age: 70, sex: 'm', look: L('#e0b453', '#c0903a', 0, '#79b94a', { long: true, size: 1.1 }), storyLock: true },
     { id: 'tigerkralle', pre: 'Tiger', suf: 'kralle', rank: 'krieger', age: 60, sex: 'm', look: L('#6b4a2e', '#24160c', 0, '#e8b923', { size: 1.18 }), storyLock: true },
     { id: 'tuepfelblatt', pre: 'Tüpfel', suf: 'blatt', rank: 'heiler', age: 30, sex: 'w', look: L('#b56a3a', null, 0.3, '#e8b923', { patch: '#2b2220' }), storyLock: true },
     { id: 'weisspelz', pre: 'Weiß', suf: 'pelz', rank: 'krieger', age: 80, sex: 'm', look: L('#eeeeea', null, 0, '#e8b923', { size: 1.1 }), storyLock: true },
     { id: 'dunkelstreif', pre: 'Dunkel', suf: 'streif', rank: 'krieger', age: 50, sex: 'm', look: L('#6d6d70', '#2b2b2e', 0, '#e8b923', { long: true }) },
     { id: 'langschweif', pre: 'Lang', suf: 'schweif', rank: 'krieger', age: 30, sex: 'm', look: L('#d8cfb5', '#4a4036', 0, '#d98b2b'), rel: 20 },
     { id: 'mausefell', pre: 'Mause', suf: 'fell', rank: 'krieger', age: 45, sex: 'w', look: L('#7a5a40', null, 0, '#d98b2b', { size: 0.9 }) },
-    { id: 'graupfote', pre: 'Grau', suf: 'streif', rank: 'schueler', age: 7, sex: 'm', look: L('#8a8a8a', '#5a5a5a', 0, '#e8b923', { long: true }), rel: 70, storyLock: true, mentor: 'dunkelstreif' },
-    { id: 'sandpfote', pre: 'Sand', suf: 'sturm', rank: 'schueler', age: 8, sex: 'w', look: L('#e6c890', null, 0, '#7bc043'), rel: 35, mentor: 'weisspelz' },
-    { id: 'staubpfote', pre: 'Staub', suf: 'fell', rank: 'schueler', age: 8, sex: 'm', look: L('#7a5c42', '#4a3422', 0, '#d98b2b'), rel: 30, mentor: 'langschweif' },
+    { id: 'graupfote', pre: 'Grau', suf: 'streif', rank: 'schueler', age: 7, sex: 'm', look: L('#8a8a8a', '#5a5a5a', 0, '#e8b923', { long: true }), rel: 70, storyLock: true, mentor: 'loewenherz' },
+    { id: 'sandpfote', pre: 'Sand', suf: 'sturm', rank: 'schueler', age: 8, sex: 'w', look: L('#e6c890', null, 0, '#7bc043'), rel: 35, mentor: 'weisspelz', storyLock: true },
+    { id: 'staubpfote', pre: 'Staub', suf: 'fell', rank: 'schueler', age: 8, sex: 'm', look: L('#7a5c42', '#4a3422', 0, '#d98b2b'), rel: 30, mentor: 'dunkelstreif' },
     { id: 'rabenpfote', pre: 'Raben', suf: 'flug', rank: 'schueler', age: 9, sex: 'm', look: L('#1e1e22', null, 0.25, '#e8b923', { size: 0.9 }), storyLock: true, mentor: 'tigerkralle' },
     { id: 'frostfell', pre: 'Frost', suf: 'fell', rank: 'koenigin', age: 40, sex: 'w', look: L('#f2f2f5', null, 0, '#4fa3d9') },
     { id: 'buntgesicht', pre: 'Bunt', suf: 'gesicht', rank: 'koenigin', age: 38, sex: 'w', look: L('#9a9a9a', '#6a6a6a', 0, '#7bc043') },
@@ -25,15 +25,15 @@ function createStartCats() {
     { id: 'halbschweif', pre: 'Halb', suf: 'schweif', rank: 'aeltester', age: 135, sex: 'm', look: L('#6a4a30', '#3a2818', 0, '#d98b2b') },
     { id: 'fleckenschweif', pre: 'Flecken', suf: 'schweif', rank: 'aeltester', age: 145, sex: 'w', look: L('#b56a3a', null, 0, '#e8b923', { patch: '#2b2220' }) },
     { id: 'rotschweif', pre: 'Rot', suf: 'schweif', rank: 'zweiter', age: 80, sex: 'm', alive: false, look: L('#b0582a', '#7a3010', 0, '#e8b923') },
-    { id: 'aschenjunges', pre: 'Aschen', suf: 'pelz', rank: 'junges', age: 4, sex: 'w', look: L('#6e6e74', null, 0, '#4fa3d9'), storyLock: true, mother: 'buntgesicht' },
+    { id: 'aschenjunges', pre: 'Aschen', suf: 'pelz', rank: 'junges', age: 3, sex: 'w', look: L('#6e6e74', null, 0, '#4fa3d9'), storyLock: true, mother: 'frostfell' },
+    { id: 'farnjunges', pre: 'Farn', suf: 'pelz', rank: 'junges', age: 3, sex: 'm', look: L('#b08050', '#7a5030', 0, '#7bc043'), storyLock: true, mother: 'frostfell' },
+    { id: 'dornenjunges', pre: 'Dornen', suf: 'kralle', rank: 'junges', age: 3, sex: 'm', look: L('#a07040', '#5a3a1a', 0, '#e8b923'), storyLock: true, mother: 'frostfell' },
+    { id: 'prinzessin', fixed: 'Prinzessin', rank: 'hauskaetzchen', clan: 'haus', age: 10, sex: 'w', look: L('#b89468', '#7a5a38', 0.45, '#7bc043'), homePos: { x: LM.prinzessin.x, y: LM.prinzessin.y + 60 } },
     { id: 'gelbzahn', pre: 'Gelb', suf: 'zahn', rank: 'einzel', clan: 'einzel', age: 120, sex: 'w', look: L('#4a4644', null, 0, '#e8b923', { long: true }), hidden: true, storyLock: true },
     { id: 'mikusch', fixed: 'Mikusch', rank: 'einzel', clan: 'einzel', age: 60, sex: 'm', look: L('#2a2a2a', null, 0.5, '#e8b923'), hidden: true, home: 'scheune' },
   ];
   for (const d of defs) G.cats.push(makeCat(d));
   for (let i = 0; i < 4; i++) G.cats.push(makeCat({ rank: 'krieger', age: randi(20, 70) }));
-  G.cats.push(makeCat({ rank: 'junges', age: 2, mother: 'frostfell' }));
-  G.cats.push(makeCat({ rank: 'junges', age: 2, mother: 'frostfell' }));
-  G.cats.push(makeCat({ rank: 'junges', age: 4, mother: 'goldbluete' }));
   clanCats().forEach((c, i) => { if (isFighterRank(c.rank) && c.rank !== 'anfuehrer') c.duty = i % 3 === 0 ? 'grenze' : 'jagd'; });
   for (const c of G.cats) if (c.alive && !c.hidden) placeAtHome(c);
 }
@@ -178,13 +178,13 @@ function ceremonyApprentice(c, leader) {
 function ceremonyWarrior(c, leader) {
   const old = catName(c);
   if (!leader) { setRank(c, 'krieger'); news(`${old} ist jetzt ein Krieger und heißt ${catName(c)}!`); return; }
-  const sufs = shuffle(SUFFIXES.slice()).slice(0, 3);
-  if (!sufs.includes(c.suf)) sufs[0] = c.suf;
+  const sufs = [c.suf].concat(shuffle(SUFFIXES.filter(s => s !== c.suf)).slice(0, 2));
+  const canon = c.id.endsWith('junges');
   Dlg.show([
     ['erz', `${old} hat die Ausbildung abgeschlossen. Der ganze Clan versammelt sich unter dem Hochstein.`],
     ['player', `${old}, versprichst du, das Gesetz der Krieger zu achten und deinen Clan zu beschützen – selbst wenn es dein Leben kostet?`],
     [c.id, 'Ich verspreche es.'],
-    { who: 'player', text: 'Welchen Kriegernamen gibst du?', choices: sufs.map(s => ({ t: c.pre + s, fn: () => { c.suf = s; setRank(c, 'krieger'); news(`${old} ist jetzt ein Krieger: ${catName(c)}!`); applyFx({ morale: 3 }, true); return [['alle', `${catName(c)}! ${catName(c)}!`]]; } })) }
+    { who: 'player', text: 'Welchen Kriegernamen gibst du?', choices: sufs.map(s => ({ t: c.pre + s + (canon && s === c.suf ? ' (wie in den Büchern)' : ''), fn: () => { c.suf = s; setRank(c, 'krieger'); news(`${old} ist jetzt ein Krieger: ${catName(c)}!`); applyFx({ morale: 3 }, true); return [['alle', `${catName(c)}! ${catName(c)}!`]]; } })) }
   ]);
 }
 function birth(q, leader) {
@@ -468,7 +468,7 @@ function gatheringDialog() {
 let foreignT = 0;
 function foreignPatrols(dt) {
   const pc = P(), t = territoryAt(pc.x, pc.y);
-  if (!['schatten', 'fluss', 'wind'].includes(t) || G.stage === 'hauskaetzchen' || Story.noPatrols()) { foreignT = 0; return; }
+  if (!['schatten', 'fluss', 'wind'].includes(t) || G.stage === 'hauskaetzchen' || Story.noPatrols() || (t === 'wind' && G.flags.windExil)) { foreignT = 0; return; }
   foreignT += dt;
   if (foreignT > 12 && !ENTS.some(e => e.warnT !== undefined && !e.defeated)) {
     foreignT = 0;
@@ -485,7 +485,7 @@ function foreignPatrols(dt) {
 function populateCamps() {
   const pc = P();
   for (const cp of OB.camps) {
-    if (cp.clan === 'donner') continue;
+    if (cp.clan === 'donner' || (cp.clan === 'wind' && G.flags.windExil)) continue;
     const near = dist(pc.x, pc.y, cp.lm.x, cp.lm.y) < 900;
     const have = ENTS.filter(e => e.campOf === cp.clan);
     if (near && !have.length) for (let i = 0; i < 6; i++) spawnClanCat(cp.clan, cp.lm.x + rand(-100, 100), cp.lm.y + rand(-100, 100), { hostile: false, campOf: cp.clan, wander: { x: cp.lm.x, y: cp.lm.y, r: 140 }, rank: pick(['krieger', 'krieger', 'koenigin', 'aeltester', 'schueler']) });

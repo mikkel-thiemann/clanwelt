@@ -89,7 +89,7 @@ const UI = {
     $('lives').textContent = pc.rank === 'anfuehrer' ? '✦'.repeat(G.player.lives) + ` ${G.player.lives} Leben` : '';
     // Aufgaben
     let h = '';
-    if (!Story.done()) { const q = Story.quest(); h += `<div class="ch">Kapitel ${q.ch} · ${q.title}</div><h4>➤ ${Story.text() || ''}</h4>`; }
+    if (!Story.done()) { const q = Story.quest(); h += `<div class="ch">Buch ${q.ch} · ${q.title}</div><h4>➤ ${Story.text() || ''}</h4>`; }
     else if (G.freeplay) h += `<div class="ch">Freies Spiel</div><h4>Führe deinen Clan durch die Monde</h4>`;
     if (G.missions.length) h += '<div class="ms">' + G.missions.map(m => `<div>◆ ${m.title}${m.n > 1 && m.type !== 'drive' && m.type !== 'beast' ? ` (${Math.min(m.prog, m.n)}/${m.n})` : ''}${m.type === 'herbs' && m.prog >= m.n ? ' → zum Heiler' : ''}</div>`).join('') + '</div>';
     if (G.eventQ.length && !Dlg.open) h += `<div class="ms">⚠ Eine Entscheidung wartet (weg von Kämpfen)</div>`;
@@ -200,7 +200,7 @@ function menuPanel() {
   <p class="small">Das Spiel speichert automatisch. Spielzeit: ${Math.floor(G.playTime / 60)} Minuten.</p>`;
 }
 const HELP_HTML = `<table class="help">
-<tr><td>WASD / Pfeiltasten</td><td>Laufen</td></tr><tr><td>Shift</td><td>Rennen (kostet Ausdauer)</td></tr>
+<tr><td>WASD / Pfeiltasten</td><td>Laufen (in Blickrichtung der Kamera)</td></tr><tr><td>Maus ziehen</td><td>Kamera drehen</td></tr><tr><td>Mausrad</td><td>Näher heran / weiter weg zoomen</td></tr><tr><td>Shift</td><td>Rennen (kostet Ausdauer)</td></tr>
 <tr><td>Q</td><td>Schleichen an/aus – Beute hört dich kaum</td></tr><tr><td>Leertaste</td><td>Springen: Beute fangen oder angreifen</td></tr>
 <tr><td>E</td><td>Sprechen, Beute ablegen, Kräuter pflücken, schlafen</td></tr><tr><td>F</td><td>Fressen (getragene Beute oder vom Haufen)</td></tr>
 <tr><td>H</td><td>Kräuter benutzen (heilen)</td></tr><tr><td>M</td><td>Karte</td></tr><tr><td>K</td><td>Clan-Bildschirm</td></tr><tr><td>J</td><td>Lebensweg & Chronik</td></tr>

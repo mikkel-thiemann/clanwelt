@@ -2,7 +2,7 @@
 
 **Lebe das Leben einer Clan-Katze.**
 
-Ein Browser-Spiel nach der Buchreihe *Warrior Cats* von Erin Hunter (Fan-Projekt).
+Ein 3D-Browser-Spiel (Three.js) nach der Buchreihe *Warrior Cats* von Erin Hunter (Fan-Projekt).
 
 ▶ **Spielen:** https://mikkel-thiemann.github.io/clanwelt/
 
@@ -15,7 +15,10 @@ Freunde sterben, neue Feinde tauchen auf. Du führst den Clan durch viele Monde.
 
 - **Offene Welt:** DonnerClan-Wald, SchattenClan-Kiefernwald und Sumpf, FlussClan-Fluss, WindClan-Moor,
   Donnerweg mit Monstern, Baumgeviert, Hochfelsen mit dem Mondstein, Zweibeinerort
-- **Story:** 16 Kapitel, von Sammy bis Feuerstern
+- **Story nach der ersten Staffel (Buch 1–6):** In die Wildnis · Feuer und Eis · Geheimnisse des Waldes · Vor dem Sturm · Pfad der Gefahr · Stunde der Finsternis
+  – Rotschweifs Tod, das zerrissene Halsband, Gelbzahn als Gefangene, Rabenpfotes Geheimnis, die Ratten in der Scheune,
+  die gestohlenen Jungen, die Heimkehr des WindClans, Silberfluss, die Flut, Wolkenjunges, Tigerkralles Verrat,
+  der Waldbrand, Tigerstern, die Hundemeute, neun Leben am Mondstein, BlutClan und Geißel
 - **Jagen:** Schleichen, anpirschen und springen. Mäuse, Amseln, Eichhörnchen, Kaninchen, Frösche und Fische
 - **Kämpfen:** Übungskämpfe, Grenzkämpfe, Füchse, Dachse und die Hundemeute
 - **Überleben:** Hunger, Ausdauer, Kräuter, Tag und Nacht, vier Jahreszeiten, Wetter
@@ -28,7 +31,8 @@ Freunde sterben, neue Feinde tauchen auf. Du führst den Clan durch viele Monde.
 
 | Taste | Aktion |
 |---|---|
-| WASD / Pfeiltasten | Laufen |
+| WASD / Pfeiltasten | Laufen (in Blickrichtung) |
+| Maus ziehen / Mausrad | Kamera drehen / zoomen |
 | Shift | Rennen |
 | Q | Schleichen an/aus |
 | Leertaste | Springen: Beute fangen oder angreifen |

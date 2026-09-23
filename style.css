@@ -1,7 +1,17 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 :root { --gold: #ffd98a; --panel: rgba(22, 28, 18, .86); --line: rgba(230, 200, 120, .35); }
 html, body { height: 100%; overflow: hidden; background: #0b0f0a; font-family: 'Trebuchet MS', system-ui, sans-serif; color: #f3ecd8; user-select: none; -webkit-user-select: none; touch-action: none; }
-canvas#game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+canvas#game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; }
+canvas#game:active { cursor: grabbing; }
+#ov { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+#labels { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+.lbl { position: absolute; left: 0; top: 0; text-align: center; font-size: 12px; white-space: nowrap; text-shadow: 0 1px 2px #000, 0 0 4px #000; color: #fff3c4; will-change: transform; }
+.lbl .foe { color: #ff9a8a; } .lbl .oth { color: #cfe0ff; }
+.lbl.fx { font-size: 15px; }
+.lbl .alert { color: #ffe14a; font-size: 20px; }
+.hpb { width: 40px; height: 5px; background: rgba(0,0,0,.6); margin: 2px auto 0; border-radius: 3px; overflow: hidden; }
+.hpb i { display: block; height: 100%; background: #ff5050; }
+.bub { background: rgba(255,250,235,.95); color: #2a2014; text-shadow: none; border-radius: 9px; padding: 3px 9px; margin-bottom: 3px; font-size: 12.5px; }
 .hidden { display: none !important; }
 button { font-family: inherit; cursor: pointer; }
 .box { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; box-shadow: 0 4px 14px rgba(0, 0, 0, .4); }
