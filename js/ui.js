@@ -24,6 +24,7 @@ const Dlg = {
     let line = this.lines.shift();
     while (line && line.do && !line.text) { line.do(); line = this.lines.shift(); }
     if (!line) {
+      this.speaker = null;
       this.open = false; $('dialog').classList.add('hidden');
       const cb = this.cb; this.cb = null; if (cb) cb();
       if (!this.open && this.pending.length) { const p = this.pending.shift(); this.show(p.lines, p.cb); }
@@ -32,6 +33,7 @@ const Dlg = {
     if (Array.isArray(line)) line = { who: line[0], text: line[1] };
     const w = whoInfo(line.who);
     const isNarr = line.who === 'erz';
+    this.speaker = isNarr || w.all ? this.speaker : w;
     $('dlgName').textContent = isNarr ? '' : (w.all ? w.name : nameOf(w) + (w.rank && RANKS[w.rank] && !w.name ? ' · ' + rankName(w) : ''));
     const pc = $('dlgPortrait'), g = pc.getContext('2d');
     pc.style.display = isNarr || w.all ? 'none' : 'block';
@@ -64,6 +66,13 @@ const Dlg = {
     $('dlgText').textContent = this.full.slice(0, Math.floor(this.typing));
   }
 };
+
+// ---------- Große Titel (Buch-Anfang) ----------
+const BOOKS = ['', 'In die Wildnis', 'Feuer und Eis', 'Geheimnisse des Waldes', 'Vor dem Sturm', 'Pfad der Gefahr', 'Stunde der Finsternis'];
+function titleCard(top, main) {
+  const d = $('titlecard'); d.innerHTML = `<div class="tc1">${top}</div><div class="tc2">${main}</div>`;
+  d.classList.remove('show'); void d.offsetWidth; d.classList.add('show');
+}
 
 // ---------- Meldungen ----------
 function toast(text) {
@@ -196,7 +205,7 @@ function skillsPanel() {
   return `<p>Freie Punkte: <b>${pts}</b> · Stufe ${pc.lvl} (${Math.floor(pc.xp)}/${xpNeed(pc)} EP)</p>` + Object.keys(info).map(k => `<div class="skill"><div><b>${info[k][0]}: ${sk[k]}</b><br><span class="small">${info[k][1]}</span></div><button data-skill="${k}" ${pts && sk[k] < 8 ? '' : 'disabled'}>+1</button></div>`).join('');
 }
 function menuPanel() {
-  return `<div class="menu"><button data-act="close">▶ Weiterspielen</button><button data-act="save">💾 Speichern</button><button data-act="help">⌨ Steuerung</button><button data-act="title">🏠 Hauptmenü</button><button data-act="new" class="danger">✧ Neues Spiel beginnen</button></div>
+  return `<div class="menu"><button data-act="close">▶ Weiterspielen</button><button data-act="save">💾 Speichern</button><button data-act="help">⌨ Steuerung</button><button data-act="gfx">🎨 Grafik: ${GFX.hoch ? 'Schön (hoch)' : 'Schnell (niedrig)'}</button><button data-act="title">🏠 Hauptmenü</button><button data-act="new" class="danger">✧ Neues Spiel beginnen</button></div>
   <p class="small">Das Spiel speichert automatisch. Spielzeit: ${Math.floor(G.playTime / 60)} Minuten.</p>`;
 }
 const HELP_HTML = `<table class="help">
@@ -226,6 +235,7 @@ function panelClick(e) {
   if (d.act === 'close') closePanel();
   else if (d.act === 'save') { saveGame(); toast('Spiel gespeichert.'); }
   else if (d.act === 'help') { UI.panel = 'help'; renderPanel(); }
+  else if (d.act === 'gfx') { setGfx(!GFX.hoch); renderPanel(); toast(GFX.hoch ? 'Grafik: schön – mit Schatten, Leuchten und viel Gras.' : 'Grafik: schnell – für langsamere Geräte.'); }
   else if (d.act === 'title') { saveGame(); closePanel(); showTitle(); }
   else if (d.act === 'new') { if (confirm('Wirklich ein neues Spiel beginnen? Der alte Spielstand wird überschrieben.')) { closePanel(); newGame(); } }
   else if (d.tab) { UI.tab = d.tab; renderPanel(); }

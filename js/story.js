@@ -511,7 +511,7 @@ const Story = {
       G.story.q++; G.story.s = 0;
       if (!silent) toast(`✔ Abgeschlossen: ${q.title}`);
       const nq = this.quest();
-      if (nq) setTimeout(() => toast(`📖 Buch ${nq.ch}: ${nq.title}`), 1500);
+      if (nq) { if (nq.ch !== q.ch) setTimeout(() => titleCard('Buch ' + nq.ch, BOOKS[nq.ch]), 600); else setTimeout(() => toast(`📖 ${nq.title}`), 1200); }
       saveGame();
     }
     this.enter();

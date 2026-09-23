@@ -86,13 +86,18 @@
   </div>
 </div>
 <div id="fade"></div>
+<div id="titlecard"></div>
 
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js"}}</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'three';
 window.THREE = THREE;
-const files = ['util', 'world', 'models', 'cats', 'clan', 'story', 'ui', 'scene3d', 'main'];
-for (const f of files) await new Promise((ok, fail) => { const s = document.createElement('script'); s.src = 'js/' + f + '.js?v=' + (location.hostname === 'localhost' ? Date.now() : 3); s.onload = ok; s.onerror = fail; document.body.appendChild(s); });
+try {
+  const [a, b, c, d] = await Promise.all(['postprocessing/EffectComposer.js', 'postprocessing/RenderPass.js', 'postprocessing/UnrealBloomPass.js', 'postprocessing/OutputPass.js'].map(f => import('three/addons/' + f)));
+  window.THREE_ADDONS = { EffectComposer: a.EffectComposer, RenderPass: b.RenderPass, UnrealBloomPass: c.UnrealBloomPass, OutputPass: d.OutputPass };
+} catch (e) { console.warn('Bloom nicht verfügbar', e); }
+const files = ['util', 'world', 'models', 'cats', 'clan', 'story', 'ui', 'scene3d', 'fx3d', 'main'];
+for (const f of files) await new Promise((ok, fail) => { const s = document.createElement('script'); s.src = 'js/' + f + '.js?v=' + (location.hostname === 'localhost' ? Date.now() : 4); s.onload = ok; s.onerror = fail; document.body.appendChild(s); });
 </script>
 </body>
 </html>

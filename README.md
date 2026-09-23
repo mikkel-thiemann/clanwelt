@@ -26,6 +26,9 @@ Freunde sterben, neue Feinde tauchen auf. Du führst den Clan durch viele Monde.
 - **Anführer-Entscheidungen:** Beutemangel, fremde Katzen, Streit, Krankheit, Prophezeiungen, Überfälle, Zeremonien
 - **Mehrere Generationen:** Andere Clan-Katzen spielen; stirbt der Anführer, geht es mit dem Nachfolger weiter
 - **Lebensweg:** Blick zurück vom kleinen Hauskätzchen bis heute
+- **Animationen & Effekte:** Katzen mit Skelett (Gehen, Galopp, Schleichen, Sprung, Pfotenhieb, Katzenbuckel, Sitzen, Putzen, Schlafen, Blinzeln),
+  Krallenspuren, Staub, Wasserspritzer, Glühwürmchen, fallende Blätter, Gras und Bäume im Wind, Leuchten (Bloom), Film-Kamera bei Gesprächen
+- **Grafik-Einstellung:** Im Menü zwischen „Schön“ und „Schnell“ umschalten (für langsamere Geräte)
 
 ## Steuerung
 

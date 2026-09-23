@@ -142,3 +142,20 @@ h3 { color: var(--gold); margin: 12px 0 6px; font-size: 15px; }
   #carry { bottom: 170px; }
   #toasts { width: 80vw; top: 110px; }
 }
+
+/* ===== Große Buch-Titel ===== */
+#titlecard { position: fixed; left: 0; right: 0; top: 30%; text-align: center; pointer-events: none; z-index: 25; opacity: 0; }
+#titlecard.show { animation: tcard 5s ease forwards; }
+#titlecard .tc1 { font-size: clamp(16px, 3vw, 24px); letter-spacing: 8px; text-transform: uppercase; color: #f3e0b0; }
+#titlecard .tc2 { font-family: Georgia, 'Times New Roman', serif; font-size: clamp(36px, 8vw, 78px); color: var(--gold); text-shadow: 0 0 30px rgba(255, 170, 60, .7), 0 4px 0 #5a3a10; }
+@keyframes tcard { 0% { opacity: 0; transform: scale(1.15); filter: blur(10px); } 15% { opacity: 1; transform: scale(1); filter: blur(0); } 75% { opacity: 1; } 100% { opacity: 0; transform: scale(.97); } }
+/* ===== Lebendigerer Titelbildschirm ===== */
+.logo { animation: glow 3.5s ease-in-out infinite; }
+@keyframes glow { 50% { text-shadow: 0 0 55px rgba(255, 190, 80, .85), 0 4px 0 #6a4a1a; } }
+.tbox { animation: rise 1.4s ease both; }
+@keyframes rise { from { opacity: 0; transform: translateY(20px); } }
+#dialog { animation: dlgIn .25s ease; }
+@keyframes dlgIn { from { transform: translate(-50%, 16px); opacity: 0; } }
+.choice { transition: transform .12s, background .12s; }
+.choice:hover { transform: translateX(4px); }
+#hud .box, #topright .box { backdrop-filter: blur(4px); }

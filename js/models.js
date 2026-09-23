@@ -33,69 +33,130 @@ function mk(geo, mat, sx, sy, sz, x, y, z, parent) {
 const MAT = {};
 function sharedMat(col) { return MAT[col] || (MAT[col] = new THREE.MeshLambertMaterial({ color: col })); }
 
-// ---------- Katze ----------
+// ---------- Katze (mit Skelett: Wirbelsäule, Hals, Kopf, Beine mit Knien, Schwanz) ----------
+let _whiskerMat = null;
+const whiskerMat = () => _whiskerMat || (_whiskerMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55 }));
 function makeCatModel(look, opts = {}) {
   const g = geos(), root = new THREE.Group(), body = new THREE.Group(); root.add(body);
   const mFur = new THREE.MeshLambertMaterial({ map: furTexture(look) });
   const mBase = new THREE.MeshLambertMaterial({ color: look.base });
   const mWhite = new THREE.MeshLambertMaterial({ color: 0xf4f1ea });
   const mStripe = look.stripe ? new THREE.MeshLambertMaterial({ color: look.stripe }) : mBase;
+  const W_ = look.white > 0.3, mLeg = W_ ? mWhite : mBase, mFace = look.white > 0.35 ? mWhite : mBase;
   const mats = [mFur, mBase, mWhite, mStripe];
-  const W_ = look.white > 0.3;
-  const torso = mk(g.sr, mFur, 13, 7.2, 7.6, 0, 12, 0, body); torso.castShadow = true;
-  if (look.long) { mk(g.lo, mBase, 7, 8, 8.6, 9, 14, 0, body); mk(g.lo, mBase, 7, 7.6, 8.4, -6, 12.5, 0, body); }
-  if (W_) mk(g.s, mWhite, 5, 5.6, 5.6, 9.5, 10.5, 0, body);
-  const head = new THREE.Group(); head.position.set(14, 18, 0); body.add(head);
-  const skull = mk(g.sr, mFur, 6.2, 5.8, 6.4, 0, 0, 0, head); skull.castShadow = true;
-  if (look.long) mk(g.lo, mBase, 4, 5.5, 7.6, -1.5, -1.5, 0, head);
-  mk(g.s, look.white > 0.35 ? mWhite : mBase, 3, 2.6, 3.6, 4.6, -1.8, 0, head);
-  mk(g.lo, sharedMat('#d97a8a'), 0.9, 0.7, 1.1, 7.5, -0.9, 0, head);
+  const spine = new THREE.Group(); spine.position.set(0, 13, 0); body.add(spine);
+  const chest = mk(g.sr, mFur, 8.2, 7.2, 7.4, 4.5, 0.6, 0, spine); chest.castShadow = true;
+  const hips = mk(g.sr, mFur, 8.4, 6.6, 7, -4.5, 0, 0, spine); hips.castShadow = true;
+  if (W_) mk(g.s, mWhite, 4.4, 5, 5, 8.6, -1.6, 0, spine);
+  if (look.long) { mk(g.lo, mBase, 6, 7.8, 8.6, 7, 1.5, 0, spine); mk(g.lo, mBase, 6.5, 7.2, 8.2, -4, 0.8, 0, spine); }
+  const neck = new THREE.Group(); neck.position.set(10, 2.5, 0); spine.add(neck);
+  mk(g.lo, mBase, 3.6, 4.6, 4.2, 0.5, 1.6, 0, neck);
+  if (look.long) mk(g.lo, mBase, 4.4, 5.6, 6.4, 0, 1, 0, neck);
+  const head = new THREE.Group(); head.position.set(3.2, 4.8, 0); neck.add(head);
+  const skull = mk(g.sr, mFur, 5.6, 5.1, 6.0, 0, 0, 0, head); skull.castShadow = true;
+  for (const sd of [-1, 1]) mk(g.lo, mFace, 3.1, 2.8, 2.9, 1.7, -1.5, sd * 2.5, head);
+  mk(g.s, mFace, 2.7, 2.2, 3.1, 4.3, -1.7, 0, head);
+  mk(g.lo, sharedMat('#d97a8a'), 0.85, 0.65, 1.05, 6.8, -0.9, 0, head);
   const eyeM = new THREE.MeshBasicMaterial({ color: look.eye }); mats.push(eyeM);
-  for (const s of [-1, 1]) {
-    mk(g.lo, eyeM, 1.2, 1.3, 1.2, 4.4, 1.3, s * 2.5, head);
-    mk(g.lo, sharedMat('#111'), 0.5, 1.1, 0.5, 5.4, 1.3, s * 2.6, head);
-    const ear = mk(g.cone, mBase, 2.6, 5, 2.4, -0.6, 5.4, s * 3.2, head); ear.rotation.x = s * 0.35;
-    const inner = mk(g.cone, sharedMat('#e8a0a0'), 1.5, 3.4, 1.1, 0.4, 5.1, s * 3.1, head); inner.rotation.x = s * 0.35;
+  const eyes = [];
+  for (const sd of [-1, 1]) {
+    const eg = new THREE.Group(); eg.position.set(4.0, 1.1, sd * 2.3); head.add(eg);
+    mk(g.lo, eyeM, 1.15, 1.25, 1.0, 0, 0, 0, eg);
+    mk(g.lo, sharedMat('#0a0a0a'), 0.45, 1.05, 0.5, 0.75, 0, sd * 0.1, eg);
+    mk(g.lo, sharedMat('#ffffff'), 0.28, 0.28, 0.28, 0.95, 0.45, sd * 0.25, eg);
+    eyes.push(eg);
   }
+  const ears = [];
+  for (const sd of [-1, 1]) {
+    const ep = new THREE.Group(); ep.position.set(-0.8, 3.9, sd * 2.8); head.add(ep);
+    mk(g.cone, mBase, 2.5, 4.8, 2.2, 0, 2.2, 0, ep);
+    mk(g.cone, sharedMat('#e8a0a0'), 1.4, 3.2, 1.0, 0.7, 2.0, 0, ep);
+    ep.userData.s = sd; ears.push(ep);
+  }
+  const wv = []; for (const sd of [-1, 1]) for (let i = -1; i <= 1; i++) wv.push(5.6, -1.7, sd * 1.6, 7.8, -1.4 + i * 0.9, sd * (7.5 + Math.abs(i)));
+  head.add(new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(wv, 3)), whiskerMat()));
   const legs = [];
-  for (const [lx, lz] of [[7, 4.2], [7, -4.2], [-8, 4.4], [-8, -4.4]]) {
-    const pv = new THREE.Group(); pv.position.set(lx, 11, lz); body.add(pv);
-    mk(g.cyl, W_ ? mWhite : mBase, 1.9, 11, 1.9, 0, -5.5, 0, pv);
-    mk(g.lo, W_ ? mWhite : mBase, 2.4, 1.4, 2.6, 0.8, -11, 0, pv);
-    legs.push(pv);
+  for (const [lx, lz, front] of [[7, 3.6, 1], [7, -3.6, 1], [-7, 3.9, 0], [-7, -3.9, 0]]) {
+    const up = new THREE.Group(); up.position.set(lx, -1, lz); spine.add(up);
+    mk(g.cyl, front ? mBase : mFur, front ? 1.8 : 2.7, 6.6, front ? 1.8 : 2.5, 0, -3.1, 0, up);
+    const knee = new THREE.Group(); knee.position.set(0, -6.3, 0); up.add(knee);
+    mk(g.cyl, mLeg, 1.55, 5.9, 1.55, 0, -2.9, 0, knee);
+    mk(g.lo, mLeg, 2.2, 1.2, 2.4, 0.7, -5.9, 0, knee);
+    legs.push({ up, knee, front });
   }
   const tail = [];
-  for (let i = 0; i < 12; i++) {
-    const r = (look.long ? 2.8 : 2.1) * (1 - i * 0.045);
-    const mm = i >= 10 && look.white > 0.55 ? mWhite : (look.stripe && i % 3 === 2 ? mStripe : mBase);
-    const s = mk(g.lo, mm, r, r, r, -12 - i * 2.5, 13, 0, body); tail.push(s);
+  for (let i = 0; i < 14; i++) {
+    const r = (look.long ? 2.8 : 2.1) * (1 - i * 0.04);
+    const mm = i >= 12 && look.white > 0.55 ? mWhite : (look.stripe && i % 3 === 2 ? mStripe : mBase);
+    const tm = mk(g.lo, mm, r, r, r, -11 - i * 2, 1.5, 0, spine); tm.userData.r = r; tail.push(tm);
   }
   if (opts.star) for (const m of mats.concat([sharedMat('#111')])) { m.transparent = true; m.opacity = 0.55; if (m.emissive) m.emissive.set('#5a78c8'); }
-  if (opts.collar) mk(new THREE.TorusGeometry(1, 0.25, 6, 16), sharedMat(opts.collar), 4.5, 4.5, 4.5, 11, 15.5, 0, body).rotation.y = Math.PI / 2;
-  root.userData = { body, head, legs, tail, mats, mFur, mBase };
+  if (opts.collar) mk(new THREE.TorusGeometry(1, 0.25, 6, 16), sharedMat(opts.collar), 4.2, 4.2, 4.2, 0.5, 1.2, 0, neck).rotation.set(0, Math.PI / 2, 0.5);
+  root.userData = { body, spine, neck, head, legs, tail, eyes, ears, chest, hips, mats, mFur, mBase, pose: null, st: { blinkT: rand(1, 4), earT: rand(1, 5), earI: 0, still: 0, groomT: 0 } };
   return root;
 }
-function animateCat(m, e, t, o) {
-  const u = m.userData, ph = e.phase || 0, mv = o.moving ? 1 : 0;
-  const seed = (e.ox || 0) * 0.1;
-  if (o.sleep) {
-    for (const l of u.legs) l.visible = false;
-    u.body.position.y = -6; u.head.position.set(9, 12, 5); u.head.rotation.set(0, 0.9, 0.2);
-    u.tail.forEach((s, i) => { const a = 2.2 + i * 0.26; s.position.set(Math.cos(a) * 11, 8, Math.sin(a) * 11); });
-    return;
+// Zielhaltung je Zustand; die echte Haltung gleitet weich dorthin
+function catPoseTarget(state, ph, t, o, st) {
+  const T = { y: 0, pitch: 0, neck: 0, headP: 0, headY: 0, up: [0, 0, 0, 0], kn: [0, 0, 0, 0], tLift: 1, tCurl: 0, tSway: 0.35, tFreq: 2.2, fluff: 1, ear: 0 };
+  const gait = (A, K, offs) => { for (let i = 0; i < 4; i++) { const p = ph + offs[i], lift = Math.max(0, Math.cos(p)); T.up[i] += Math.sin(p) * A; T.kn[i] += (i < 2 ? -1 : 1) * lift * K; } };
+  switch (state) {
+    case 'walk': gait(0.55, 0.8, [0, Math.PI, Math.PI, 0]); T.y = Math.abs(Math.sin(ph)) * 0.6; T.headP = Math.sin(ph * 2) * 0.04; T.tLift = 0.9; break;
+    case 'run': gait(1.0, 1.3, [0, 0.5, Math.PI, Math.PI + 0.5]); T.pitch = Math.sin(ph) * 0.16; T.y = 1 + Math.sin(ph) * 1.8; T.tLift = 0.25; T.tSway = 0.15; T.ear = 0.3; T.neck = -0.1; break;
+    case 'sneak':
+      T.y = -3.2; T.up = [0.55, 0.55, -0.7, -0.7]; T.kn = [-1.05, -1.05, 1.2, 1.2]; gait(0.28, 0.4, [0, Math.PI, Math.PI, 0]);
+      T.neck = -0.35; T.headP = -0.1; T.tLift = 0.05; T.tSway = 0.12; T.tFreq = 7; break;
+    case 'pounce': {
+      const p = o.lungeP;
+      T.y = Math.sin(p * Math.PI) * 10; T.pitch = lerp(0.35, -0.3, p); T.up = [1.25, 1.1, -1.1, -1.2]; T.kn = [-0.2, -0.3, 0.3, 0.2]; T.tLift = 0.2; T.tSway = 0; T.ear = 0.8; break;
+    }
+    case 'swipe': T.pitch = 0.45; T.y = 2; T.up = [1.7 + Math.sin(t * 28) * 0.35, 0.5, -0.3, -0.3]; T.kn = [-0.4, -0.6, 0.6, 0.6]; T.ear = 1; T.tLift = 1.6; T.fluff = 1.25; break;
+    case 'stance': T.y = 1.2; T.pitch = -0.08; T.up = [0.1, 0.1, -0.15, -0.15]; T.fluff = 1.3; T.tLift = 1.9; T.tCurl = 0.25; T.tSway = 0.2; T.tFreq = 6; T.ear = 1; T.neck = -0.15; break;
+    case 'sit':
+      T.pitch = 0.55; T.y = -2.8; T.up = [-0.55, -0.55, 1.45, 1.45]; T.kn = [0, 0, -2.4, -2.4]; T.neck = -0.35; T.tLift = -0.2; T.tCurl = 1; T.tSway = 0.08;
+      T.headY = Math.sin(t * 0.35 + st.seed) * 0.5;
+      if (st.groomT > 0) { T.headY = 0.35; T.headP = 0.55; T.up[0] = 0.4; T.kn[0] = -2.1; T.neck = -0.1; }
+      break;
+    case 'lie': T.y = -7; T.up = [1.4, 1.4, 1.5, 1.5]; T.kn = [-0.2, -0.2, -1.6, -1.6]; T.headP = 0.1; T.headY = Math.sin(t * 0.3 + st.seed) * 0.4; T.tLift = -0.3; T.tCurl = 0.7; T.tSway = 0.1; break;
+    case 'sleep': T.y = -8.5; T.up = [1.5, 1.5, 1.6, 1.6]; T.kn = [-0.3, -0.3, -1.8, -1.8]; T.headY = 1.1; T.headP = 0.55; T.neck = 0.1; T.tLift = -0.4; T.tCurl = 1.4; T.tSway = 0.02; T.ear = 0.3; break;
+    default:
+      T.headY = Math.sin(t * 0.5 + st.seed) * 0.45; T.headP = Math.sin(t * 0.37 + st.seed) * 0.08; T.tSway = 0.3; T.tFreq = 1.6;
   }
-  for (const l of u.legs) l.visible = true;
-  const crouch = o.sneak ? -3.5 : 0;
-  u.body.position.y = crouch + Math.abs(Math.sin(ph)) * 1.0 * mv;
-  u.body.rotation.z = o.lunge ? -0.18 : 0;
-  u.head.position.set(14, 18 + crouch * 0.5, 0);
-  u.head.rotation.set(0, o.look ? Math.sin(t * 0.7 + seed) * 0.35 : 0, o.sneak ? -0.2 : 0);
-  const sw = (o.run ? 0.9 : 0.6) * mv, offs = [0, Math.PI, Math.PI, 0];
-  u.legs.forEach((l, i) => { l.rotation.z = Math.sin(ph + offs[i]) * sw; l.scale.y = o.sneak ? 0.75 : 1; });
-  const up = o.sneak ? 0.25 : (o.fight ? 1.3 : 1);
-  u.tail.forEach((s, i) => { const k = i / 11; s.position.set(-12 - k * 15, 13 + crouch * 0.4 + Math.sin(k * 2.3) * 9 * up, Math.sin(t * (o.fight ? 6 : 2.4) + seed + k * 2) * k * 6); });
+  return T;
+}
+function animateCat(m, e, t, dt, o) {
+  const u = m.userData, st = u.st;
+  if (st.seed === undefined) st.seed = (e.ox || Math.random() * 10) * 0.37;
+  const spd = o.speed || 0;
+  let state;
+  if (o.sleep) state = 'sleep'; else if (o.lungeP !== undefined) state = 'pounce'; else if (o.wind) state = 'swipe';
+  else if (spd > 10) state = o.sneak ? 'sneak' : spd > 205 ? 'run' : 'walk';
+  else if (o.fight) state = 'stance'; else if (o.sneak) state = 'sneak'; else state = 'idle';
+  if (state === 'idle') st.still += dt; else st.still = 0;
+  if (state === 'idle' && st.still > (o.player ? 6 : 2.5)) state = st.still > 16 && !o.player ? 'lie' : 'sit';
+  if (state === 'sit') { st.groomT -= dt; if (st.groomT < -6 && Math.random() < dt * 0.3) st.groomT = rand(2, 4); } else st.groomT = 0;
+  const T = catPoseTarget(state, e.phase || 0, t, o, st);
+  if (!u.pose) u.pose = JSON.parse(JSON.stringify(T));
+  const P = u.pose, k = 1 - Math.exp(-dt * (state === 'run' || state === 'walk' || state === 'pounce' ? 22 : 9));
+  for (const key in T) { if (Array.isArray(T[key])) for (let i = 0; i < 4; i++) P[key][i] = lerp(P[key][i], T[key][i], k); else P[key] = lerp(P[key], T[key], k); }
+  const breath = 1 + Math.sin(t * (state === 'sleep' ? 1.6 : 2.6) + st.seed) * (state === 'sleep' ? 0.05 : 0.022);
+  u.body.position.y = P.y; u.spine.rotation.z = P.pitch + (o.flash > 0 ? 0.25 : 0);
+  u.neck.rotation.z = P.neck; u.head.rotation.set(0, P.headY, -P.headP);
+  u.chest.scale.set(8.2 * P.fluff, 7.2 * P.fluff * breath, 7.4 * P.fluff * breath); u.hips.scale.set(8.4 * P.fluff, 6.6 * P.fluff, 7 * P.fluff);
+  u.legs.forEach((l, i) => { l.up.rotation.z = P.up[i]; l.knee.rotation.z = P.kn[i]; });
+  const n = u.tail.length, sway = Math.sin(t * P.tFreq + st.seed);
+  u.tail.forEach((s, i) => {
+    const q = i / (n - 1), ca = P.tCurl * q * 2.3 + sway * P.tSway * q * 0.9, reach = q * 26;
+    s.position.set(-11 - Math.cos(ca) * reach * 0.62, 1.5 + Math.sin(q * 1.9) * 9 * P.tLift - (P.tCurl > 0.5 ? q * 5 : 0), Math.sin(ca) * reach * 0.62);
+    s.scale.setScalar(s.userData.r * (1 + (P.fluff - 1) * 1.6));
+  });
+  st.blinkT -= dt; const closed = state === 'sleep' || st.blinkT < 0.12;
+  if (st.blinkT < 0) st.blinkT = rand(2, 5);
+  for (const eg of u.eyes) eg.scale.y = closed ? 0.12 : 1;
+  st.earT -= dt; if (st.earT < 0) { st.earT = rand(1.5, 6); st.earI = 0.25; } st.earI = Math.max(0, st.earI - dt);
+  u.ears.forEach((ep, i) => { const tw = i === 0 && st.earI > 0 ? Math.sin(st.earI * 60) * 0.4 : 0; ep.rotation.set(ep.userData.s * (0.3 + P.ear * 0.7), 0, -P.ear * 0.5 + tw); });
   const f = o.flash > 0 ? 1 : 0;
-  if (u.mFur.emissive.r !== f * 0.7) { u.mFur.emissive.setRGB(f * 0.7, 0, 0); u.mBase.emissive.setRGB(f * 0.7, 0, 0); }
+  if (u.mFur.emissive.r !== f * 0.45) { u.mFur.emissive.setRGB(f * 0.45, f * 0.05, 0); u.mBase.emissive.setRGB(f * 0.45, f * 0.05, 0); }
+  return state;
 }
 
 // ---------- Tiere ----------
@@ -141,9 +202,12 @@ function makeBeastModel(kind) {
 }
 function animateBeast(m, e, t) {
   const u = m.userData, L = u.beast, ph = e.phase || 0, mv = e.moving ? 1 : 0;
-  u.body.position.y = Math.abs(Math.sin(ph)) * 1.2 * mv;
-  const offs = [0, Math.PI, Math.PI, 0];
-  u.legs.forEach((l, i) => l.rotation.z = Math.sin(ph + offs[i]) * 0.7 * mv);
+  const run = (e.speed || 0) > 160 && mv;
+  u.body.position.y = (run ? 1.5 + Math.sin(ph) * 2 : Math.abs(Math.sin(ph)) * 1.2) * mv;
+  u.body.rotation.z = run ? Math.sin(ph) * 0.12 : 0;
+  u.head.rotation.z = Math.sin(ph * 2) * 0.08 * mv + (e.wind > 0 ? 0.35 : 0);
+  const offs = run ? [0, 0.5, Math.PI, Math.PI + 0.5] : [0, Math.PI, Math.PI, 0];
+  u.legs.forEach((l, i) => l.rotation.z = Math.sin(ph + offs[i]) * (run ? 0.95 : 0.7) * mv);
   const hy = L.h * 1.7, n = u.tail.length, seg = L.tail === 'lang' ? L.len * 0.25 : L.h * 0.55;
   u.tail.forEach((s, i) => s.position.set(-L.len * 0.7 - i * seg, hy + (L.tail === 'buschig' ? i * 0.4 : i * 0.6), Math.sin(t * 5 + i) * i * 0.8));
   const f = e.flash > 0 ? 0.7 : 0; u.mFur.emissive.setRGB(f, 0, 0);
@@ -186,5 +250,5 @@ function makeCarModel(col) {
   return root;
 }
 function disposeModel(m) {
-  m.traverse(o => { if (o.isMesh && o.material && !Object.values(MAT).includes(o.material)) o.material.dispose(); });
+  m.traverse(o => { if (o.isMesh && o.material && !Object.values(MAT).includes(o.material) && o.material !== _whiskerMat) o.material.dispose(); });
 }

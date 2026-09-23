@@ -271,6 +271,8 @@ function hurt(t, dmg, src) {
   const a = Math.atan2(t.y - src.y, t.x - src.x), kb = t.beast ? 90 : 230;
   t.kx = Math.cos(a) * kb; t.ky = Math.sin(a) * kb;
   addFx(t.x, t.y - 22, '-' + dmg, t === pc ? '#ff7070' : '#ffe08a');
+  if (typeof FX3 !== 'undefined' && FX3.sysN) FX3.hit(t, src);
+  if (t === pc || src === pc) CAMS.shake = Math.max(CAMS.shake || 0, t === pc ? 3.5 : 1.5);
   if (t === pc) {
     G.player.invul = 0.25;
     if (src.spar && t.hp < t.maxHp * 0.2) { sparLost(src); return; }
@@ -502,6 +504,7 @@ function gainXp(c, n) {
     c.xp -= xpNeed(c); c.lvl++;
     if (c === P()) {
       G.player.points = (G.player.points || 0) + 1;
+      if (typeof FX3 !== 'undefined' && FX3.sysN) FX3.levelUp(c.x, surfaceY(c.x, c.y), c.y);
       toast(`⭐ Stufe ${c.lvl}! Du kannst eine Fähigkeit verbessern (Taste L oder im Clan-Bildschirm).`);
     }
   }

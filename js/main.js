@@ -26,6 +26,7 @@ function newGame() {
   chron('Sammy, ein junges Hauskätzchen, lebt am Rand des Waldes.');
   startPlay();
   Story.enter();
+  setTimeout(() => titleCard('Buch 1', BOOKS[1]), 300);
 }
 function saveGame() {
   if (!G) return;
@@ -119,6 +120,7 @@ function interact(it) {
     const h = OB.herbs[it.i]; G.herbsTaken[it.i] = day() + 3;
     G.player.herbs[h.k] = (G.player.herbs[h.k] || 0) + 1; gainXp(pc, 4);
     toast(`${HERBS[h.k].n} gepflückt.`);
+    FX3.sparkle(h.x, surfaceY(h.x, h.y) + 6, h.y, HERBS[h.k].col, 12);
     Story.event('herb', { kind: h.k }); Missions.event('herb', { kind: h.k });
   }
 }
@@ -266,6 +268,7 @@ function catchPrey(p) {
   const pc = P(), T = PREY_T[p.k];
   gainXp(pc, T.xp);
   addFx(p.x, p.y - 10, T.n + '!', '#aef07a');
+  FX3.sparkle(p.x, surfaceY(p.x, p.y) + 6, p.y, '#fff2a0', 14);
   if (G.player.carry.length >= carryCap()) toast(`${T.n} gefangen – aber du kannst nicht mehr tragen! Bring Beute ins Lager oder friss (F).`);
   else { G.player.carry.push(p.k); toast(`${T.n} gefangen!`); }
   Story.event('catch');
