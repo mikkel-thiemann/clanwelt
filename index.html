@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Clanwelt</title>
+<meta name="description" content="Clanwelt – lebe das Leben einer Clan-Katze. Vom Hauskätzchen zum Anführer.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐈</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="hud" class="hidden">
+  <div class="box" id="stats">
+    <img id="portrait" alt="">
+    <div class="sinfo">
+      <div id="pName" class="nm"></div>
+      <div id="pRank" class="rk"></div>
+      <div class="bl"><span>Gesundheit</span></div><div class="bar"><i id="bHp"></i></div>
+      <div class="bl"><span>Hunger</span></div><div class="bar"><i id="bHunger"></i></div>
+      <div class="bl"><span>Ausdauer</span></div><div class="bar"><i id="bSta"></i></div>
+      <div class="bar thin"><i id="bXp"></i></div>
+      <div id="lives"></div>
+    </div>
+  </div>
+  <div class="box" id="quest"></div>
+</div>
+
+<div id="topright" class="hidden">
+  <canvas id="minimap" width="180" height="140"></canvas>
+  <div id="clock" class="box"></div>
+</div>
+<div id="menubar" class="hidden">
+  <button data-open="map" title="Karte (M)">🗺</button>
+  <button data-open="clan" title="Clan (K)">🐾</button>
+  <button data-open="chron" title="Lebensweg (J)">📜</button>
+  <button data-open="skills" title="Fähigkeiten (L)">⭐</button>
+  <button data-open="menu" title="Menü (Esc)">☰</button>
+</div>
+
+<div id="carry" class="box"></div>
+<div id="hint" class="hidden"></div>
+<div id="toasts"></div>
+
+<div id="dialog" class="hidden">
+  <canvas id="dlgPortrait" width="96" height="96"></canvas>
+  <div class="dlgBody">
+    <div id="dlgName"></div>
+    <div id="dlgText"></div>
+    <div id="dlgChoices"></div>
+    <div id="dlgNext">▼</div>
+  </div>
+</div>
+
+<div id="panel" class="hidden"></div>
+
+<div id="touch" class="hidden">
+  <div id="stick"><div id="knob"></div></div>
+  <div id="tbtns">
+    <button data-key="Space" class="big">🐾<small>Sprung</small></button>
+    <button data-key="KeyE">E<small>Aktion</small></button>
+    <button data-key="KeyQ">🐈<small>Schleichen</small></button>
+    <button data-key="KeyF">🍖<small>Fressen</small></button>
+    <button data-key="KeyH">🌿<small>Kräuter</small></button>
+  </div>
+</div>
+
+<div id="title">
+  <div class="tbox">
+    <div class="logo">CLANWELT</div>
+    <div class="sub">Lebe das Leben einer Clan-Katze</div>
+    <p class="intro">Du beginnst als kleines Hauskätzchen, das kaum weiß, was hinter seinem Garten liegt.<br>
+      Entdecke den Wald, lerne jagen und kämpfen, werde Schüler, Krieger, Zweiter Anführer – und schließlich Anführer.<br>
+      Und danach? Erlebe, wie sich die Clanwelt über viele Monde verändert.</p>
+    <div id="loading">Lade …</div>
+    <div id="titleBtns" class="hidden">
+      <button id="btnLoad">▶ Weiterspielen</button>
+      <button id="btnNew">✧ Neues Spiel</button>
+      <button id="btnHelp">⌨ Steuerung</button>
+    </div>
+    <div id="titleHelp" class="hidden"></div>
+    <p class="credit">Ein Fan-Spiel nach der Buchreihe „Warrior Cats“ von Erin Hunter.</p>
+  </div>
+</div>
+<div id="fade"></div>
+
+<script src="js/util.js"></script>
+<script src="js/world.js"></script>
+<script src="js/cats.js"></script>
+<script src="js/clan.js"></script>
+<script src="js/story.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
