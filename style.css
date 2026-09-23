@@ -180,3 +180,6 @@ body.nightmare #dreamFx { opacity: 1; background: radial-gradient(ellipse at cen
 /* ===== Malstil: Leinwand-Struktur ===== */
 #paper { position: fixed; inset: 0; pointer-events: none; z-index: 2; opacity: 0; mix-blend-mode: overlay; background-size: 256px; transition: opacity .6s; }
 body.paint #paper { opacity: .22; }
+
+#mousehint { position: fixed; right: 14px; bottom: 14px; background: rgba(0, 0, 0, .55); border: 1px solid rgba(255, 255, 255, .25); padding: 6px 12px; border-radius: 16px; font-size: 13px; pointer-events: none; z-index: 6; }
+body.mousemode canvas#game { cursor: crosshair; }

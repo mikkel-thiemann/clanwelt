@@ -66,6 +66,7 @@ addEventListener('keydown', e => {
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.code)) e.preventDefault();
   if (!keys.has(e.code)) pressed.add(e.code);
   keys.add(e.code);
+  if (e.code === 'Escape' && mouseMode && !document.pointerLockElement) { setMouseMode(false); return; }
   if (state !== 'play') return;
   if (Dlg.open) {
     if (['Space', 'Enter', 'KeyE'].includes(e.code)) Dlg.next();
@@ -227,7 +228,7 @@ function updatePlayer(dt) {
   const fx = Math.cos(CAMS.yaw), fz = Math.sin(CAMS.yaw);
   const inp = { x: fx * -raw.y - fz * raw.x, y: fz * -raw.y + fx * raw.x };
   CAMS.dragT += dt;
-  if (raw.y < -0.3 && CAMS.dragT > 1.2 && !pc.lungeT && !document.pointerLockElement) CAMS.yaw += angDiff(CAMS.yaw, pc.dir) * Math.min(1, dt * 1.2);
+  if (raw.y < -0.3 && CAMS.dragT > 1.2 && !pc.lungeT && !mouseOn()) CAMS.yaw += angDiff(CAMS.yaw, pc.dir) * Math.min(1, dt * 1.2);
   if (pressed.has('KeyQ')) { pl.sneak = !pl.sneak; toast(pl.sneak ? 'Du schleichst (Beute hört dich kaum).' : 'Du läufst normal.'); }
   const moving = inp.x || inp.y;
   if (moving && pc.onRock) { pc.onRock = false; const hs = denPos('hochstein'); pc.x = hs.x + (pc.x - hs.x) * 1.8 + 40; pc.y = hs.y + 75; }
@@ -376,19 +377,35 @@ function drawArrows() {
 // Kamera mit Maus drehen
 let mouseDrag = null, lockHint = false;
 // Maus: Klick ins Spiel fängt die Maus ein (Kamera folgt der Maus ohne Ziehen), Esc gibt sie frei
-const canLock = () => !isTouch && state === 'play' && !Dlg.open && !UI.panel;
-$('game').addEventListener('mousedown', e => {
-  if (document.pointerLockElement) { if (e.button === 0) pressed.add('Mouse0'); return; }
-  if (e.button === 0 && canLock() && $('game').requestPointerLock) {
-    try { const r = $('game').requestPointerLock(); if (r && r.catch) r.catch(() => { }); } catch (err) { }
-    if (!lockHint) { lockHint = true; toast('Maus bewegen = umsehen · Linksklick oder R = Pfotenhieb · Esc = Maus freigeben'); }
+const canLock = () => !isTouch && state === 'play' && !UI.panel && !(Dlg.open && Dlg.choosing);
+// Maus-Modus: Kamera folgt der Maus. Mit eingefangener Maus (Pointer Lock) – oder, falls der Browser das nicht erlaubt, frei mit Drehen am Bildrand
+let mouseMode = false, mouseX = 0.5;
+const mouseOn = () => mouseMode || !!document.pointerLockElement;
+function setMouseMode(on) { mouseMode = on; document.body.classList.toggle('mousemode', on); }
+document.addEventListener('pointerlockchange', () => { if (!document.pointerLockElement) setMouseMode(false); });
+document.addEventListener('pointerlockerror', () => { if (canLock()) setMouseMode(true); });
+function lockMouse() {
+  if (!canLock() || mouseOn()) return false;
+  setMouseMode(true);
+  if (!$('game').requestPointerLock) return true;
+  try { const r = $('game').requestPointerLock(); if (r && r.catch) r.catch(() => { }); } catch (err) { }
+  return true;
+}
+// Klick irgendwo ins Spielbild (auch auf Namen/Overlay) fängt die Maus ein
+addEventListener('mousedown', e => {
+  if (e.target.closest && e.target.closest('button, #panel, #menubar, .choice, input, a')) return;
+  if (mouseOn() && e.target === $('game') || document.pointerLockElement) { if (e.button === 0) { if (Dlg.open && !Dlg.choosing) Dlg.next(); else pressed.add('Mouse0'); } return; }
+  if (e.target !== $('game') && !(Dlg.open && e.target.closest && e.target.closest('#dialog'))) return;
+  if (e.button === 0 && lockMouse()) {
+    if (!lockHint) { lockHint = true; toast('Maus bewegen = umsehen · Linksklick oder R = Pfotenhieb · Esc = Maus-Steuerung aus'); }
     return;
   }
   mouseDrag = { x: e.clientX, y: e.clientY };
 });
 addEventListener('mouseup', () => mouseDrag = null);
 addEventListener('mousemove', e => {
-  if (document.pointerLockElement) {
+  mouseX = e.clientX / innerWidth;
+  if (mouseOn()) {
     CAMS.yaw += e.movementX * 0.0032; CAMS.pitch = clamp(CAMS.pitch + e.movementY * 0.0024, 0.05, 1.25); CAMS.dragT = 0; return;
   }
   if (!mouseDrag) return;
@@ -422,7 +439,10 @@ function frame(ts) {
     const hint = $('hint');
     if (it) { hint.textContent = (isTouch ? '' : 'E: ') + it.label; hint.classList.remove('hidden'); } else hint.classList.add('hidden');
   } else pressed.clear();
-  if (document.pointerLockElement && !canLock()) document.exitPointerLock();
+  if (mouseOn() && !canLock()) { if (document.pointerLockElement) document.exitPointerLock(); setMouseMode(false); }
+  // ohne Pointer Lock: am Bildrand weiterdrehen
+  if (mouseMode && !document.pointerLockElement) { const edge = mouseX < 0.08 ? -1 : mouseX > 0.92 ? 1 : 0; if (edge) { CAMS.yaw += edge * dt * 2.2; CAMS.dragT = 0; } }
+  const mh = $('mousehint'); if (mh) mh.classList.toggle('hidden', mouseOn() || isTouch || state !== 'play' || !!UI.panel || !!(Dlg.open && Dlg.choosing));
   if (!window.NORENDER) render(gameT, dt);
   requestAnimationFrame(frame);
 }
