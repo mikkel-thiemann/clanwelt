@@ -40,7 +40,7 @@ function init3D() {
   SUN.shadow.bias = -0.0006; SC.add(SUN); SC.add(SUN.target);
   PLIGHT = new THREE.PointLight(0xa8bcff, 0, 420, 0); SC.add(PLIGHT);
   FIRELIGHT = new THREE.PointLight(0xff8a30, 0, 900, 0); SC.add(FIRELIGHT);
-  buildTerrain3D(); buildWater(); buildRoad(); buildTrees(); buildBushes(); buildGrass(); buildRocks(); buildHouses(); buildCamps(); buildHerbs(); buildSky(); buildWeather(); buildFire(); buildMarkers();
+  buildTerrain3D(); buildWater(); buildRoad(); buildTrees(); buildBushes(); buildGrass(); buildDebris(); buildRocks(); buildHouses(); buildCamps(); buildHerbs(); buildSky(); buildWeather(); buildFire(); buildMarkers();
   FX3.init();
   initBloom();
   resize3D();
@@ -82,6 +82,13 @@ function buildTerrain3D() {
   const m = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true, map: tex }));
   m.receiveShadow = true; SC.add(m); W3.terrain = m;
 }
+let _shadeGrid = null;
+function canopyShade(x, z) {
+  if (!_shadeGrid) { _shadeGrid = new Map(); for (const t of OB.trees) gridAdd(_shadeGrid, { x: t.x, y: t.y, r: t.r }, t.r); }
+  const a = _shadeGrid.get(gkey(Math.floor(x / CELL), Math.floor(z / CELL))); if (!a) return 0;
+  let s = 0; for (const t of a) { if (felled(t)) continue; const d = dist(x, z, t.x, t.y); if (d < t.r * 1.1) s += 1 - d / (t.r * 1.1); }
+  return Math.min(1, s);
+}
 function recolorTerrain(s) {
   const geo = W3.terrain.geometry, pos = geo.attributes.position, col = geo.attributes.color, o = [0, 0, 0];
   for (let i = 0; i < pos.count; i++) {
@@ -95,6 +102,7 @@ function recolorTerrain(s) {
       else if (s === 2) { o[0] = lerp(o[0], 150, 0.22); o[1] = lerp(o[1], 110, 0.15); o[2] = lerp(o[2], 40, 0.1); }
       else if (s === 0) { o[1] = lerp(o[1], 170, 0.1); }
     }
+    if (!special) { const sh = canopyShade(x, z); if (sh) { o[0] *= 1 - sh * 0.3; o[1] *= 1 - sh * 0.24; o[2] *= 1 - sh * 0.3; } }
     srgb(o[0], o[1], o[2]); col.setXYZ(i, _c.r, _c.g, _c.b);
   }
   col.needsUpdate = true;
@@ -158,11 +166,12 @@ function buildTrees() {
     _o.position.set(t.x, g - 2, t.y); _o.rotation.set(0, t.c * 6, 0); _o.scale.set(t.tr, h, t.tr); _o.updateMatrix(); trunk.setMatrixAt(i, _o.matrix);
     trunk.setColorAt(i, t.k === 'birch' ? _c.set('#ddd8cc') : _c.set(t.k === 'willow' ? '#5a4a36' : '#5e4630'));
   });
-  const blob = new THREE.IcosahedronGeometry(1, 2);
-  const leafMat = () => windy(new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true }), 0.05, false);
+  const blob = leafBlob(), lt = leafTexture();
+  const leafMat = () => windy(new THREE.MeshLambertMaterial({ color: 0xffffff, vertexColors: true, map: lt }), 0.05, false);
   const cA = inst(blob, dec.length, true, leafMat()), cB = inst(blob, dec.length, true, leafMat()), cC = inst(blob, dec.length, true, leafMat());
+  const cD = inst(blob, dec.length, true, leafMat()), cE = inst(blob, dec.length, true, leafMat());
   const cone = new THREE.ConeGeometry(1, 1, 9).translate(0, 0.5, 0), pL = inst(cone, pin.length * 3, true, windy(new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true }), 0.04, true));
-  W3.inst.trees = { dec, pin, cA, cB, cC, pL, trunk, all: T };
+  W3.inst.trees = { dec, pin, cA, cB, cC, cD, cE, pL, trunk, all: T };
   placeCanopies(1);
 }
 const felled = t => G && G.flags && G.flags.zerstoert && t.x < OLD_W && t.y < 3440 && hashStr(t.x + ':' + t.y) < G.flags.zerstoert && t.tr < 20;
@@ -172,19 +181,19 @@ function placeTrunks() {
   trunk.instanceMatrix.needsUpdate = true;
 }
 function placeCanopies(s) {
-  const { dec, pin, cA, cB, cC, pL } = W3.inst.trees;
+  const { dec, pin, cA, cB, cC, cD, cE, pL } = W3.inst.trees;
   const bare = s === 3;
   dec.forEach((t, i) => {
     const g = heightAt(t.x, t.y), top = g + treeH(t) + 10, r = t.r * (bare && t.k !== 'willow' ? 0.55 : 1);
     const gone = felled(t) ? 0.0001 : 1;
     const set = (m, dx, dy, dz, k) => { _o.position.set(t.x + dx * r, top + dy * r, t.y + dz * r); _o.rotation.set(t.c, t.c * 4, 0); _o.scale.set(r * k * gone, r * k * gone * (t.k === 'willow' ? 1 : 0.72), r * k * gone); _o.updateMatrix(); m.setMatrixAt(i, _o.matrix); };
-    set(cA, 0, 0.1, 0, 1); set(cB, 0.45, 0.35, -0.3, 0.7); set(cC, -0.4, 0.25, 0.35, 0.65);
+    set(cA, 0, 0.05, 0, 0.9); set(cB, 0.5, 0.25, -0.35, 0.68); set(cC, -0.45, 0.2, 0.4, 0.66); set(cD, 0.1, 0.55, 0.3, 0.6); set(cE, -0.3, -0.15, -0.45, 0.62);
     let [c1, c2] = SEASON_TREE[s];
     if (t.k === 'willow') { c1 = s === 3 ? '#a8b0a0' : '#6a9a44'; c2 = s === 3 ? '#c8d0c8' : '#8ab85a'; }
     if (t.k === 'birch' && s < 2) { c1 = '#7ab854'; c2 = '#9cd070'; }
     if (s === 2 && t.c > 0.6) { c1 = '#b8482a'; c2 = '#d8703a'; }
     const v = 0.85 + t.c * 0.3;
-    cA.setColorAt(i, _c.set(c1).multiplyScalar(v)); cB.setColorAt(i, _c.set(c2).multiplyScalar(v)); cC.setColorAt(i, _c.set(c1).multiplyScalar(v * 1.05));
+    cA.setColorAt(i, _c.set(c1).multiplyScalar(v)); cB.setColorAt(i, _c.set(c2).multiplyScalar(v)); cC.setColorAt(i, _c.set(c1).multiplyScalar(v * 1.05)); cD.setColorAt(i, _c.set(c2).multiplyScalar(v * 1.08)); cE.setColorAt(i, _c.set(c1).multiplyScalar(v * 0.9));
   });
   pin.forEach((t, i) => {
     const g = heightAt(t.x, t.y);
@@ -193,9 +202,30 @@ function placeCanopies(s) {
       pL.setMatrixAt(i * 3 + k, _o.matrix); pL.setColorAt(i * 3 + k, _c.set(s === 3 && k === 2 ? '#dfe8ea' : ['#1f4326', '#28552e', '#336638'][k]).multiplyScalar(0.9 + t.c * 0.2));
     }
   });
-  for (const m of [cA, cB, cC, pL]) { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; }
+  for (const m of [cA, cB, cC, cD, cE, pL]) { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; }
 }
-const SEASON_TREE = [['#5fa83e', '#7cc454'], ['#2f7a2a', '#3f9434'], ['#c7702a', '#d9a23a'], ['#9aa0a0', '#dfe6ea']];
+const SEASON_TREE = [['#6aa04a', '#86b85a'], ['#3e6e2e', '#4f8238'], ['#b8652a', '#cf9a3a'], ['#9aa0a0', '#dfe6ea']];
+// Baumkrone: unregelmäßig ausgebeulte Kugel, unten dunkler (wie echter Schatten im Laub)
+function leafBlob() {
+  const g = new THREE.IcosahedronGeometry(1, 3), p = g.attributes.position, R = mulberry32(5), col = [];
+  const map = new Map();
+  for (let i = 0; i < p.count; i++) {
+    const k = p.getX(i).toFixed(3) + p.getY(i).toFixed(3) + p.getZ(i).toFixed(3);
+    if (!map.has(k)) map.set(k, 0.82 + R() * 0.3 + NOISE(p.getX(i) * 3 + 5, p.getZ(i) * 3 + p.getY(i) * 2) * 0.2);
+    const f = map.get(k); p.setXYZ(i, p.getX(i) * f, p.getY(i) * f * 0.95, p.getZ(i) * f);
+    const shade = 0.55 + 0.45 * clamp((p.getY(i) + 0.7) / 1.5, 0, 1); col.push(shade, shade, shade);
+  }
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  const nrm = g.attributes.normal; for (let i = 0; i < p.count; i++) { _v3.set(p.getX(i), p.getY(i) * 1.1, p.getZ(i)).normalize(); nrm.setXYZ(i, _v3.x, _v3.y, _v3.z); } nrm.needsUpdate = true;
+  return g;
+}
+const _v3 = new THREE.Vector3();
+function leafTexture() {
+  const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d');
+  x.fillStyle = '#d0d0d0'; x.fillRect(0, 0, 128, 128);
+  for (let i = 0; i < 700; i++) { const v = 150 + Math.random() * 105 | 0; x.fillStyle = `rgb(${v},${v},${v})`; x.beginPath(); x.ellipse(Math.random() * 128, Math.random() * 128, 2 + Math.random() * 3, 1 + Math.random() * 1.5, Math.random() * 3, 0, TAU); x.fill(); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(3, 3); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
 
 // ---------- Büsche ----------
 function buildBushes() {
@@ -239,6 +269,26 @@ function colorBushes(s) {
     arr.forEach((b, i) => m.setColorAt(i, _c.set(k === 'garden' && i % 3 === 0 ? '#e0609a' : cols[k]).multiplyScalar(0.85 + ((b.x * 13) % 10) / 30)));
     if (m.instanceColor) m.instanceColor.needsUpdate = true;
   }
+}
+
+// ---------- Totholz, Pilze, kleine Steine ----------
+function buildDebris() {
+  const R = mulberry32(4242), logs = [], shrooms = [], pebbles = [];
+  for (let i = 0; i < 6000 && (logs.length < 110 || shrooms.length < 400); i++) {
+    const x = R() * W, y = R() * H, t = territoryAt(x, y, true);
+    if (!['donner', 'schatten', 'fluss'].includes(t) || isWater(x, y) || nearLM(x, y, 30) || inRoad(x, y)) continue;
+    const r = R();
+    if (r < 0.2 && logs.length < 110) logs.push([x, y, R() * TAU, 40 + R() * 60, 5 + R() * 4]);
+    else if (r < 0.8) shrooms.push([x, y, R()]); else pebbles.push([x, y, 2 + R() * 4]);
+  }
+  const lm = inst(new THREE.CylinderGeometry(1, 1.1, 1, 9).rotateZ(Math.PI / 2), logs.length, true, new THREE.MeshLambertMaterial({ color: 0xffffff }));
+  logs.forEach(([x, y, a, l, r], i) => { _o.position.set(x, heightAt(x, y) + r * 0.6, y); _o.rotation.set(0, a, 0); _o.scale.set(l, r, r); _o.updateMatrix(); lm.setMatrixAt(i, _o.matrix); lm.setColorAt(i, _c.set(i % 3 ? '#5a4632' : '#6a5a44')); });
+  const cap = new THREE.SphereGeometry(1, 8, 5, 0, TAU, 0, Math.PI / 2), sm = inst(cap, shrooms.length * 3, false), stem = inst(new THREE.CylinderGeometry(0.3, 0.35, 1, 5).translate(0, 0.5, 0), shrooms.length * 3, false);
+  shrooms.forEach(([x, y, v], i) => { for (let k = 0; k < 3; k++) { const xx = x + Math.cos(k * 2.1 + v * 6) * 5, yy = y + Math.sin(k * 2.1 + v * 6) * 5, g = heightAt(xx, yy), s = 1.8 + ((v * 10 + k) % 1) * 1.8;
+    _o.position.set(xx, g + s * 1.2, yy); _o.rotation.set(0, 0, 0); _o.scale.set(s, s * 0.7, s); _o.updateMatrix(); sm.setMatrixAt(i * 3 + k, _o.matrix); sm.setColorAt(i * 3 + k, _c.set(v < 0.15 ? '#c0302a' : v < 0.6 ? '#b89060' : '#e0d8c8'));
+    _o.position.set(xx, g, yy); _o.scale.set(s, s * 1.2, s); _o.updateMatrix(); stem.setMatrixAt(i * 3 + k, _o.matrix); stem.setColorAt(i * 3 + k, _c.set('#eee6d8')); } });
+  const pm = inst(new THREE.DodecahedronGeometry(1, 0), pebbles.length, false);
+  pebbles.forEach(([x, y, r], i) => { _o.position.set(x, heightAt(x, y), y); _o.rotation.set(r, r * 2, 0); _o.scale.set(r, r * 0.6, r); _o.updateMatrix(); pm.setMatrixAt(i, _o.matrix); pm.setColorAt(i, _c.set('#8a867c')); });
 }
 
 // ---------- Gras ----------
@@ -297,7 +347,7 @@ function buildRocks() {
   const m = inst(geo, OB.rocks.length);
   OB.rocks.forEach((r, i) => {
     const g = heightAt(r.x, r.y), hoch = dist(r.x, r.y, hs.x, hs.y) < 5, big = r.r > 50;
-    const hy = hoch ? r.r * 1.5 : big ? r.r * 1.3 : r.r * 0.65;
+    const hy = hoch ? r.r * 1.9 : big ? r.r * 1.3 : r.r * 0.65;
     _o.position.set(r.x, g + hy * 0.35, r.y); _o.rotation.set((r.x % 3) * 0.3, r.y % 6, (r.y % 5) * 0.1); _o.scale.set(r.r, hy, r.r); _o.updateMatrix();
     m.setMatrixAt(i, _o.matrix); const v = r.col; m.setColorAt(i, srgb(v, v - 4, v - 12));
   });
@@ -340,10 +390,38 @@ function buildCamps() {
     const a = Math.atan2(cy - y, cx - x), h = new THREE.Mesh(hole, sharedMat('#140e08'));
     h.scale.set(r * 0.35, r * 0.3, 1); h.position.set(x + Math.cos(a) * r * 0.86, g + r * 0.2, y + Math.sin(a) * r * 0.74); h.rotation.y = -a + Math.PI / 2; SC.add(h);
   };
-  for (const k of ['heiler', 'krieger', 'schueler', 'kinder', 'aeltest', 'anfuehrer']) { const p = denPos(k); addDen(p.x, p.y, k === 'krieger' ? 48 : k === 'anfuehrer' ? 32 : 40, LM.lager.x, LM.lager.y); }
+  buildThunderCamp(addDen, dome);
   for (const k of ['heiler', 'krieger', 'schueler', 'kinder', 'aeltest', 'anfuehrer']) { const p = denPos(k, LM0.steinmulde); addDen(p.x, p.y, k === 'krieger' ? 48 : k === 'anfuehrer' ? 32 : 40, LM0.steinmulde.x, LM0.steinmulde.y); }
   for (const cp of OB.camps) if (cp.clan !== 'donner') for (let i = 0; i < 4; i++) { const a = i * 1.6 + 0.4; addDen(cp.lm.x + Math.cos(a) * 110, cp.lm.y + Math.sin(a) * 110, 36, cp.lm.x, cp.lm.y); }
   W3.pile = new THREE.Group(); const p = denPos('pile'); W3.pile.position.set(p.x, heightAt(p.x, p.y), p.y); SC.add(W3.pile);
+}
+// Das DonnerClan-Lager wie in den Büchern: Senke, Ginstertunnel, Hochstein mit Höhle, Ältestenbau im umgestürzten Baum
+function buildThunderCamp(addDen, dome) {
+  const L0 = LM0.lager, cp = k => denPos(k, L0);
+  let p = cp('krieger'); addDen(p.x, p.y, 50, L0.x, L0.y);
+  p = cp('schueler'); addDen(p.x, p.y, 38, L0.x, L0.y);
+  p = cp('kinder'); addDen(p.x, p.y, 44, L0.x, L0.y); W3.dens[W3.dens.length - 1].userData.bramble = true;
+  // Heilerbau: Farntunnel zu einem gespaltenen Felsen
+  p = cp('heiler');
+  for (const s of [-1, 1]) { const r = new THREE.Mesh(new THREE.DodecahedronGeometry(1, 0), sharedMat('#8a8680')); r.scale.set(26, 34, 20); r.position.set(p.x - 30, heightAt(p.x, p.y) + 12, p.y + s * 24); r.rotation.set(0.2 * s, 0.4, 0.1); r.castShadow = r.receiveShadow = true; SC.add(r); }
+  addDen(p.x + 10, p.y, 30, L0.x, L0.y);
+  // Ältestenbau: umgestürzter Baum
+  p = cp('aeltest');
+  const trunkM = new THREE.MeshLambertMaterial({ color: 0x5a4632 });
+  const log = new THREE.Mesh(new THREE.CylinderGeometry(15, 18, 150, 10).rotateZ(Math.PI / 2), trunkM); log.position.set(p.x, heightAt(p.x, p.y) + 14, p.y); log.rotation.y = 0.5; log.castShadow = log.receiveShadow = true; SC.add(log);
+  for (let i = 0; i < 4; i++) { const b = new THREE.Mesh(new THREE.CylinderGeometry(3, 4, 40, 6), trunkM); b.position.set(p.x - 50 + i * 30, heightAt(p.x, p.y) + 28, p.y + (i % 2 ? 14 : -14)); b.rotation.set(i % 2 ? 0.7 : -0.7, 0.5, 0.4); SC.add(b); }
+  const hole = new THREE.Mesh(new THREE.CircleGeometry(12, 14), sharedMat('#120c08')); hole.position.set(p.x + Math.cos(0.5) * 76, heightAt(p.x, p.y) + 14, p.y - Math.sin(0.5) * 76); hole.rotation.y = 0.5 + Math.PI / 2; SC.add(hole);
+  // Anführerhöhle unter dem Hochstein
+  const hs = cp('hochstein'), a = Math.atan2(L0.y - hs.y, L0.x - hs.x);
+  const cave = new THREE.Mesh(new THREE.CircleGeometry(1, 20, 0, Math.PI), sharedMat('#0c0806')); cave.scale.set(24, 22, 1);
+  cave.position.set(hs.x + Math.cos(a) * 64, heightAt(hs.x, hs.y) + 1, hs.y + Math.sin(a) * 64); cave.rotation.y = -a + Math.PI / 2; SC.add(cave);
+  // Ginstertunnel am Eingang
+  const gm = new THREE.MeshLambertMaterial({ color: 0x3a5a2a }), gap = Math.PI / 2;
+  for (let k = 0; k < 4; k++) {
+    const d = L0.r - 10 + k * 18, x = L0.x + Math.cos(gap) * d, z = L0.y + Math.sin(gap) * d;
+    const arch = new THREE.Mesh(new THREE.TorusGeometry(24, 9, 7, 14, Math.PI), gm); arch.position.set(x, heightAt(x, z) - 2, z); arch.rotation.y = gap + Math.PI / 2; arch.castShadow = true; SC.add(arch);
+    for (let f = 0; f < 5; f++) { const fl = new THREE.Mesh(geos().lo, sharedMat('#e8c020')); fl.scale.setScalar(1.6); const aa = f / 4 * Math.PI; fl.position.set(x + Math.cos(gap + Math.PI / 2) * Math.cos(aa) * 30 * (f % 2 ? 1 : -1), heightAt(x, z) + Math.sin(aa) * 30, z); SC.add(fl); }
+  }
 }
 function updatePile() {
   const pp = denPos('pile'); W3.pile.position.set(pp.x, heightAt(pp.x, pp.y), pp.y);
@@ -475,7 +553,7 @@ function updateSeason() {
   if (z !== W3.destr) { W3.destr = z; placeTrunks(); placeCanopies(season()); if (z) { recolorTerrain(season()); destroyGrass(z); } }
   const s = season(); if (s === W3.season) return; W3.season = s;
   recolorTerrain(s); placeCanopies(s); colorBushes(s); colorGrass(s);
-  for (const d of W3.dens) d.material.color.set(s === 3 ? '#8a9890' : s === 2 ? '#7a6a30' : '#3f6a30');
+  for (const d of W3.dens) d.material.color.set(d.userData.bramble ? (s === 3 ? '#6a7870' : '#2e4a24') : s === 3 ? '#8a9890' : s === 2 ? '#7a6a30' : '#3f6a30');
 }
 function updateCamera(dt, tx, tz, title) {
   if (title) { CAMS.yaw += dt * 0.06; CAMS.pitch = 0.42; CAMS.dist = 420; }

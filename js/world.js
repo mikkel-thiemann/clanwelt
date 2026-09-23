@@ -177,7 +177,7 @@ function addTree(R, x, y, kind, big) {
 }
 function addBush(x, y, r, k) { const b = { x, y, r, k }; OB.bushes.push(b); gridAdd(bushGrid, b, r); }
 
-const DENS = { hochstein: [0, -165], anfuehrer: [75, -178], heiler: [-178, -85], krieger: [152, -78], schueler: [160, 92], kinder: [-162, 88], aeltest: [-92, 172], pile: [48, 18] };
+const DENS = { hochstein: [0, -165], anfuehrer: [30, -112], heiler: [-178, -85], krieger: [152, -78], schueler: [160, 92], kinder: [-162, 88], aeltest: [-92, 172], pile: [48, 18] };
 function denPos(key, base) { const d = DENS[key], l = base || LM.lager; return { x: l.x + d[0], y: l.y + d[1] }; }
 
 function makeCamp(lm0, gap, clan, opt = {}) {
@@ -219,7 +219,7 @@ function buildObjects() {
   makeCamp(LM0.fluss2, -Math.PI / 2, 'fluss', { lake: true });
   makeCamp(LM0.wind2, Math.PI, 'wind', { lake: true });
   const hs = denPos('hochstein', LM0.lager);
-  addRock(R, hs.x, hs.y, 38, true, 150);
+  addRock(R, hs.x, hs.y, 50, true, 150);
   const hs2 = denPos('hochstein', LM0.steinmulde);
   addRock(R, hs2.x, hs2.y, 44, true, 160);
   // Die Insel mit dem Großen Baum, Stammeshöhle, Dachsbau
@@ -257,11 +257,11 @@ function buildObjects() {
     if (x > 3360 && x < 3500 && y > 2540 && y < 2970) continue;
     if (dist(x, y, LM0.steinmulde.x, LM0.steinmulde.y) < LM0.steinmulde.r + 30) continue;
     if (t === 'donner') {
-      if (rr < 0.2) addTree(R, x, y, R() < 0.2 ? 'birch' : 'oak');
-      else if (rr < 0.43) addBush(x, y, 20 + R() * 14, R() < 0.65 ? 'fern' : 'bramble');
+      if (rr < 0.27) addTree(R, x, y, R() < 0.15 ? 'birch' : 'oak');
+      else if (rr < 0.5) addBush(x, y, 20 + R() * 14, R() < 0.7 ? 'fern' : 'bramble');
     } else if (t === 'schatten') {
       if (marshPool(x, y)) { if (rr < 0.1) addBush(x, y, 16, 'reed'); continue; }
-      if (rr < 0.27) addTree(R, x, y, 'pine');
+      if (rr < 0.33) addTree(R, x, y, 'pine');
       else if (rr < 0.37) addBush(x, y, 18 + R() * 10, R() < 0.5 ? 'reed' : 'fern');
     } else if (t === 'fluss') {
       if (rr < 0.08) addTree(R, x, y, 'willow');
@@ -336,7 +336,8 @@ function waterLevel(y) { return baseH(riverX(y), y) - 7; }
 function heightAt(x, y) {
   let h = baseH(x, y);
   if (x > OLD_W - 200) return heightNew(x, y, h);
-  for (const k of ['lager', 'schattenlager', 'flusslager', 'windlager', 'sonnenfelsen', 'scheune']) { const l = LM0[k]; h = flatTo(h, x, y, l.x, l.y, l.r, baseH(l.x, l.y) + (k === 'sonnenfelsen' ? 5 : 0)); }
+  h = flatTo(h, x, y, LM0.lager.x, LM0.lager.y, LM0.lager.r - 20, baseH(LM0.lager.x, LM0.lager.y) - 16, 60);
+  for (const k of ['schattenlager', 'flusslager', 'windlager', 'sonnenfelsen', 'scheune']) { const l = LM0[k]; h = flatTo(h, x, y, l.x, l.y, l.r, baseH(l.x, l.y) + (k === 'sonnenfelsen' ? 5 : 0)); }
   h = flatTo(h, x, y, LM0.baumgeviert.x, LM0.baumgeviert.y, LM0.baumgeviert.r - 20, baseH(LM0.baumgeviert.x, LM0.baumgeviert.y) - 22, 70);
   h = flatTo(h, x, y, LM0.sandkuhle.x, LM0.sandkuhle.y, LM0.sandkuhle.r - 20, baseH(LM0.sandkuhle.x, LM0.sandkuhle.y) - 7, 40);
   if (y > 3300) h = lerp(h, 0, clamp((y - 3300) / 150, 0, 1));

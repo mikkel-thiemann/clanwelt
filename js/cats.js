@@ -417,6 +417,16 @@ function updateCat(c, dt, t) {
       if (d > 70) steer(c, bx, by, d > 160 ? 260 : (c.slow ? 110 : 170), dt, 10); else moveEnt(c, 0, 0, dt);
       break;
     }
+    case 'lead': { // zeigt dem Spieler den Weg: läuft voraus und wartet
+      const d = dist(c.x, c.y, pc.x, pc.y), toT = dist(c.x, c.y, ai.x, ai.y);
+      const lookBack = () => { c.dir += angDiff(c.dir, Math.atan2(pc.y - c.y, pc.x - c.x)) * Math.min(1, dt * 4); };
+      if (toT < 45) { moveEnt(c, 0, 0, dt); lookBack(); if (!ai.arr) { ai.arr = true; say(c, pick(['Hier ist es!', 'Da sind wir.', 'Schau, hier!']), 3); } break; }
+      ai.arr = false;
+      if (d > 1500) { const a = Math.atan2(ai.y - pc.y, ai.x - pc.x); c.x = pc.x + Math.cos(a) * 90; c.y = pc.y + Math.sin(a) * 90; }
+      if (d > 240) { moveEnt(c, 0, 0, dt); lookBack(); ai.wt = (ai.wt || 0) - dt; if (ai.wt <= 0) { ai.wt = 7; say(c, pick(['Komm, hier entlang!', 'Folge mir!', 'Wo bleibst du denn?']), 2.5); } break; }
+      steer(c, ai.x, ai.y, d > 150 ? 85 : (pc.running ? 255 : 165), dt, 30);
+      break;
+    }
     case 'goto': case 'script':
       if (steer(c, ai.x, ai.y, ai.sp || 150, dt, 8)) { if (ai.m === 'goto') c.ai = { m: ai.then || 'hold' }; }
       break;
