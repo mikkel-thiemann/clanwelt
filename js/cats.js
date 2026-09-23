@@ -527,20 +527,20 @@ function sendPatrols() {
 }
 
 // ===== Autos (Monster) =====
-const ROAD_L1 = ROAD_X1 + 100, ROAD_L = ROAD_L1 + roadY(ROAD_X1) + 100;
-function carPos(s, lane) {
-  if (s < ROAD_L1) { const x = s - 100; return { x, y: roadY(x) + lane, a: 0 }; }
-  const y = roadY(ROAD_X1) - (s - ROAD_L1); return { x: ROAD_X1 - lane, y, a: -Math.PI / 2 };
+function carPos(rd, s, lane) {
+  const P_ = rd.pts, C = rd.cum; let i = 1; while (i < P_.length - 1 && C[i] < s) i++;
+  const [ax, ay] = P_[i - 1], [bx, by] = P_[i], l = C[i] - C[i - 1] || 1, t = clamp((s - C[i - 1]) / l, 0, 1), dx = (bx - ax) / l, dy = (by - ay) / l;
+  return { x: ax + (bx - ax) * t - dy * lane, y: ay + (by - ay) * t + dx * lane, a: Math.atan2(dy, dx) };
 }
 let carTimer = 2;
 function updateCars(dt) {
   carTimer -= dt;
-  if (carTimer <= 0) { carTimer = rand(2.2, 6); const d = chance(0.5) ? 1 : -1; CARS.push({ s: d > 0 ? 0 : ROAD_L, d, lane: d > 0 ? 20 : -20, sp: rand(300, 430), col: pick(['#c0392b', '#2980b9', '#f1c40f', '#ecf0f1', '#27ae60', '#8e44ad', '#34495e']) }); }
+  if (carTimer <= 0) { carTimer = rand(2.2, 6); const d = chance(0.5) ? 1 : -1; const rd = ROADS[chance(0.75) ? 0 : 1]; CARS.push({ rd, s: d > 0 ? 0 : rd.len, d, lane: d > 0 ? 20 : -20, sp: rand(300, 430), col: pick(['#c0392b', '#2980b9', '#f1c40f', '#ecf0f1', '#27ae60', '#8e44ad', '#34495e']) }); }
   const pc = P();
   for (let i = CARS.length - 1; i >= 0; i--) {
     const c = CARS[i]; c.s += c.d * c.sp * dt;
-    if (c.s < -10 || c.s > ROAD_L + 10) { CARS.splice(i, 1); continue; }
-    const p = carPos(c.s, c.lane); c.x = p.x; c.y = p.y; c.a = p.a + (c.d < 0 ? Math.PI : 0);
+    if (c.s < -10 || c.s > c.rd.len + 10) { CARS.splice(i, 1); continue; }
+    const p = carPos(c.rd, c.s, c.lane); c.x = p.x; c.y = p.y; c.a = p.a + (c.d < 0 ? Math.PI : 0);
     for (const e of [pc, ...ENTS.filter(e => e.kind === 'cat' || e.beast), ...G.cats.filter(k => k.alive && !k.hidden && k !== pc)]) {
       if (e.carHit > 0) continue;
       if (dist(e.x, e.y, c.x, c.y) < 34) {

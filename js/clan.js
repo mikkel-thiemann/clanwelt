@@ -213,7 +213,7 @@ const EVENTS = [
   {
     id: 'beute', when: () => clanStats().food < 50, text: 'Es gibt zu wenig Beute. Die Königinnen haben kaum Milch, und die Ältesten werden dünn. Soll der Clan sein Territorium erweitern?',
     choices: () => [
-      { t: 'Grenze Richtung WindClan verschieben', fn: () => { applyFx({ terr: 10, food: 12, rel: { wind: -18 } }); if (chance(0.6)) { Missions.add(makeMission('drive', { team: 'wind', n: 3, at: G.flags.see ? { x: 7500, y: 3350, name: 'die WindClan-Grenze' } : LM.schlucht, title: 'WindClan-Vergeltung' })); return [['erz', 'Der WindClan wird das nicht einfach hinnehmen …']]; } } },
+      { t: 'Grenze Richtung WindClan verschieben', fn: () => { applyFx({ terr: 10, food: 12, rel: { wind: -18 } }); if (chance(0.6)) { Missions.add(makeMission('drive', { team: 'wind', n: 3, at: borderPoint('wind'), title: 'WindClan-Vergeltung' })); return [['erz', 'Der WindClan wird das nicht einfach hinnehmen …']]; } } },
       { t: 'Mehr Jagdpatrouillen losschicken', fn: () => applyFx({ food: 12, morale: -5, health: -3 }) },
       { t: 'Ich jage selbst für den Clan', fn: () => Missions.add(makeMission('hunt', { n: 4 })) },
     ], log: (c, t) => `Hunger im Clan – Entscheidung: ${t}`
@@ -333,7 +333,7 @@ const EVENTS = [
 const PROPHECIES = ['„Wenn der Schnee schmilzt, wird ein Stern fallen.“', '„Drei Pfoten werden den Wald vor dem Sturm bewahren.“', '„Das Wasser wird zurückkehren, wenn die Blätter fallen.“',
   '„Ein Schatten wächst im Kiefernwald.“', '„Wolken werden den Mond verhüllen, doch Licht findet einen Weg.“', '„Nur der Mut eines Jungen wird die Dunkelheit brechen.“'];
 function donnerPlaces() { return G.flags.see ? [LM.buchenhain, LM.zweibeinernest, LM.seeufer] : [LM.schlangenfelsen, LM.platane, LM.eulenbaum, LM.sonnenfelsen]; }
-function borderPoint(k) { if (G.flags.see) return k === 'schatten' ? { x: 6900, y: 2600, name: 'die SchattenClan-Grenze' } : k === 'fluss' ? { x: 6950, y: 3650, name: 'die FlussClan-Grenze' } : { x: 7450, y: 3450, name: 'die WindClan-Grenze' }; return k === 'schatten' ? { x: 2600, y: 1560, name: 'die Grenze am Donnerweg' } : k === 'fluss' ? { x: 1320, y: 2200, name: 'die Sonnenfelsen' } : { x: 3450, y: 2300, name: 'die WindClan-Grenze' }; }
+function borderPoint(k) { if (G.flags.see) return k === 'schatten' ? { x: 6900, y: 2600, name: 'die SchattenClan-Grenze' } : k === 'fluss' ? { x: 6950, y: 3650, name: 'die FlussClan-Grenze' } : { x: 7450, y: 3450, name: 'die WindClan-Grenze' }; return k === 'schatten' ? { x: 2600, y: 1560, name: 'die Grenze am Donnerweg' } : k === 'fluss' ? { x: 1320, y: 2200, name: 'die Sonnenfelsen' } : { x: 1330, y: 1420, name: 'die WindClan-Grenze' }; }
 
 // ===== Aufträge (Missionen) =====
 function makeMission(type, o = {}) {

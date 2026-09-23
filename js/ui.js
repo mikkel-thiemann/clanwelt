@@ -224,7 +224,7 @@ function drawBigMap() {
   g.drawImage(terrainCanvas, 0, 0, c.width, c.height);
   g.font = 'bold 14px Trebuchet MS'; g.textAlign = 'center';
   const lab = (t, x, y, col) => { g.fillStyle = 'rgba(0,0,0,.6)'; g.fillText(t, x * s + 1, y * s + 1); g.fillStyle = col; g.fillText(t, x * s, y * s); };
-  lab('DonnerClan', 2350, 2100, '#ffd98a'); lab('SchattenClan', 2100, 420, '#c8b8ff'); lab('FlussClan', 520, 2000, '#9fd8ff'); lab('WindClan', 4400, 2000, '#fff3a0'); lab('Zweibeinerort', 2300, 4080, '#ddd'); lab('Hochland', 4500, 900, '#ddd');
+  lab('DonnerClan', 2700, 2000, '#ffd98a'); lab('SchattenClan', 3300, 420, '#c8b8ff'); lab('FlussClan', 520, 2500, '#9fd8ff'); lab('WindClan', 620, 1000, '#fff3a0'); lab('Zweibeinerort', 2300, 4080, '#ddd'); lab('Hochfelsen', 1000, 80, '#ddd'); lab('Hochland', 4750, 2200, '#ddd');
   g.font = '11px Trebuchet MS';
   for (const k in LM) { const l = LM[k]; if (!G.seen[k]) continue; g.fillStyle = '#fff'; g.beginPath(); g.arc(l.x * s, l.y * s, 3, 0, TAU); g.fill(); lab(l.name, l.x, l.y - 40, '#fff'); }
   for (const t of targets()) { g.fillStyle = t.col; g.beginPath(); g.arc(t.x * s, t.y * s, 6, 0, TAU); g.fill(); g.strokeStyle = '#000'; g.stroke(); }

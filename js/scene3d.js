@@ -111,7 +111,7 @@ function recolorTerrain(s) {
 function buildWater() {
   const v = [], idx = [];
   let n = 0;
-  for (let y = -20; y <= 3470; y += 20) { const yy = Math.min(y, 3440), cx = riverX(yy), wl = waterLevel(yy); v.push(cx - 66, wl, y, cx + 66, wl, y); W3.wuv = W3.wuv || []; W3.wuv.push(0, y / 130, 1, y / 130); if (n) idx.push(n * 2 - 2, n * 2, n * 2 - 1, n * 2 - 1, n * 2, n * 2 + 1); n++; }
+  for (let y = Math.floor(RIVER_TOP / 20) * 20 - 20; y <= 3470; y += 20) { const yy = clamp(y, RIVER_TOP, 3440), cx = riverX(yy), wl = waterLevel(yy); v.push(cx - 66, wl, y, cx + 66, wl, y); W3.wuv = W3.wuv || []; W3.wuv.push(0, y / 130, 1, y / 130); if (n) idx.push(n * 2 - 2, n * 2, n * 2 - 1, n * 2 - 1, n * 2, n * 2 + 1); n++; }
   const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(v, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(W3.wuv, 2)); geo.setIndex(idx); geo.computeVertexNormals();
   const wc = document.createElement('canvas'); wc.width = wc.height = 128; const wg = wc.getContext('2d');
   wg.fillStyle = '#9ab8d8'; wg.fillRect(0, 0, 128, 128);
@@ -120,6 +120,19 @@ function buildWater() {
   W3.waterTex = wt;
   const mat = new THREE.MeshPhongMaterial({ color: 0x3a78b0, map: wt, transparent: true, opacity: 0.84, shininess: 90, specular: 0x9fc4e8 });
   W3.water = new THREE.Mesh(geo, mat); SC.add(W3.water);
+  // Wasserfall an der Klippe des WindClan-Hochlands
+  { const fx = riverX(RIVER_TOP), fy = RIVER_TOP - 6, top = heightAt(fx, fy - 60) + 4, bot = waterLevel(RIVER_TOP + 20);
+    const fc = document.createElement('canvas'); fc.width = 64; fc.height = 128; const fg = fc.getContext('2d');
+    fg.fillStyle = '#7fb0e0'; fg.fillRect(0, 0, 64, 128);
+    for (let i = 0; i < 70; i++) { fg.fillStyle = `rgba(255,255,255,${0.2 + Math.random() * 0.6})`; fg.fillRect(Math.random() * 64, Math.random() * 128, 1 + Math.random() * 2.5, 10 + Math.random() * 40); }
+    const edge = fg.createLinearGradient(0, 0, 64, 0); edge.addColorStop(0, 'rgba(0,0,0,1)'); edge.addColorStop(0.22, 'rgba(0,0,0,0)'); edge.addColorStop(0.78, 'rgba(0,0,0,0)'); edge.addColorStop(1, 'rgba(0,0,0,1)');
+    fg.globalCompositeOperation = 'destination-out'; fg.fillStyle = edge; fg.fillRect(0, 0, 64, 128);
+    const ft = new THREE.CanvasTexture(fc); ft.wrapT = THREE.RepeatWrapping; ft.colorSpace = THREE.SRGBColorSpace; ft.repeat.set(1, 1.2); W3.fallTex = ft;
+    const fall = new THREE.Mesh(new THREE.PlaneGeometry(120, 1, 1, 1).translate(0, 0.5, 0), new THREE.MeshBasicMaterial({ color: 0xffffff, map: ft, transparent: true, opacity: 0.92, side: THREE.DoubleSide, depthWrite: false }));
+    const foam = new THREE.Mesh(new THREE.CircleGeometry(1, 24).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.45, depthWrite: false }));
+    foam.scale.set(62, 1, 26); foam.position.set(fx, bot + 1.2, RIVER_TOP + 8); SC.add(foam);
+    fall.scale.y = Math.max(20, top - bot); fall.position.set(fx, bot, fy); fall.rotation.x = -0.35; SC.add(fall); W3.fall = { x: fx, y: RIVER_TOP + 10, h: bot };
+    const pool = new THREE.Mesh(new THREE.CircleGeometry(70, 24).rotateX(-Math.PI / 2), mat); pool.position.set(fx, bot + 0.5, RIVER_TOP + 20); SC.add(pool); }
   const gorge = new THREE.Mesh(new THREE.PlaneGeometry(140, 430).rotateX(-Math.PI / 2), mat); gorge.position.set(3430, -58, 2755); SC.add(gorge);
   // See (unregelmäßiger Rand)
   const lv = [0, 0, 0], li = [], N = 96;
@@ -140,15 +153,16 @@ function roadTexture() {
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; return t;
 }
 function buildRoad() {
-  const v = [], uv = [], idx = []; let n = 0, len = 0, lx = null, ly = null;
-  const push = (x, y, nx, ny) => {
-    if (lx !== null) len += dist(x, y, lx, ly); lx = x; ly = y;
-    const h = roadLevel(x, y) + 0.6;
-    v.push(x - nx * 46, h, y - ny * 46, x + nx * 46, h, y + ny * 46); uv.push(0, len / 110, 1, len / 110);
-    if (n) idx.push(n * 2 - 2, n * 2 - 1, n * 2, n * 2 - 1, n * 2 + 1, n * 2); n++;
-  };
-  for (let x = -20; x <= ROAD_X1; x += 20) { const d = (roadY(x + 1) - roadY(x - 1)) / 2, l = Math.hypot(1, d); push(x, roadY(x), -d / l, 1 / l); }
-  for (let y = roadY(ROAD_X1) - 40; y >= -20; y -= 20) push(ROAD_X1, y, 1, 0);
+  const v = [], uv = [], idx = []; let n = 0;
+  ROADS.forEach((rd, ri) => {
+    const P_ = rd.pts, first = n;
+    for (let i = 0; i < P_.length; i++) {
+      const [x, y] = P_[i], a = P_[Math.max(0, i - 1)], b = P_[Math.min(P_.length - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, nx = -(b[1] - a[1]) / l, ny = (b[0] - a[0]) / l;
+      const h = roadLevel(x, y) + 0.6 + ri * 0.15;
+      v.push(x - nx * 46, h, y - ny * 46, x + nx * 46, h, y + ny * 46); uv.push(0, rd.cum[i] / 110, 1, rd.cum[i] / 110);
+      if (n > first) idx.push(n * 2 - 2, n * 2 - 1, n * 2, n * 2 - 1, n * 2 + 1, n * 2); n++;
+    }
+  });
   const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(v, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals();
   const m = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ map: roadTexture(), side: THREE.DoubleSide })); m.receiveShadow = true; SC.add(m);
 }
@@ -308,7 +322,7 @@ function buildGrass() {
   let tries = 0;
   while (spots.length < 36000 && tries++ < 150000) {
     const x = R() * W, y = R() * H, t = territoryAt(x, y, true);
-    if (inRoad(x, y) || isWater(x, y) || (y < 3460 && Math.abs(x - riverX(y)) < 62)) continue;
+    if (inRoad(x, y) || isWater(x, y) || (riverOn(y) && Math.abs(x - riverX(y)) < 62)) continue;
     const dens = { donner: 0.55, fluss: 1, wind: 0.8, zweibeiner: 0.35, schatten: 0.3, baumgeviert: 1, hochland: 0.3, donnerweg: 0, berge: 0.2, kueste: 0.3 }[t] || 0;
     if (R() > dens) continue;
     let bad = false; for (const cp of OB.camps) if (dist(x, y, cp.lm.x, cp.lm.y) < cp.lm.r - 30) { bad = true; break; }
@@ -713,6 +727,7 @@ function render3D(t, dt, tx, tz, title) {
   updateMarkers(t, title ? [] : targets());
   U_TIME.value = t;
   if (W3.waterTex) { W3.waterTex.offset.y -= dt * 0.12; W3.waterTex.offset.x = Math.sin(t * 0.3) * 0.05; }
+  if (W3.fallTex) { W3.fallTex.offset.y += dt * 1.4; if (W3.fall && dist(tx, tz, W3.fall.x, W3.fall.y) < 900 && Math.random() < dt * 6) FX3.splash(W3.fall.x + rand(-40, 40), W3.fall.y + rand(-5, 25)); }
   if (!title && !window.NORENDER_FX) FX3.ambient(dt, t);
   FX3.update(dt, t);
   if (W3.composer && GFX.hoch) { W3.bloom.strength = lerp(0.3, 0.7, 1 - dayFactor()) + (G.fire ? 0.2 : 0); W3.composer.render(dt); }

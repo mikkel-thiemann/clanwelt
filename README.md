@@ -14,7 +14,8 @@ Danach geht die Geschichte weiter: Neue Junge werden geboren, Schüler werden Kr
 Freunde sterben, neue Feinde tauchen auf. Du führst den Clan durch viele Monde.
 
 - **Offene Welt:** Berge, Küste mit Meer, der große See mit den neuen Clan-Lagern, DonnerClan-Wald, SchattenClan-Kiefernwald und Sumpf, FlussClan-Fluss, WindClan-Moor,
-  Donnerweg mit Monstern, Baumgeviert, Hochfelsen mit dem Mondstein, Zweibeinerort
+  Donnerweg mit Monstern, Baumgeviert, Hochfelsen mit dem Mondstein, Mikuschs Hof, Krähenort, Wasserfall, Hochkiefern, Baumsägeort, Zweibeinerort.
+  Der alte Wald ist aufgebaut wie die Karte aus den Büchern: WindClan im Nordwesten, SchattenClan im Nordosten, FlussClan im Südwesten, DonnerClan im Südosten – alle treffen sich am Baumgeviert.
 - **Story nach der ersten Staffel (Buch 1–6):** In die Wildnis · Feuer und Eis · Geheimnisse des Waldes · Vor dem Sturm · Pfad der Gefahr · Stunde der Finsternis
   – Rotschweifs Tod, das zerrissene Halsband, Gelbzahn als Gefangene, Rabenpfotes Geheimnis, die Ratten in der Scheune,
   die gestohlenen Jungen, die Heimkehr des WindClans, Silberfluss, die Flut, Wolkenjunges, Tigerkralles Verrat,
