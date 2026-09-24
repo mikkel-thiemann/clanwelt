@@ -102,7 +102,8 @@ const UI = {
     $('lives').textContent = pc.rank === 'anfuehrer' ? '✦'.repeat(G.player.lives) + ` ${G.player.lives} Leben` : '';
     // Aufgaben
     let h = '';
-    if (!Story.done()) { const q = Story.quest(); h += `<div class="ch">${q.ch > 6 ? 'Staffel 2 · ' : ''}Buch ${q.ch} · ${q.title}</div><h4>➤ ${Story.text() || ''}</h4>`; }
+    if (Story.paused()) h += `<div class="ch">🌿 Zwischen den Kapiteln</div><h4>➤ ${Story.text()}</h4>`;
+    else if (!Story.done()) { const q = Story.quest(); h += `<div class="ch">${q.ch > 6 ? 'Staffel 2 · ' : ''}Buch ${q.ch} · ${q.title}</div><h4>➤ ${Story.text() || ''}</h4>`; }
     else if (G.freeplay) h += `<div class="ch">Freies Spiel</div><h4>Führe deinen Clan durch die Monde</h4>`;
     if (G.missions.length) h += '<div class="ms">' + G.missions.map(m => `<div>◆ ${m.title}${m.n > 1 && m.type !== 'drive' && m.type !== 'beast' ? ` (${Math.min(m.prog, m.n)}/${m.n})` : ''}${m.type === 'herbs' && m.prog >= m.n ? ' → zum Heiler' : ''}</div>`).join('') + '</div>';
     if (G.eventQ.length && !Dlg.open) h += `<div class="ms">⚠ Eine Entscheidung wartet (weg von Kämpfen)</div>`;

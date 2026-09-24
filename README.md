@@ -32,6 +32,7 @@ Freunde sterben, neue Feinde tauchen auf. Du führst den Clan durch viele Monde.
 - **Mehrere Generationen:** Andere Clan-Katzen spielen; stirbt der Anführer, geht es mit dem Nachfolger weiter
 - **Lebensweg:** Blick zurück vom kleinen Hauskätzchen bis heute
 - **Filmszenen:** Wichtige Momente werden gezeigt, nicht nur erzählt – Blaustern geht ins Ahnentor zum Mondstein, der SternenClan schreitet aus dem Sternenlicht, Tigerkralle flieht aus dem Lager, der WindClan rennt heim ins Moor, Blaustern stürzt mit dem Hund in die Schlucht und vieles mehr (Leertaste überspringt).
+- **Zeit zwischen den Kapiteln:** Nach jedem Kapitel vergehen erst ein paar Tage. Du hilfst deinem Clan (jagen, Beute bringen, Kräuter sammeln, Grenzen verteidigen), bevor das nächste große Ereignis passiert – z. B. vier Tage zwischen der Flut und Silberflusses Jungen.
 - **Längere Bücher:** zusätzliche Kapitel wie Schülerpflichten, Kampftraining, der Kampf um die Sonnenfelsen, Kräuter für Gelbzahn, Große Versammlungen, Jagd mit Sandsturm, Hundegeruch, Vorbereitung auf die Schlacht und Grenzen am See.
 - **Animationen & Effekte:** Katzen mit Skelett (Gehen, Galopp, Schleichen, Sprung, Pfotenhieb, Katzenbuckel, Sitzen, Putzen, Schlafen, Blinzeln),
   Krallenspuren, Staub, Wasserspritzer, Glühwürmchen, fallende Blätter, Gras und Bäume im Wind, Leuchten (Bloom), Film-Kamera bei Gesprächen

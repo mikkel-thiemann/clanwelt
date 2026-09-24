@@ -251,7 +251,7 @@ const QUESTS = [
     ]
   },
   {
-    ch: 1, title: 'Der Überfall', steps: [
+    ch: 1, title: 'Der Überfall', gap: 2, steps: [
       {
         t: 'defeat', group: 'ueberfall', n: 4, at: 'lager', spawnNear: 900, text: 'SchattenClan greift das Lager an! Verteidige den Clan', spawn() { storyFoes('ueberfall', 'schatten', 4, { x: LM.lager.x, y: LM.lager.y - 40 }, { lv: 2 }); },
         dlg: () => [
@@ -267,7 +267,7 @@ const QUESTS = [
     ]
   },
   {
-    ch: 1, title: 'Gestohlene Junge', steps: [
+    ch: 1, title: 'Gestohlene Junge', gap: 1, tasks: 0, steps: [
       {
         t: 'scene', dlg: () => [
           ACT({ cap: 'Am nächsten Morgen: Schreie aus der Kinderstube!', moves: [['frostfell', 'den:kinder', { dy: 35, sp: 200, say: 'Meine Jungen! Wo sind meine Jungen?!' }], ['player', 'den:kinder', { dx: 60, dy: 70, sp: 170 }]], cam: 'frostfell' }),
@@ -297,7 +297,7 @@ const QUESTS = [
     ]
   },
   {
-    ch: 1, title: 'Feuerherz', steps: [
+    ch: 1, title: 'Feuerherz', gap: 3, tasks: 3, steps: [
       {
         t: 'scene', dlg: () => [
           CEREMONY('blaustern', ['graupfote']),
@@ -359,7 +359,7 @@ const QUESTS = [
     ]
   },
   {
-    ch: 2, title: 'Silberfluss', steps: [
+    ch: 2, title: 'Silberfluss', gap: 2, steps: [
       { t: 'goto', at: 'trittsteine', guide: 'graupfote', guideSay: 'Komm, ich kenne eine Stelle am Fluss!', text: 'Folge Graustreif zu den Trittsteinen am Fluss', enter() { follow('graupfote'); }, dlg: () => [
         ACT({ cap: 'Graustreif balanciert über die nassen Trittsteine …', moves: [['graupfote', () => ({ x: riverX(LM.trittsteine.y), y: LM.trittsteine.y }), { sp: 80 }]], cam: 'graupfote', wait: 0.3 }),
         ACT({ cap: '… rutscht aus und stürzt in den eiskalten Fluss! Die Strömung reißt ihn fort.', moves: [['graupfote', () => ({ x: riverX(LM.trittsteine.y + 170), y: LM.trittsteine.y + 170 }), { sp: 130, say: 'Hilfe! Ich kann nicht schwimmen!' }]], cam: 'graupfote', wait: 0.3, shake: 2 }),
@@ -396,7 +396,7 @@ const QUESTS = [
     ]
   },
   {
-    ch: 3, title: 'Silberflusses Junge', steps: [
+    ch: 3, title: 'Silberflusses Junge', gap: 4, tasks: 3, steps: [
       {
         t: 'goto', at: 'trittsteine', text: 'Graustreif ruft verzweifelt von den Trittsteinen!', enter() { const g = catById('graupfote'); g.x = LM.trittsteine.x + 30; g.y = LM.trittsteine.y; g.ai = { m: 'hold' }; }, dlg: () => [
           { do: () => { const s = catById('silberfluss'); if (s) { s.hidden = false; const p = nearPlayer(50); s.x = p.x; s.y = p.y; s.sleep = true; s.ai = { m: 'hold' }; } } },
@@ -442,7 +442,7 @@ const QUESTS = [
     ]
   },
   {
-    ch: 3, title: 'Wolkenjunges', steps: [
+    ch: 3, title: 'Wolkenjunges', gap: 2, steps: [
       { t: 'talk', who: 'prinzessin', text: 'Besuche deine Schwester Prinzessin im Zweibeinerort (Garten links von deinem alten Zuhause)', enter() { const p = catById('prinzessin'); p.hidden = false; }, dlg: () => [['prinzessin', 'Bruder! Du riechst nach Wald. Ich habe Junge bekommen. Und ich möchte, dass mein Erstgeborener ein Krieger wird – so wie du.'], ['prinzessin', 'Nimm ihn mit. Er heißt Wolke … Er ist stark, und er ist mutig.'], { do: () => { const w = ensureCat('wolkenjunges', { pre: 'Wolken', suf: 'schweif', rank: 'junges', age: 3, sex: 'm', look: L('#f4f4f2', null, 0, '#4fa3d9', { long: true }), mother: 'goldbluete' }); const p = nearPlayer(40); w.x = p.x; w.y = p.y; w.hidden = false; w.ai = { m: 'follow' }; w.slow = true; } }] },
       { t: 'goto', at: 'lager', text: 'Bring Wolkenjunges ins Lager', enter() { const w = catById('wolkenjunges'); if (w) { w.ai = { m: 'follow' }; w.slow = true; } }, dlg: () => [['langschweif', 'Noch ein Hauskätzchen?! Feuerherz, willst du den Clan mit Zweibeiner-Katzen füllen?'], ['blaustern', 'Genug, Langschweif. Goldblüte wird ihn in der Kinderstube säugen. Wolkenjunges gehört jetzt zum DonnerClan.']], done() { const w = catById('wolkenjunges'); w.slow = false; w.ai = { m: 'home' }; chron('Feuerherz bringt Wolkenjunges, das Junge seiner Schwester Prinzessin, in den Clan.'); } },
     ]
@@ -517,7 +517,7 @@ const QUESTS = [
     ]
   },
   {
-    ch: 4, title: 'Feuer!', steps: [
+    ch: 4, title: 'Feuer!', gap: 3, tasks: 3, steps: [
       { t: 'scene', dlg: () => [['erz', 'Blattgrüne. Seit Monden hat es nicht geregnet. Der Wald ist trocken wie Stroh.'], ['erz', 'Da riechst du Rauch! Am Donnerweg haben Zweibeiner etwas Brennendes weggeworfen – und der Wind treibt das Feuer auf das Lager zu!'], ACT({ cap: 'Dichter Rauch quillt vom Donnerweg her. Flammen springen von Baum zu Baum!', moves: [], cam: { x: LM.lager.x + 60, y: LM.lager.y - 380 }, start() { G.fire = { x: LM.lager.x + 60, y: LM.lager.y - 380, r: 90, max: 460 }; }, tick(dt) { G.fire.r += dt * 30; }, dist: 280, pitch: 0.4, wait: 3 }), ['player', 'FEUER! Alle raus aus dem Lager! Zu den Sonnenfelsen, zum Fluss!']] },
       {
         t: 'custom', at: 'sonnenfelsen', noPatrol: true, text: 'Das Lager brennt! Rette Goldblütes Junge (Kinderstube) und bring sie zu den Sonnenfelsen',
@@ -565,7 +565,7 @@ const QUESTS = [
     ]
   },
   {
-    ch: 5, title: 'Meute, Meute!', steps: [
+    ch: 5, title: 'Meute, Meute!', gap: 1, tasks: 1, steps: [
       { t: 'goto', at: 'schlangenfelsen', guide: 'graupfote', guideSay: 'Da! Noch ein totes Kaninchen! Die Spur führt hier entlang!', text: 'Tote Kaninchen im Wald … Folge Graustreif auf der Spur', enter() { follow('graupfote'); }, dlg: () => [['erz', 'Eine Spur aus toten Kaninchen – sie führt von den Schlangenfelsen direkt zum DonnerClan-Lager. Tigerstern hat sie gelegt!'], ['erz', 'Am Ende der Spur liegt Buntgesicht. Tot. Sie war der Köder.'], { do: () => { const b = catById('buntgesicht'); if (b && b.alive) killCat(b); } }, ['graupfote', 'Tigerstern will die Hunde zu unserem Lager locken! Ein ganzer Clan … als Futter für Hunde!'], ['player', 'Dann locken wir die Meute zur Schlucht. Ich laufe vorne.']], done() { goHome('graupfote'); } },
       {
         t: 'custom', text: 'LAUF zur Schlucht! Der Anführer der Meute darf dich nicht erwischen!', at: 'schlucht', noPatrol: true,
@@ -642,7 +642,7 @@ const QUESTS = [
     ]
   },
   {
-    ch: 6, title: 'Die letzte Schlacht', steps: [
+    ch: 6, title: 'Die letzte Schlacht', gap: 1, tasks: 0, steps: [
       {
         t: 'defeat', group: 'blut', n: 7, at: 'platane', spawnNear: 700, noPatrol: true, text: 'Der LöwenClan stellt sich dem BlutClan an der Großen Platane!',
         enter() { clanCats().filter(c => (c.rank === 'krieger' || c.rank === 'zweiter') && c !== P()).slice(0, 6).forEach(c => { c.ai = { m: 'follow' }; }); const pc = P(); for (let i = 0; i < 4; i++) spawnClanCat(['wind', 'fluss', 'schatten', 'wind'][i], pc.x + rand(-80, 80), pc.y + rand(-80, 80), { ally: true, hostile: false, story: true, followP: false, lv: 2 }); },
@@ -735,7 +735,7 @@ const QUESTS = [
   },
   // ---------------- BUCH 8: MONDSCHEIN ----------------
   {
-    ch: 8, title: 'Der Stamm des eilenden Wassers', steps: [
+    ch: 8, title: 'Der Stamm des eilenden Wassers', gap: 0, steps: [
       {
         t: 'goto', at: 'stamm', noPatrol: true, text: 'Auf dem Rückweg: Findet Schutz in den Bergen (Höhle am Wasserfall)', enter() { journeyFollow(); const s = LM.stamm; spawnClanCat('stamm', s.x, s.y + 10, { id: 'steinsager_e', name: 'Steinsager', look: L('#6a5a4a', null, 0, '#e8b923', { long: true }), hostile: false, story: true, ai: 'leader' }); for (let i = 0; i < 5; i++) spawnClanCat('stamm', s.x + rand(-110, 110), s.y + rand(20, 90), { name: pick(['Adler, der über Felsen kreist', 'Bach, wo kleine Fische schwimmen', 'Nacht ohne Mond', 'Stein, der im Wasser liegt']), look: L(pick(['#7a6a5a', '#5a4a3a', '#8a7a6a']), null, 0, '#e8b923'), hostile: false, story: true, wander: { x: s.x, y: s.y + 60, r: 100 } }); },
         dlg: () => [
@@ -881,7 +881,7 @@ const QUESTS = [
   },
   // ---------------- BUCH 12: SONNENUNTERGANG ----------------
   {
-    ch: 12, title: 'Sonnenuntergang', steps: [
+    ch: 12, title: 'Sonnenuntergang', gap: 4, tasks: 3, steps: [
       { t: 'scene', dlg: () => [['blattjunges', 'Brombeerkralle! Ich hatte eine Vision vom SternenClan: „Bevor Frieden kommt, wird Blut Blut vergießen, und der See wird rot sein.“'], ['player', 'Blut wird Blut vergießen … Was soll das bedeuten?'], ['erz', 'Am Abend kehrt Feuerstern nicht von seiner Patrouille am Seeufer zurück.']] },
       {
         t: 'goto', who: 'sammy', near: 70, noPatrol: true, text: 'Suche Feuerstern am Seeufer', enter() { const f = catById('sammy'); f.x = LM.seeufer.x; f.y = LM.seeufer.y; f.ai = { m: 'hold' }; f.sleep = true; say(f, 'Hilfe … eine Falle!', 8); const h = catById('habichtfrost'); h.hidden = false; h.x = LM.seeufer.x + 50; h.y = LM.seeufer.y - 30; h.ai = { m: 'hold' }; }, dlg: () => [
@@ -919,11 +919,22 @@ const QUESTS = [
 ];
 
 // ===== Story-Steuerung =====
+// Zwischen den Kapiteln vergeht Zeit: Das Clanleben geht weiter, bevor das nächste große Ereignis kommt.
+// gap = Tage bis zum nächsten Kapitel (Standard: 1, neues Buch: 2), tasks = Clan-Aufgaben in dieser Zeit
+const PAUSE_TIPS = ['Jage für den Frischbeutehaufen', 'Bring Beute ins Lager', 'Sammle Kräuter für den Heiler', 'Vertreibe Eindringlinge an der Grenze'];
 const Story = {
-  step() { const q = QUESTS[G.story.q]; return q ? q.steps[G.story.s] : null; },
+  paused() { return !!(G.story && G.story.pause); },
+  step() { if (this.paused()) return null; const q = QUESTS[G.story.q]; return q ? q.steps[G.story.s] : null; },
   quest() { return QUESTS[G.story.q]; },
   done() { return G.story.q >= QUESTS.length; },
-  text() { const st = this.step(); if (!st) return null; let t = typeof st.text === 'function' ? st.text() : st.text; if (st.n > 1) t += ` (${G.story.prog}/${st.n})`; return t; },
+  text() {
+    const pz = G.story.pause;
+    if (pz) {
+      const left = Math.max(0, Math.ceil((pz.until - G.time) / 1440));
+      if (pz.prog < pz.need) return `Das Leben im Clan geht weiter: Hilf deinem Clan (${pz.prog}/${pz.need}) – ${PAUSE_TIPS[pz.prog % PAUSE_TIPS.length]}`;
+      return left > 0 ? `Du hast deinem Clan gut geholfen. Ruh dich aus (E an deinem Bau) – noch ${left} ${left === 1 ? 'Tag' : 'Tage'}` : 'Ein neuer Morgen bricht an …';
+    }
+    const st = this.step(); if (!st) return null; let t = typeof st.text === 'function' ? st.text() : st.text; if (st.n > 1) t += ` (${G.story.prog}/${st.n})`; return t; },
   enter(isLoad) {
     const st = this.step(); if (!st) return;
     if (st.skip && st.skip()) { this.advance(true); return; }
@@ -965,12 +976,30 @@ const Story = {
       G.story.q++; G.story.s = 0;
       if (!silent) toast(`✔ Abgeschlossen: ${q.title}`);
       const nq = this.quest();
-      if (nq) { if (nq.ch !== q.ch) setTimeout(() => titleCard((nq.ch > 6 ? 'Staffel 2 · ' : '') + 'Buch ' + nq.ch, BOOKS[nq.ch], RECAP[nq.ch]), 600); else setTimeout(() => toast(`📖 ${nq.title}`), 1200); }
+      if (nq) {
+        const newBook = nq.ch !== q.ch, gap = nq.gap !== undefined ? nq.gap : (newBook ? 2 : 1);
+        if (gap > 0) {
+          const need = nq.tasks !== undefined ? nq.tasks : (newBook ? 3 : 2);
+          G.story.pause = { until: (day() + gap) * 1440 + 6 * 60, need, prog: 0, newBook };
+          saveGame();
+          setTimeout(() => toast(need ? '🌿 Die Zeit vergeht. Hilf deinem Clan, bis das nächste Abenteuer beginnt.' : '🌙 Ruh dich aus. Morgen geht es weiter.'), 1500);
+          return;
+        }
+        this.announce(q, nq);
+      }
       saveGame();
     }
     this.enter();
   },
+  announce(q, nq) { if (!q || nq.ch !== q.ch) setTimeout(() => titleCard((nq.ch > 6 ? 'Staffel 2 · ' : '') + 'Buch ' + nq.ch, BOOKS[nq.ch], RECAP[nq.ch]), 600); else setTimeout(() => toast(`📖 ${nq.title}`), 1200); },
+  endPause() {
+    const pz = G.story.pause; G.story.pause = null;
+    const nq = this.quest(); if (nq) this.announce(pz.newBook ? null : nq, nq);
+    saveGame(); this.enter();
+  },
   event(type, d) {
+    const pz = G.story.pause;
+    if (pz) { if (['catch', 'deliver', 'herb', 'defeat'].includes(type) && pz.prog < pz.need) { pz.prog++; if (pz.prog >= pz.need) toast('✔ Du hast deinem Clan gut geholfen.'); } return; }
     const st = this.step(); if (!st || this.finishing) return;
     const hit = (type === 'catch' && st.t === 'catch') || (type === 'deliver' && st.t === 'deliver') || (type === 'defeat' && st.t === 'defeat' && d.group === st.group) || (type === 'herb' && st.t === 'herb' && d.kind === st.kind);
     if (!hit) return;
@@ -995,6 +1024,8 @@ const Story = {
     return null;
   },
   update(dt) {
+    const pz = G.story.pause;
+    if (pz) { if (!Dlg.open && pz.prog >= pz.need && G.time >= pz.until) this.endPause(); return; }
     const st = this.step(); if (!st || this.finishing || Dlg.open) return;
     const pc = P();
     if (st.tick) st.tick(dt);
