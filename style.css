@@ -183,3 +183,5 @@ body.paint #paper { opacity: .22; }
 
 #mousehint { position: fixed; right: 14px; bottom: 14px; background: rgba(0, 0, 0, .55); border: 1px solid rgba(255, 255, 255, .25); padding: 6px 12px; border-radius: 16px; font-size: 13px; pointer-events: none; z-index: 6; }
 body.mousemode canvas#game { cursor: crosshair; }
+#cutcap { position: fixed; left: 50%; bottom: 64px; transform: translateX(-50%); width: min(760px, 90vw); text-align: center; font-size: 19px; font-style: italic; color: #f4ecd8; text-shadow: 0 2px 8px #000, 0 0 3px #000; pointer-events: none; z-index: 11; opacity: 0; transition: opacity .5s; }
+#cutcap.show { opacity: 1; }

@@ -595,6 +595,11 @@ function updateCamera(dt, tx, tz, title) {
     const hs = denPos('hochstein'), rt = W3.rockTops.find(t => dist(t.x, t.y, hs.x, hs.y) < 60);
     if (rt) { const a = Math.atan2(hs.y - LM.lager.y, hs.x - LM.lager.x); tx = hs.x - Math.cos(a) * 60; tz = hs.y - Math.sin(a) * 60; ty = rt.top - 30; yaw = a; pitch = 0.05; dst = 300; }
   }
+  // Filmszene: Kamera zeigt, was passiert, und kreist langsam
+  if (!title && typeof Cut !== 'undefined' && Cut.cur) {
+    const f = Cut.focusPt(), o = Cut.cur.o; tx = f.x; tz = f.y; ty = surfaceY(f.x, f.y) + 18;
+    yaw = Cut.cur.yaw + Cut.cur.t * (o.orbit !== undefined ? o.orbit : 0.06); pitch = o.pitch !== undefined ? o.pitch : 0.26; dst = o.dist || 175;
+  }
   CAMS.cy = lerp(CAMS.cy === undefined ? yaw : CAMS.cy, CAMS.cy === undefined ? yaw : CAMS.cy + angDiff(CAMS.cy, yaw), 1 - Math.pow(0.02, dt));
   CAMS.cp = lerp(CAMS.cp === undefined ? pitch : CAMS.cp, pitch, 1 - Math.pow(0.02, dt));
   CAMS.cd = lerp(CAMS.cd === undefined ? dst : CAMS.cd, dst, 1 - Math.pow(0.02, dt));
@@ -724,7 +729,7 @@ function render3D(t, dt, tx, tz, title) {
   updateHerbs(t);
   updatePile();
   syncModels(t, dt);
-  updateMarkers(t, title ? [] : targets());
+  updateMarkers(t, title || (typeof Cut !== 'undefined' && Cut.cur) ? [] : targets());
   U_TIME.value = t;
   if (W3.waterTex) { W3.waterTex.offset.y -= dt * 0.12; W3.waterTex.offset.x = Math.sin(t * 0.3) * 0.05; }
   if (W3.fallTex) { W3.fallTex.offset.y += dt * 1.4; if (W3.fall && dist(tx, tz, W3.fall.x, W3.fall.y) < 900 && Math.random() < dt * 6) FX3.splash(W3.fall.x + rand(-40, 40), W3.fall.y + rand(-5, 25)); }

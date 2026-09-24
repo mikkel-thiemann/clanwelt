@@ -20,10 +20,12 @@ const Dlg = {
     this.next();
   },
   next() {
+    if (Cut.cur) { Cut.skip(); return; }
     if (this.choosing) return;
     if (this.typing < this.full.length) { this.typing = this.full.length; $('dlgText').textContent = this.full; return; }
     let line = this.lines.shift();
     while (line && line.do && !line.text) { line.do(); line = this.lines.shift(); }
+    if (line && line.act) { Cut.start(line.act); return; }
     if (!line) {
       this.speaker = null;
       this.open = false; document.body.classList.remove('cine'); $('dialog').classList.add('hidden');
@@ -62,6 +64,7 @@ const Dlg = {
     this.next();
   },
   tick(dt) {
+    if (Cut.cur) Cut.tick(dt);
     if (!this.open || this.typing >= this.full.length) return;
     this.typing = Math.min(this.full.length, this.typing + dt * 70);
     $('dlgText').textContent = this.full.slice(0, Math.floor(this.typing));
