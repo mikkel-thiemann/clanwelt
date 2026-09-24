@@ -101,7 +101,7 @@ try {
   window.THREE_ADDONS = { EffectComposer: a.EffectComposer, RenderPass: b.RenderPass, UnrealBloomPass: c.UnrealBloomPass, OutputPass: d.OutputPass, ShaderPass: e.ShaderPass };
 } catch (e) { console.warn('Bloom nicht verfügbar', e); }
 const files = ['util', 'world', 'models', 'cats', 'clan', 'story', 'tales', 'story3', 'cutscene', 'ui', 'scene3d', 'paint', 'fx3d', 'main'];
-for (const f of files) await new Promise((ok, fail) => { const s = document.createElement('script'); s.src = 'js/' + f + '.js?v=' + (location.hostname === 'localhost' ? Date.now() : 17); s.onload = ok; s.onerror = fail; document.body.appendChild(s); });
+for (const f of files) await new Promise((ok, fail) => { const s = document.createElement('script'); s.src = 'js/' + f + '.js?v=' + (location.hostname === 'localhost' ? Date.now() : 18); s.onload = ok; s.onerror = fail; document.body.appendChild(s); });
 </script>
 </body>
 </html>

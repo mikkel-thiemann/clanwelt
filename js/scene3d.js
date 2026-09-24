@@ -655,7 +655,7 @@ function syncModels(t, dt) {
   for (const e of ENTS) {
     if (!near(e)) continue;
     if (e.kind === 'bagger') { const m = useModel(e, () => makeBaggerModel()); placeEnt(m, e); m.userData.arm.rotation.z = Math.sin(t * 1.3 + e.x) * 0.3; if (Math.random() < 0.3) FX3.dust(e.x - Math.cos(e.dir) * 30, e.y - Math.sin(e.dir) * 30, 1); continue; }
-    if (e.beast) { const m = useModel(e, () => makeBeastModel(e.kind)); placeEnt(m, e); e.speed = entSpeed(m, e, dt); animateBeast(m, e, t); footFx(m, e, e.speed); }
+    if (e.beast) { const m = useModel(e, () => { const b = makeBeastModel(e.kind); if (e.size) b.scale.multiplyScalar(e.size); return b; }); placeEnt(m, e); e.speed = entSpeed(m, e, dt); animateBeast(m, e, t); footFx(m, e, e.speed); }
     else {
       const m = useModel(e, () => makeCatModel(e.look, { star: e.star, collar: e.collar })); placeEnt(m, e);
       m.scale.setScalar((e.rank === 'anfuehrer' ? 1.08 : 1) * (e.look.size || 1) * (e.kit ? 0.55 : 1));

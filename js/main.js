@@ -108,6 +108,7 @@ function findInteract() {
   for (const c of G.cats) { if (!c.alive || c.hidden || c === pc || c.spar) continue; const d = dist(pc.x, pc.y, c.x, c.y); if (d < 62) take(c.id === storyWho ? d - 60 : d, { type: 'cat', c, label: `Sprechen mit ${catName(c)}` }); }
   for (const e of ENTS) { if (e.hostile || e.defeated || e.kind !== 'cat' || e.corpse) continue; const d = dist(pc.x, pc.y, e.x, e.y); if (d < 62) take(d, { type: 'ent', e, label: `Sprechen mit ${e.name}` }); }
   if (pc.clan === 'donner') { const p = denPos('pile'), d = dist(pc.x, pc.y, p.x, p.y); if (d < 55) take(d - 20, { type: 'pile', label: G.player.carry.length ? 'Beute auf den Frischbeutehaufen legen' : `Frischbeutehaufen (${Math.floor(G.clan.pile)} Stück) – F: fressen` }); }
+  const stc = Story.step(); if (stc && stc.camp) take(30, { type: 'den', label: 'Rasten / Schlafen (unterwegs)' });
   const den = playerDen(); if (den) { const d = dist(pc.x, pc.y, den.x, den.y + 20); if (d < 60) take(d + 10, { type: 'den', label: 'Ausruhen / Schlafen' }); }
   OB.herbs.forEach((h, i) => { if (!herbAvailable(i)) return; const d = dist(pc.x, pc.y, h.x, h.y); if (d < 34) take(d - 30, { type: 'herb', i, label: `${HERBS[h.k].n} pflücken` }); });
   return best;
@@ -422,7 +423,7 @@ $('game').addEventListener('contextmenu', e => e.preventDefault());
 // ===== Hauptschleife =====
 let lastT = 0, saveT = 0, campT = 0;
 function frame(ts) {
-  const dt = Math.min(0.05, (ts - lastT) / 1000 || 0); lastT = ts; gameT += dt;
+  const dt = clamp((ts - lastT) / 1000 || 0, 0, 0.05); lastT = Math.max(lastT || 0, ts); gameT += dt;
   if (state === 'play' && G) {
     Dlg.tick(dt);
     if (!Dlg.open && !UI.panel) {

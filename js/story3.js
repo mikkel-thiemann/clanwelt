@@ -60,6 +60,37 @@ insertStepsBefore('Ein Traum vom SternenClan', st => st.t === 'catch', [
   },
 ]);
 
+// Buch 7: Die lange Reise – Tag und Nacht, Gefahren, Hunger und Streit (wie im Buch)
+function morningStep(text) { return { t: 'custom', camp: true, noPatrol: true, text: text || 'Schlaft bis zum Morgen (E: ausruhen)', enter() { journeyFollow(); }, check: () => hour() >= 6 && hour() < 11, dlg: () => [ACT({ cap: 'Die Sonne geht auf. Steif vor Kälte streckt ihr euch und zieht weiter.', moves: [], cam: 'player', dist: 200, pitch: 0.35, orbit: 0.1, wait: 2 })] }; }
+function campNight(cap, lines) {
+  return { t: 'night', camp: true, noPatrol: true, text: 'Es wird Abend. Rastet, bis es Nacht ist (E: ausruhen)', enter() { journeyFollow(); }, dlg: () => [ACT({ cap, moves: JOURNEY.filter(id => id !== 'sturmpelz' || !G.flags.sturmBleibt).map((id, i) => [id, 'player', { dx: Math.cos(i * 1.3) * 40, dy: Math.sin(i * 1.3) * 40, sp: 60, sleep: true }]), cam: 'player', dist: 170, pitch: 0.45, orbit: 0.12, wait: 2 }), ...lines] };
+}
+insertStepsBefore('Ein Traum vom SternenClan', st => st.at === 'purdy', [
+  { t: 'goto', pos: () => ({ x: 1300, y: 640, r: 90 }), noPatrol: true, text: 'Tag 1: Zieht vorbei an den Hochfelsen nach Osten', enter() { journeyFollow(); }, dlg: () => [ACT({ cap: 'Die Hochfelsen ragen über euch auf. Irgendwo darin liegt der Mondstein.', moves: [], cam: { x: 1000, y: 300 }, dist: 380, pitch: 0.3, orbit: 0.08, wait: 2.5 }), ['bernsteinjunges', 'Weiter als bis hierher war noch keiner von uns.'], ['kraehenpfote', 'Ich war schon am Mondstein. Mit meinem Mentor. Das ist nichts Besonderes.'], ['eichhornjunges', 'Angeber.']] },
+  { t: 'goto', pos: () => ({ x: 2330, y: 760, r: 80 }), noPatrol: true, text: 'Überquert vorsichtig den Donnerweg – Monster!', enter() { journeyFollow(); }, dlg: () => [['erz', 'Ein Monster donnert vorbei, so nah, dass der Wind euch das Fell zerzaust. Dann seid ihr alle drüben.'], ['sturmpelz', 'Alle da? … Gut. Ich hasse Donnerwege.']] },
+  {
+    t: 'defeat', group: 'reiseratten', n: 3, at: 'kraehenort', spawnNear: 700, noPatrol: true, text: 'Am Krähenort stinkt es nach Abfall – Ratten greifen an!', enter() { journeyFollow(); },
+    spawn() { for (let i = 0; i < 3; i++) spawnBeast('ratte', LM.kraehenort.x + rand(-90, 90), LM.kraehenort.y + rand(-60, 60), { group: 'reiseratten', story: true }); },
+    dlg: () => [['erz', 'Die Ratten fliehen in ihre Löcher. Krähenpfote leckt eine blutende Wunde an seiner Schulter.'], ['kraehenpfote', 'Ist nichts. Nur ein Kratzer.'], ['federschweif', 'Das muss sauber bleiben. Ruh dich aus, wenn wir rasten.']]
+  },
+  campNight('Ihr rollt euch dicht aneinander unter einem Busch zusammen. Über euch leuchtet das Silbervlies – weit weg von zu Hause.', [['eichhornjunges', '(flüsternd) Brombeerkralle? Bist du noch wach? Ich vermisse die Kinderstube. Nur ein bisschen.'], ['player', 'Ich vermisse den Kriegerbau auch. Schlaf jetzt.']]),
+  morningStep('Tag 2: Schlaft bis zum Morgen (E: ausruhen)'),
+  { t: 'catch', n: 2, noPatrol: true, text: 'Tag 2: Krähenpfote ist geschwächt. Jag für die ganze Gruppe', enter() { journeyFollow(); }, dlg: () => [['kraehenpfote', '… Danke.'], ['bernsteinjunges', 'Hat Krähenpfote gerade „Danke“ gesagt? Zu einem DonnerClan-Kater?']] },
+  {
+    t: 'goto', pos: () => ({ x: 3900, y: 620, r: 100 }), noPatrol: true, text: 'Tag 2: Ein Gewitter zieht auf! Sucht Schutz zwischen den Felsen', enter() { journeyFollow(); G.weather = 'regen'; },
+    dlg: () => [ACT({ cap: 'Der Himmel wird schwarz. Donner kracht, Regen peitscht über das Land. Ihr drängt euch unter einen Felsvorsprung.', moves: [], cam: 'player', dist: 220, pitch: 0.4, shake: 3, pass: 120, passT: 4, wait: 3 }), ['kraehenpfote', 'Das ist alles deine Schuld, Brombeerkralle! Wegen deines dummen Traums sitzen wir hier im Regen!'], ['eichhornjunges', 'Hör auf zu jammern! Wir haben ALLE denselben Traum gehabt!'], ['federschweif', 'Streiten hilft niemandem. Wir sind jetzt eine Gruppe – ob es euch gefällt oder nicht.']], done() { G.weather = null; }
+  },
+  campNight('Die zweite Nacht. Nasses Fell, leere Mägen. Niemand redet viel.', [['sturmpelz', 'Wie weit ist es noch bis zum Wassernest der Sonne?'], ['player', 'Ich weiß es nicht. Aber wir kommen an.']]),
+  morningStep('Tag 3: Schlaft bis zum Morgen (E: ausruhen)'),
+]);
+insertStepsBefore('Ein Traum vom SternenClan', st => st.at === 'wassernest', [
+  campNight('Oben in den Bergen ist die Nacht eisig. Der Wind heult um die Felsen, und ihr kuschelt euch eng zusammen.', [['bernsteinjunges', 'Ich kann meine Pfoten nicht mehr spüren …'], ['eichhornjunges', 'Rück näher. Wärme teilen. So machen es Clan-Katzen.']]),
+  morningStep('Tag 4: Schlaft bis zum Morgen (E: ausruhen)'),
+  { t: 'goto', pos: () => ({ x: 6650, y: 1300, r: 110 }), noPatrol: true, text: 'Tag 4: Steigt die Berge hinab – immer der Sonne nach', enter() { journeyFollow(); }, dlg: () => [ACT({ cap: 'Der Abstieg ist steil. Steine rollen unter euren Pfoten weg. Dann wird der Boden sandig.', moves: [], cam: 'player', dist: 260, pitch: 0.35, orbit: 0.1, wait: 2.5 }), ['federschweif', 'Riecht ihr das? Salz! Wie Tränen, nur viel stärker.']] },
+  { t: 'goto', pos: () => ({ x: 7050, y: 1150, r: 110 }), noPatrol: true, guide: 'federschweif', guideSay: 'Hier entlang! Der Geruch wird stärker!', text: 'Tag 4: Ihr habt euch in den Dünen verlaufen. Folge Federschweifs Nase', enter() { journeyFollow(); }, dlg: () => [['kraehenpfote', 'Überall nur Sand! Wir laufen im Kreis!'], ['federschweif', 'Nein. Hört ihr das Rauschen? Wir sind fast da.']] },
+  { t: 'catch', n: 1, noPatrol: true, text: 'Tag 4: Ein letztes Mal jagen, bevor ihr das Wasser erreicht', enter() { journeyFollow(); } },
+]);
+
 // Buch 8: Niemand glaubt den Auserwählten
 insertQuestsAfter('Der Stamm des eilenden Wassers', [{
   ch: 8, title: 'Niemand glaubt uns', gap: 1, tasks: 2, steps: [
