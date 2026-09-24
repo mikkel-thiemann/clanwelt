@@ -377,6 +377,8 @@ function buildRocks() {
   // Höhleneingang zum Mondstein
   const cave = new THREE.Mesh(new THREE.CircleGeometry(1, 20), new THREE.MeshBasicMaterial({ color: 0x08060a }));
   cave.scale.set(34, 26, 1); cave.position.set(LM.mondstein.x, heightAt(LM.mondstein.x, LM.mondstein.y - 40) + 18, LM.mondstein.y - 42); SC.add(cave);
+  // Dunkle Tunnellöcher (DonnerClan- und WindClan-Seite)
+  for (const k of ['tunnelein', 'tunnelaus']) { const t = LM0[k], h = new THREE.Mesh(new THREE.CircleGeometry(1, 20), new THREE.MeshBasicMaterial({ color: 0x08060a })); h.scale.set(26, 18, 1); h.rotation.x = -0.5; h.position.set(t.x, heightAt(t.x, t.y - 30) + 10, t.y - 30); SC.add(h); }
 }
 
 // ---------- Häuser, Zäune ----------

@@ -42,6 +42,10 @@ const LM = {
   zweibeinernest: { x: 6450, y: 3600, r: 110, name: 'Verlassenes Zweibeinernest' },
   buchenhain: { x: 6480, y: 2780, r: 110, name: 'Buchenhain' },
   seeufer: { x: 6880, y: 3440, r: 90, name: 'Seeufer' },
+  purdy: { x: 4700, y: 900, r: 110, name: 'Purdys Garten' },
+  bergpass: { x: 5760, y: 1080, r: 120, name: 'Bergpass' },
+  tunnelein: { x: 6380, y: 2700, r: 80, name: 'Eingang zu den Tunneln' },
+  tunnelaus: { x: 8020, y: 3300, r: 80, name: 'Tunnel-Ausgang (WindClan)' },
 };
 // Unveränderte Kopie der Orte (für Höhen und Bodenfarben); LM selbst wird beim Umzug an den See verändert
 const LM0 = JSON.parse(JSON.stringify(LM));
@@ -296,6 +300,10 @@ function buildObjects() {
   // --- Mikuschs Hof: Scheune und Haus ---
   { const sx = LM0.scheune.x - 100, sy = LM0.scheune.y - 210; addRect(sx, sy, 200, 150, 'barn'); OB.houses.push({ x: sx, y: sy, w: 200, h: 150, roof: '#8a4a2a', barn: true });
     OB.houses.push({ x: sx - 250, y: sy + 10, w: 170, h: 140, roof: '#5a4030' }); addRect(sx - 250, sy + 10, 170, 140, 'house'); }
+  // --- Purdys Zweibeinernest im Hochland ---
+  { const p = LM0.purdy; OB.houses.push({ x: p.x - 110, y: p.y - 230, w: 210, h: 150, roof: '#6e4a3a' }); addRect(p.x - 110, p.y - 230, 210, 150, 'house'); }
+  // --- Tunneleingänge: Felsen rund um die dunklen Löcher ---
+  for (const k of ['tunnelein', 'tunnelaus']) { const t = LM0[k]; for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + (i - 2) * 0.55; addRock(R, t.x + Math.cos(a) * 60, t.y + Math.sin(a) * 45, 22 + R() * 12, true, 120); } OB.flats.push({ k: 'cave', x: t.x, y: t.y - 30 }); }
   // --- Krähenort: Müllplatz der Zweibeiner mit Zaun ---
   { const k = LM0.kraehenort; addRect(k.x - 150, k.y - 110, 300, 8, 'fence'); addRect(k.x + 146, k.y - 110, 8, 224, 'fence'); addRect(k.x - 154, k.y - 110, 8, 224, 'fence');
     for (let i = 0; i < 9; i++) addRock(R, k.x + (R() - 0.5) * 220, k.y + (R() - 0.5) * 160, 12 + R() * 14, true, 95 + R() * 40 | 0); }

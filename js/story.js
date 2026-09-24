@@ -910,8 +910,8 @@ const QUESTS = [
       {
         t: 'scene', dlg: () => [
           ['erz', 'Du hast die zweite Staffel erlebt: die große Reise, die Zerstörung des Waldes und die neue Heimat am See.'],
-          ['erz', 'Das Leben am See geht weiter. Du bist Zweiter Anführer. Im Clan-Bildschirm (K) kannst du jetzt auch andere Katzen spielen – zum Beispiel Feuerstern.'],
-          { do: () => { G.freeplay = true; chron('Brombeerkralle wird Zweiter Anführer. Die Clans leben am See. (Ende der 2. Staffel)'); for (const c of G.cats) c.storyLock = c.rank === 'zweiter'; } },
+          ['erz', 'Das Leben am See geht weiter. Und bald werden drei besondere Junge geboren …'],
+          { do: () => { chron('Brombeerkralle wird Zweiter Anführer. Die Clans leben am See. (Ende der 2. Staffel)'); } },
         ]
       },
     ]
@@ -977,9 +977,9 @@ const Story = {
       if (!silent) toast(`✔ Abgeschlossen: ${q.title}`);
       const nq = this.quest();
       if (nq) {
-        const newBook = nq.ch !== q.ch, gap = nq.gap !== undefined ? nq.gap : (newBook ? 2 : 1);
+        const newBook = nq.ch !== q.ch, gap = nq.gap !== undefined ? nq.gap : (newBook ? 3 : 1);
         if (gap > 0) {
-          const need = nq.tasks !== undefined ? nq.tasks : (newBook ? 3 : 2);
+          const need = nq.tasks !== undefined ? nq.tasks : (newBook ? 5 : 3);
           G.story.pause = { until: (day() + gap) * 1440 + 6 * 60, need, prog: 0, newBook };
           saveGame();
           setTimeout(() => toast(need ? '🌿 Die Zeit vergeht. Hilf deinem Clan, bis das nächste Abenteuer beginnt.' : '🌙 Ruh dich aus. Morgen geht es weiter.'), 1500);
@@ -991,7 +991,7 @@ const Story = {
     }
     this.enter();
   },
-  announce(q, nq) { if (!q || nq.ch !== q.ch) setTimeout(() => titleCard((nq.ch > 6 ? 'Staffel 2 · ' : '') + 'Buch ' + nq.ch, BOOKS[nq.ch], RECAP[nq.ch]), 600); else setTimeout(() => toast(`📖 ${nq.title}`), 1200); },
+  announce(q, nq) { if (!q || nq.ch !== q.ch) setTimeout(() => titleCard(staffelLabel(nq.ch) + 'Buch ' + nq.ch, BOOKS[nq.ch], RECAP[nq.ch]), 600); else setTimeout(() => toast(`📖 ${nq.title}`), 1200); },
   endPause() {
     const pz = G.story.pause; G.story.pause = null;
     const nq = this.quest(); if (nq) this.announce(pz.newBook ? null : nq, nq);

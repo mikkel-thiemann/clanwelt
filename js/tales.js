@@ -5,6 +5,7 @@ const QI = t => QUESTS.findIndex(q => q.title === t);
 function phase() {
   if (!G || !G.story) return 'haus';
   const q = G.story.q;
+  if (QI('Die Prophezeiung der Drei') >= 0 && q > QI('Die Prophezeiung der Drei')) return 's3';
   if (G.flags.see) return 'see';
   if (G.flags.zerstoert) return 'zerstoert';
   if (q >= QI('Ein Traum vom SternenClan')) return 's2';
