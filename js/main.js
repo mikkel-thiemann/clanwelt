@@ -40,6 +40,10 @@ function loadGame() {
   if (!d) return false;
   ENTS.length = PREY.length = CARS.length = FX.length = 0;
   G = d;
+  // Alte Spielstände: Cinderpelt heißt auf Deutsch Rußpelz, Ashfur heißt Aschenpelz
+  const fixName = t => typeof t === 'string' ? t.replace(/Aschen(pfote|pelz|junges)/g, 'Ruß$1').replace(/Aschenfell/g, 'Aschenpelz') : t;
+  for (const c of G.cats) { if (c.id === 'aschenjunges' && c.pre === 'Aschen') c.pre = 'Ruß'; if (c.id === 'aschenfell') c.suf = 'pelz'; }
+  if (Array.isArray(G.chron)) for (const e of G.chron) if (e) e.t = fixName(e.t);
   applyRelocation(!!(G.flags && G.flags.see));
   if (G.flags && G.flags.zerstoert && !G.flags.see) spawnBulldozers();
   for (const c of G.cats) { c.spar = false; c.kx = c.ky = 0; if (c.ai && c.ai.m !== 'follow' && c.ai.m !== 'hold') c.ai = { m: 'home' }; if (!c.ai) c.ai = { m: 'home' }; }

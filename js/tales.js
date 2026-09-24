@@ -15,7 +15,7 @@ function phase() {
   if (q > QI('Feuer!')) return 'nachfeuer';
   if (q >= QI('Tigerstern')) return 'tigerstern';
   if (q >= QI('Die Flut')) return 'buch3';
-  if (q >= QI('Aschenpfote')) return 'buch2';
+  if (q >= QI('Rußpfote')) return 'buch2';
   if (q > QI('Der Überfall')) return 'nachueberfall';
   if (G.stage !== 'hauskaetzchen') return 'schueler';
   return 'haus';
@@ -39,7 +39,7 @@ const CHATTER = {
   buch2: [
     ['Der WindClan ist wieder im Moor! Feuerherz hat sie heimgebracht.', 'Mehr Katzen, die um Beute kämpfen. Tigerkralle ist nicht begeistert.'],
     ['Graustreif verschwindet ständig. Wohin geht er nur?', 'Er riecht nach Fluss, wenn er zurückkommt …'],
-    ['Die arme Aschenpfote. Sie wollte doch Kriegerin werden.', 'Jetzt lernt sie bei Gelbzahn. Sie wird eine gute Heilerin.'],
+    ['Die arme Rußpfote. Sie wollte doch Kriegerin werden.', 'Jetzt lernt sie bei Gelbzahn. Sie wird eine gute Heilerin.'],
     ['Braunstern als Gefangener bei uns … ich kann nachts nicht schlafen.', 'Er ist blind. Er kann niemandem mehr schaden.'],
   ],
   buch3: [
@@ -54,7 +54,7 @@ const CHATTER = {
   ],
   nachfeuer: [
     ['Das Lager ist schwarz … Überall Asche.', 'Die Blätter wachsen nach. Der Wald ist stärker als das Feuer.'],
-    ['Gelbzahn ist im Feuer gestorben. Sie hat bis zuletzt geholfen.', 'Aschenpelz ist jetzt unsere Heilerin. Gelbzahn wäre stolz.'],
+    ['Gelbzahn ist im Feuer gestorben. Sie hat bis zuletzt geholfen.', 'Rußpelz ist jetzt unsere Heilerin. Gelbzahn wäre stolz.'],
     ['Feuerherz hat Tigerkralles Junge gerettet. Obwohl er ihn hasst.', 'Das zeigt, was für ein Krieger er ist.'],
   ],
   meute: [
@@ -113,7 +113,7 @@ const CHARLINES = {
   graupfote: {
     schueler: ['Tigerkralle macht mir Angst. Wie er Rabenpfote anschaut …', 'Weißt du was? Ich bin froh, dass du gekommen bist, Hauskätzchen!'],
     nachueberfall: ['Löwenherz war mein Mentor. Ich vermisse ihn so sehr.'],
-    buch2: ['Feuerherz … kann ich dir etwas anvertrauen? Silberfluss ist … sie ist wunderbar.', 'Hast du schon was von Aschenpfote gehört? Sie ist so tapfer.'],
+    buch2: ['Feuerherz … kann ich dir etwas anvertrauen? Silberfluss ist … sie ist wunderbar.', 'Hast du schon was von Rußpfote gehört? Sie ist so tapfer.'],
     meute: ['Ich bin wieder zu Hause. Das Lager riecht genau wie früher.'],
     feuerstern: ['Feuerstern! Ich kann es kaum glauben. Mein bester Freund ist Anführer!'],
   },
@@ -143,8 +143,8 @@ const CHARLINES = {
   },
   tuepfelblatt: { schueler: ['Feuer wird den Clan retten … Ich frage mich immer noch, was das bedeutet.', 'Komm zu mir, wenn du verletzt bist. Ich habe Ringelblumen.'] },
   gelbzahn: {
-    nachueberfall: ['Hmpf. Du schon wieder. Lass mich in Ruhe mit meinen Kräutern arbeiten.', 'Aschenjunges ist ein kluges Ding. Sie stellt zu viele Fragen.'],
-    buch2: ['Aschenpfote wird eine bessere Heilerin, als ich es je war. Sag ihr das nicht!'],
+    nachueberfall: ['Hmpf. Du schon wieder. Lass mich in Ruhe mit meinen Kräutern arbeiten.', 'Rußjunges ist ein kluges Ding. Sie stellt zu viele Fragen.'],
+    buch2: ['Rußpfote wird eine bessere Heilerin, als ich es je war. Sag ihr das nicht!'],
     buch3: ['Braunstern … mein Sohn. Ich habe getan, was getan werden musste.'],
   },
   aschenjunges: {
@@ -156,7 +156,7 @@ const CHARLINES = {
   wulle: { schueler: ['Du siehst dünn aus, Sammy. Die wilden Katzen füttern dich nicht richtig!'], buch3: ['Deine Schwester Prinzessin hat nach dir gefragt.'] },
   weisspelz: { nachueberfall: ['Tigerkralle ist ein großer Krieger. Aber manchmal zu großer Ehrgeiz macht blind.'], feuerstern: ['Es ist mir eine Ehre, dein Zweiter Anführer zu sein, Feuerstern.'] },
   eichhornjunges: { s2: ['Glaubst du, das Wassernest der Sonne ist wirklich so groß?'], zerstoert: ['Ich hab solche Angst um Blattpfote …'], see: ['Du warst echt mutig beim Seeufer, Brombeerkralle. Nur so gesagt.'] },
-  blattjunges: { s2: ['Ich spüre, dass etwas Großes auf uns zukommt.'], see: ['Aschenpelz hat mir alles beigebracht. Ich werde sie nie vergessen.'] },
+  blattjunges: { s2: ['Ich spüre, dass etwas Großes auf uns zukommt.'], see: ['Rußpelz hat mir alles beigebracht. Ich werde sie nie vergessen.'] },
   sammy: { s2: ['Brombeerkralle. Ich … ich will dir vertrauen. Mach mir das nicht schwer.'], zerstoert: ['Graustreif … ich hätte ihn beschützen müssen.'], see: ['Du hast mir das Leben gerettet, Brombeerkralle. Das werde ich nie vergessen.'] },
 };
 function storyGreet(c) {
@@ -171,7 +171,7 @@ const THOUGHTS = {
   garten: { schueler: 'Mein altes Zuhause. Es kommt mir auf einmal so klein vor.', buch3: 'Hier habe ich früher gelebt. Ein ganz anderes Leben …' },
   sonnenfelsen: { schueler: 'Hier ist Rotschweif gestorben … Und Rabenpfote hat alles gesehen.', feuerstern: 'Die Sonnenfelsen. So viele Kämpfe um ein paar warme Steine.' },
   baumgeviert: { schueler: 'Vier riesige Eichen. Hier sind die Clans seit Anbeginn zusammengekommen.', blut: 'Hier ist Tigerstern gestorben. Durch Geißels Krallen.' },
-  donnerweg: { buch2: 'Hier wurde Aschenpfote verletzt … durch eine Falle, die für Blaustern bestimmt war.' },
+  donnerweg: { buch2: 'Hier wurde Rußpfote verletzt … durch eine Falle, die für Blaustern bestimmt war.' },
   schlucht: { feuerstern: 'Hier ist Blaustern gestürzt. Sie hat mir das Leben gerettet.' },
   schlangenfelsen: { feuerstern: 'Hier lebte die Meute. Ich höre noch ihr Bellen …' },
   scheune: { nachueberfall: 'Ob es Rabenpfote gut geht? Hier ist er endlich in Sicherheit.' },
@@ -253,7 +253,7 @@ function syncVigils(dt) {
 // ---------- Was bisher geschah ----------
 const RECAP = {
   2: 'Feuerherz ist jetzt ein Krieger. Doch Tigerkralle ist Zweiter Anführer – und nur Feuerherz kennt sein Geheimnis.',
-  3: 'Der WindClan ist heimgekehrt. Aschenpfote wurde am Donnerweg verletzt – und Graustreif liebt eine Kätzin aus dem FlussClan.',
+  3: 'Der WindClan ist heimgekehrt. Rußpfote wurde am Donnerweg verletzt – und Graustreif liebt eine Kätzin aus dem FlussClan.',
   4: 'Tigerkralle wurde verbannt. Feuerherz ist Zweiter Anführer – doch Blaustern hat das Vertrauen in den SternenClan verloren.',
   5: 'Das Feuer hat das Lager zerstört, Gelbzahn ist tot. Und Tigerkralle herrscht als Tigerstern über den SchattenClan.',
   6: 'Blaustern hat ihr letztes Leben für den Clan gegeben. Nun muss Feuerherz Anführer werden – während ein neuer Feind naht.',
@@ -262,7 +262,7 @@ const RECAP = {
   9: 'Federschweif ist tot. Und zu Hause haben die Monster der Zweibeiner begonnen, den Wald zu fressen.',
   10: 'Die vier Clans haben den großen See erreicht. Hier beginnt ein neues Leben.',
   11: 'Die Clans haben sich am See eingelebt. Doch Habichtfrost hat große Pläne – und Tigersterns Geist ruft nach seinen Söhnen.',
-  12: 'Aschenpelz ist tot, Blattsee ist Heilerin. Und eine Vision warnt: Blut wird Blut vergießen.',
+  12: 'Rußpelz ist tot, Blattsee ist Heilerin. Und eine Vision warnt: Blut wird Blut vergießen.',
 };
 
 // ---------- Traumszenen ----------

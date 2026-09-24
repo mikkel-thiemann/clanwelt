@@ -318,19 +318,19 @@ const QUESTS = [
   },
   // ================= BUCH 2: FEUER UND EIS =================
   {
-    ch: 2, title: 'Aschenpfote', steps: [
+    ch: 2, title: 'Rußpfote', steps: [
       {
         t: 'scene', dlg: () => [
           CEREMONY('blaustern', ['aschenjunges', 'farnjunges']),
-          ['blaustern', 'Frostfells Junge sind sechs Monde alt. Aschenjunges, von heute an heißt du Aschenpfote. Feuerherz wird dein Mentor.'],
-          { do: () => { const a = catById('aschenjunges'); a.age = Math.max(6, a.age); setRank(a, 'schueler'); a.mentor = P().id; const f = catById('farnjunges'); if (f) { f.age = Math.max(6, f.age); setRank(f, 'schueler'); f.mentor = 'graupfote'; f.storyLock = false; } const d = catById('dornenjunges'); if (d) { d.age = Math.max(6, d.age); setRank(d, 'schueler'); d.mentor = 'mausefell'; d.storyLock = false; } ['sandpfote', 'staubpfote'].forEach(id => { const c = catById(id); if (c && c.rank === 'schueler') { setRank(c, 'krieger'); c.storyLock = false; } }); chron('Feuerherz wird Mentor von Aschenpfote, Graustreif von Farnpfote.'); } },
+          ['blaustern', 'Frostfells Junge sind sechs Monde alt. Rußjunges, von heute an heißt du Rußpfote. Feuerherz wird dein Mentor.'],
+          { do: () => { const a = catById('aschenjunges'); a.age = Math.max(6, a.age); setRank(a, 'schueler'); a.mentor = P().id; const f = catById('farnjunges'); if (f) { f.age = Math.max(6, f.age); setRank(f, 'schueler'); f.mentor = 'graupfote'; f.storyLock = false; } const d = catById('dornenjunges'); if (d) { d.age = Math.max(6, d.age); setRank(d, 'schueler'); d.mentor = 'mausefell'; d.storyLock = false; } ['sandpfote', 'staubpfote'].forEach(id => { const c = catById(id); if (c && c.rank === 'schueler') { setRank(c, 'krieger'); c.storyLock = false; } }); chron('Feuerherz wird Mentor von Rußpfote, Graustreif von Farnpfote.'); } },
           ['blaustern', 'Farnjunges, du heißt Farnpfote. Graustreif wird dein Mentor.'],
           ['aschenjunges', 'Ich werde die beste Kriegerin im ganzen Wald! Wann fangen wir an, Feuerherz?'],
           CEREMONY_END,
         ]
       },
-      { t: 'goto', at: 'sandkuhle', text: 'Trainiere mit Aschenpfote in der Sandkuhle', enter() { follow('aschenjunges'); }, dlg: () => [['erz', 'Aschenpfote übt den Jagdkauer – und stolpert über ihren eigenen Schwanz. Beim dritten Versuch klappt es!'], ['aschenjunges', 'Hast du das gesehen?! Ich bin ein Naturtalent!']], done() { gainXp(catById('aschenjunges'), 50); } },
-      { t: 'catch', n: 1, text: 'Zeig Aschenpfote, wie man jagt: Fang eine Beute', enter() { follow('aschenjunges'); }, done() { goHome('aschenjunges'); } },
+      { t: 'goto', at: 'sandkuhle', text: 'Trainiere mit Rußpfote in der Sandkuhle', enter() { follow('aschenjunges'); }, dlg: () => [['erz', 'Rußpfote übt den Jagdkauer – und stolpert über ihren eigenen Schwanz. Beim dritten Versuch klappt es!'], ['aschenjunges', 'Hast du das gesehen?! Ich bin ein Naturtalent!']], done() { gainXp(catById('aschenjunges'), 50); } },
+      { t: 'catch', n: 1, text: 'Zeig Rußpfote, wie man jagt: Fang eine Beute', enter() { follow('aschenjunges'); }, done() { goHome('aschenjunges'); } },
     ]
   },
   {
@@ -376,8 +376,8 @@ const QUESTS = [
   {
     ch: 2, title: 'Die Falle am Donnerweg', steps: [
       { t: 'talk', who: 'tigerkralle', text: 'Tigerkralle hat einen Auftrag', dlg: () => [['tigerkralle', 'Blaustern will morgen allein zu den Schlangenfelsen gehen. Sag ihr, sie soll den Weg am Donnerweg nehmen.'], ['erz', 'Irgendetwas an seinem Blick gefällt dir nicht.']] },
-      { t: 'goto', at: 'donnerweg', text: 'Aschenpfote ist Blausterns Weg allein gelaufen! Lauf zum Donnerweg!', enter() { const a = catById('aschenjunges'); a.x = LM.lager.x; a.y = LM.lager.y + 250; a.ai = { m: 'script', x: LM.donnerweg.x + 40, y: LM.donnerweg.y - 30, sp: 170 }; say(a, 'Ich bringe Blaustern die Nachricht!'); }, dlg: () => [['erz', 'Zu spät. Ein Monster rast vorbei. Aschenpfote liegt am Rand des Donnerwegs, ihr Hinterbein ist verdreht.'], ['aschenjunges', 'Feuerherz … es tut so weh …'], ['erz', 'Hier wartete eine Falle – und sie war für Blaustern bestimmt.']], done() { const a = catById('aschenjunges'); a.ai = { m: 'follow' }; a.slow = true; } },
-      { t: 'goto', at: 'lager', text: 'Bring Aschenpfote vorsichtig zu Gelbzahn', enter() { const a = catById('aschenjunges'); a.ai = { m: 'follow' }; a.slow = true; }, dlg: () => [['gelbzahn', 'Ihr Bein wird heilen … aber sie wird nie mehr schnell rennen. Eine Kriegerin wird sie nicht.'], ['aschenjunges', 'Dann … dann will ich Heilerin werden. Wie du, Gelbzahn.'], ['gelbzahn', 'Hmpf. Du redest zu viel. … Na gut. Ich bilde dich aus.'], { do: () => { const a = catById('aschenjunges'); a.slow = false; setRank(a, 'heilerschueler'); a.mentor = 'gelbzahn'; a.ai = { m: 'home' }; chron('Aschenpfote wird am Donnerweg verletzt und wird Heilerschülerin bei Gelbzahn.'); } }] },
+      { t: 'goto', at: 'donnerweg', text: 'Rußpfote ist Blausterns Weg allein gelaufen! Lauf zum Donnerweg!', enter() { const a = catById('aschenjunges'); a.x = LM.lager.x; a.y = LM.lager.y + 250; a.ai = { m: 'script', x: LM.donnerweg.x + 40, y: LM.donnerweg.y - 30, sp: 170 }; say(a, 'Ich bringe Blaustern die Nachricht!'); }, dlg: () => [['erz', 'Zu spät. Ein Monster rast vorbei. Rußpfote liegt am Rand des Donnerwegs, ihr Hinterbein ist verdreht.'], ['aschenjunges', 'Feuerherz … es tut so weh …'], ['erz', 'Hier wartete eine Falle – und sie war für Blaustern bestimmt.']], done() { const a = catById('aschenjunges'); a.ai = { m: 'follow' }; a.slow = true; } },
+      { t: 'goto', at: 'lager', text: 'Bring Rußpfote vorsichtig zu Gelbzahn', enter() { const a = catById('aschenjunges'); a.ai = { m: 'follow' }; a.slow = true; }, dlg: () => [['gelbzahn', 'Ihr Bein wird heilen … aber sie wird nie mehr schnell rennen. Eine Kriegerin wird sie nicht.'], ['aschenjunges', 'Dann … dann will ich Heilerin werden. Wie du, Gelbzahn.'], ['gelbzahn', 'Hmpf. Du redest zu viel. … Na gut. Ich bilde dich aus.'], { do: () => { const a = catById('aschenjunges'); a.slow = false; setRank(a, 'heilerschueler'); a.mentor = 'gelbzahn'; a.ai = { m: 'home' }; chron('Rußpfote wird am Donnerweg verletzt und wird Heilerschülerin bei Gelbzahn.'); } }] },
       { t: 'defeat', group: 'streuner', n: 4, at: 'lager', spawnNear: 900, text: 'Braunstern greift mit Einzelläufern das Lager an!', spawn() { storyFoes('streuner', 'einzel', 3, { x: LM.lager.x, y: LM.lager.y + 120 }, { lv: 2 }); spawnClanCat('einzel', LM.lager.x, LM.lager.y + 60, { group: 'streuner', story: true, name: 'Braunstern', look: LOOK.braunstern(), lv: 4, hp: 160 }); }, dlg: () => [['erz', 'Die Einzelläufer fliehen. Braunstern bleibt verwundet zurück – Gelbzahn hat ihm im Kampf die Augen zerkratzt. Er ist blind.'], ['blaustern', 'Braunstern bleibt als Gefangener bei uns. Gelbzahn wird ihn versorgen.'], ['erz', '— Ende von Buch 2: Feuer und Eis —']], done() { chron('Braunstern greift mit Einzelläufern an, wird blind und Gefangener des DonnerClans. (Ende von Buch 2)'); } },
     ]
   },
@@ -415,11 +415,11 @@ const QUESTS = [
   },
   {
     ch: 3, title: 'Kräuter für Gelbzahn', steps: [
-      { t: 'talk', who: 'gelbzahn', text: 'Gelbzahn braucht Hilfe im Heilerbau', dlg: () => [['gelbzahn', 'Feuerherz! Dunkelstreif hat sich an einem Dorn aufgerissen, und Aschenpfote kann mit ihrem Bein nicht weit laufen.'], ['gelbzahn', 'Du sammelst für mich Ringelblumen. Drei Stück. Und trödel nicht!'], ['aschenjunges', 'Ringelblumen sind orange und leuchten wie kleine Sonnen. Du kannst sie nicht verfehlen!']] },
+      { t: 'talk', who: 'gelbzahn', text: 'Gelbzahn braucht Hilfe im Heilerbau', dlg: () => [['gelbzahn', 'Feuerherz! Dunkelstreif hat sich an einem Dorn aufgerissen, und Rußpfote kann mit ihrem Bein nicht weit laufen.'], ['gelbzahn', 'Du sammelst für mich Ringelblumen. Drei Stück. Und trödel nicht!'], ['aschenjunges', 'Ringelblumen sind orange und leuchten wie kleine Sonnen. Du kannst sie nicht verfehlen!']] },
       { t: 'herb', kind: 'ringelblume', n: 3, text: 'Sammle 3 Ringelblumen (sie leuchten orange)' },
       {
         t: 'talk', who: 'gelbzahn', text: 'Bring Gelbzahn die Ringelblumen', dlg: () => [
-          ACT({ cap: 'Gelbzahn kaut die Blüten zu einem Brei. Aschenpfote schaut ganz genau zu.', moves: [['gelbzahn', 'den:heiler', { dy: 35, sp: 60 }], ['aschenjunges', 'den:heiler', { dx: 40, dy: 45, sp: 45 }]], cam: 'gelbzahn', wait: 2.5, dist: 130 }),
+          ACT({ cap: 'Gelbzahn kaut die Blüten zu einem Brei. Rußpfote schaut ganz genau zu.', moves: [['gelbzahn', 'den:heiler', { dy: 35, sp: 60 }], ['aschenjunges', 'den:heiler', { dx: 40, dy: 45, sp: 45 }]], cam: 'gelbzahn', wait: 2.5, dist: 130 }),
           ['gelbzahn', 'Gut. Die Wunde wird sich nicht entzünden. Du bist doch zu etwas nütze, Feuerherz.'],
           ['aschenjunges', 'Siehst du? Heilen ist auch eine Art zu kämpfen!'],
           { do: () => { gainXp(P(), 40); applyFx({ health: 8 }, true); } },
@@ -537,9 +537,9 @@ const QUESTS = [
       { t: 'goto', who: 'gelbzahn', near: 60, text: 'Gelbzahn ist noch im brennenden Heilerbau! Lauf!', dlg: () => [
         ['gelbzahn', '(hustet) Feuerherz … Du Dummkopf … Du hättest nicht zurückkommen sollen …'],
         ['gelbzahn', 'Ich habe Halbschweif gesucht … zu spät. Hör zu. Ich bin stolz auf dich. Du warst mir … mehr ein Sohn als Braunstern je war.'],
-        ['gelbzahn', 'Aschenpelz wird eine gute Heilerin. Sag ihr … dass ich …'],
+        ['gelbzahn', 'Rußpelz wird eine gute Heilerin. Sag ihr … dass ich …'],
         ['erz', 'Gelbzahn schließt die Augen. Die alte Heilerin ist zum SternenClan gegangen.'],
-        { do: () => { killCat(catById('gelbzahn')); const h = catById('halbschweif'); if (h && h.alive) killCat(h); const a = catById('aschenjunges'); setRank(a, 'heiler'); a.mentor = null; chron('Ein Feuer zerstört das Lager. Feuerherz rettet Brombeerjunges und Bernsteinjunges. Gelbzahn und Halbschweif sterben. Aschenpelz wird Heilerin.'); } },
+        { do: () => { killCat(catById('gelbzahn')); const h = catById('halbschweif'); if (h && h.alive) killCat(h); const a = catById('aschenjunges'); setRank(a, 'heiler'); a.mentor = null; chron('Ein Feuer zerstört das Lager. Feuerherz rettet Brombeerjunges und Bernsteinjunges. Gelbzahn und Halbschweif sterben. Rußpelz wird Heilerin.'); } },
       ] },
       { t: 'scene', dlg: () => [ACT({ cap: 'Endlich fallen die ersten Tropfen. Dann prasselt der Regen herab.', moves: [], cam: 'player', start() { G.weather = 'regen'; }, tick(dt) { if (G.fire) G.fire.r = Math.max(0, G.fire.r - dt * 90); }, wait: 3, dist: 200, pitch: 0.4 }), ['erz', 'Die Flammen zischen und sterben. Das Lager ist schwarz und verkohlt – aber es wird wieder wachsen.'], { do: () => { G.fire = null; G.weather = 'regen'; for (const c of clanCats()) if (c !== P()) { c.ai = { m: 'home' }; c.slow = false; } applyFx({ morale: -10, food: -20, health: -10 }); } }, ['erz', '— Ende von Buch 4: Vor dem Sturm —']] },
     ]
@@ -590,8 +590,8 @@ const QUESTS = [
     ch: 6, title: 'Neun Leben', steps: [
       { t: 'night', text: 'Warte bis zur Nacht (E an deinem Bau)' },
       {
-        t: 'goto', at: 'mondstein', dream: 'stern', guide: 'aschenjunges', guideSay: 'Ich kenne den Weg zum Mondstein. Folge mir, Feuerherz.', text: 'Folge Aschenpelz zum Mondstein', enter() { follow('aschenjunges'); }, dlg: () => [
-          ACT({ cap: 'Aschenpelz führt dich durch den dunklen Tunnel. Tief im Berg glänzt der Mondstein wie ein gefrorener Stern.', moves: [['player', 'hoehle', { sp: 70 }], ['aschenjunges', 'hoehle', { dx: 50, dy: 40, sp: 70 }]], cam: 'player', glow: 'hoehle', dist: 150, wait: 1.5 }),
+        t: 'goto', at: 'mondstein', dream: 'stern', guide: 'aschenjunges', guideSay: 'Ich kenne den Weg zum Mondstein. Folge mir, Feuerherz.', text: 'Folge Rußpelz zum Mondstein', enter() { follow('aschenjunges'); }, dlg: () => [
+          ACT({ cap: 'Rußpelz führt dich durch den dunklen Tunnel. Tief im Berg glänzt der Mondstein wie ein gefrorener Stern.', moves: [['player', 'hoehle', { sp: 70 }], ['aschenjunges', 'hoehle', { dx: 50, dy: 40, sp: 70 }]], cam: 'player', glow: 'hoehle', dist: 150, wait: 1.5 }),
           ['erz', 'Du legst dich hin und berührst den Stein mit der Nase … Alles wird kalt und hell.'],
           { do: () => ghosts(['rotschweif', 'loewenherz', 'tuepfelblatt', 'gelbzahn', 'buntgesicht', 'silberfluss', 'blaustern']) },
           ghostWalk(['rotschweif', 'loewenherz', 'tuepfelblatt', 'gelbzahn', 'buntgesicht', 'silberfluss', 'blaustern'], 'Katzen aus Sternenlicht kommen von allen Seiten auf dich zu. Der SternenClan ist gekommen.'),
@@ -634,9 +634,9 @@ const QUESTS = [
   },
   {
     ch: 6, title: 'Vorbereitung auf die Schlacht', steps: [
-      { t: 'talk', who: 'aschenjunges', text: 'Aschenpelz bereitet den Clan auf den Kampf vor', dlg: () => [['aschenjunges', 'Feuerstern, wenn der BlutClan kommt, wird es viele Wunden geben. Ich brauche Spinnweben, um Blutungen zu stillen. Viele Spinnweben.']] },
-      { t: 'herb', kind: 'spinnweben', n: 3, text: 'Sammle 3 Spinnweben für Aschenpelz' },
-      { t: 'talk', who: 'aschenjunges', text: 'Bring Aschenpelz die Spinnweben', dlg: () => [['aschenjunges', 'Danke. Jetzt sind wir so bereit, wie wir sein können.']] },
+      { t: 'talk', who: 'aschenjunges', text: 'Rußpelz bereitet den Clan auf den Kampf vor', dlg: () => [['aschenjunges', 'Feuerstern, wenn der BlutClan kommt, wird es viele Wunden geben. Ich brauche Spinnweben, um Blutungen zu stillen. Viele Spinnweben.']] },
+      { t: 'herb', kind: 'spinnweben', n: 3, text: 'Sammle 3 Spinnweben für Rußpelz' },
+      { t: 'talk', who: 'aschenjunges', text: 'Bring Rußpelz die Spinnweben', dlg: () => [['aschenjunges', 'Danke. Jetzt sind wir so bereit, wie wir sein können.']] },
       { t: 'goto', at: 'sandkuhle', guide: 'graupfote', guideSay: 'Ein letztes Training. Komm!', text: 'Trainiere mit Graustreif in der Sandkuhle', enter() { follow('graupfote'); }, dlg: () => [gatherTo('player', ['sandpfote', 'farnjunges', 'dornenjunges', 'mausefell'], 'Die Krieger des DonnerClans versammeln sich in der Sandkuhle.'), ['graupfote', 'Geißel ist klein, aber schnell. Du musst schneller sein.']] },
       { t: 'defeat', group: 'graupfote', text: 'Übungskampf gegen Graustreif', enter() { spar('graupfote'); }, dlg: () => [['graupfote', 'Uff! Wenn du so gegen Geißel kämpfst, hat er keine Chance.'], ['erz', 'In der Nacht schläft kaum eine Katze. Morgen entscheidet sich das Schicksal des Waldes.'], { do: () => { ['graupfote', 'sandpfote', 'farnjunges', 'dornenjunges', 'mausefell'].forEach(goHome); gainXp(P(), 60); } }] },
     ]
@@ -871,9 +871,9 @@ const QUESTS = [
         dlg: () => [
           ACT({ cap: 'Mitternacht ist gekommen – mit WindClan-Kriegern! Gemeinsam treibt ihr die Dachse aus dem Lager.', moves: [['mitternacht_e', 'player', { dx: 60, sp: 80 }]], cam: 'mitternacht_e', dist: 170 }),
           ['mitternacht_e', 'Ich habe versucht, meine Verwandten aufzuhalten. Sie hörten nicht. Es tut mir leid.'],
-          ['erz', 'Doch in der Kinderstube liegt Aschenpelz. Sie hat die Jungen beschützt – mit ihrem Leben.'],
-          { do: () => { const a = catById('aschenjunges'); if (a && a.alive) killCat(a); const b = catById('blattjunges'); b.suf = 'see'; setRank(b, 'heiler'); b.storyLock = true; chron('Dachse überfallen die Steinmulde. Aschenpelz stirbt. Blattsee wird Heilerin des DonnerClans.'); clearStoryEnts(); } },
-          ['blattjunges', 'Aschenpelz … meine Mentorin … Ich werde ihre Arbeit fortführen. Ich werde Blattsee heißen – so hat sie es sich gewünscht.'],
+          ['erz', 'Doch in der Kinderstube liegt Rußpelz. Sie hat die Jungen beschützt – mit ihrem Leben.'],
+          { do: () => { const a = catById('aschenjunges'); if (a && a.alive) killCat(a); const b = catById('blattjunges'); b.suf = 'see'; setRank(b, 'heiler'); b.storyLock = true; chron('Dachse überfallen die Steinmulde. Rußpelz stirbt. Blattsee wird Heilerin des DonnerClans.'); clearStoryEnts(); } },
+          ['blattjunges', 'Rußpelz … meine Mentorin … Ich werde ihre Arbeit fortführen. Ich werde Blattsee heißen – so hat sie es sich gewünscht.'],
           ['erz', '— Ende von Buch 11: Dämmerung —'],
         ]
       },

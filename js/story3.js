@@ -116,7 +116,7 @@ insertQuestsBefore('Die Dachse', [{
         ACT({ cap: 'Zwischen den Felsen sitzen zwei Katzen dicht beieinander.', moves: [['blattjunges', 'player', { from: () => ({ x: 6000, y: 2280 }), dx: 50, sp: 50 }], ['kraehenpfote', 'player', { from: () => ({ x: 5960, y: 2300 }), dx: 70, dy: 35, sp: 50 }]], cam: 'blattjunges' }),
         ['blattjunges', 'Eichhornschweif … ich liebe Krähenfeder. Aber eine Heilerin darf keinen Gefährten haben.'],
         ['kraehenpfote', 'Wir wollten ganz neu anfangen. Irgendwo, wo es keine Clans gibt.'],
-        ['eichhornjunges', 'Blattpfote, der Clan braucht dich! Aschenpelz braucht dich!'],
+        ['eichhornjunges', 'Blattpfote, der Clan braucht dich! Rußpelz braucht dich!'],
         ['erz', 'Da trägt der Wind einen Geruch heran: Dachse. Viele Dachse. Und sie ziehen Richtung Steinmulde.'],
         ['blattjunges', '… Ich komme mit. Mein Clan ist in Gefahr.'],
       ], done() { follow('blattjunges'); }
@@ -152,7 +152,7 @@ function startStaffel3() {
   const lo = mk('loewenjunges', { pre: 'Löwen', suf: 'glut', rank: 'junges', sex: 'm', age: 5, mother: 'eichhornjunges', look: L('#d8a040', '#a8701e', 0.1, '#e8b923', { size: 1.05 }) });
   const ha = mk('haeherjunges', { pre: 'Häher', suf: 'feder', rank: 'junges', sex: 'm', age: 5, mother: 'eichhornjunges', look: L('#7a8088', '#4a5058', 0.1, '#b8dcf4') });
   const di = mk('distelpfote', { pre: 'Distel', suf: 'blatt', rank: 'junges', sex: 'w', age: 5, mother: 'eichhornjunges', look: L('#1e1e22', null, 0, '#5fbf4a') });
-  mk('aschenfell', { pre: 'Aschen', suf: 'fell', rank: 'krieger', sex: 'm', age: 40, look: L('#8a8e94', '#5a5e64', 0, '#3a5fa8') });
+  mk('aschenfell', { pre: 'Aschen', suf: 'pelz', rank: 'krieger', sex: 'm', age: 40, look: L('#8a8e94', '#5a5e64', 0, '#3a5fa8') });
   [lo, ha, di].forEach(c => { c.clan = 'donner'; c.hidden = false; c.age = Math.max(c.age, 5); setRank(c, 'junges'); });
   const pc = P(); if (pc.alive) pc.lives = G.player.lives;
   const b = catById('brombeerjunges'); if (b) b.storyLock = true;
@@ -186,24 +186,24 @@ QUESTS.push(
       {
         t: 'goto', pos: () => Object.assign(denPos('hochstein'), { r: 90 }), text: 'Die Zeremonie beginnt! Geh zum Hochstein', dlg: () => [
           CEREMONY('sammy', DREI),
-          ['sammy', 'Löwenjunges, von heute an heißt du Löwenpfote. Aschenfell wird dein Mentor.'],
+          ['sammy', 'Löwenjunges, von heute an heißt du Löwenpfote. Aschenpelz wird dein Mentor.'],
           ['sammy', 'Häherjunges, du heißt nun Häherpfote. Brombeerkralle wird dich ausbilden. Distelpfote – Sandsturm wird deine Mentorin.'],
           { do: () => { DREI.forEach(id => { const c = catById(id); c.age = Math.max(6, c.age); setRank(c, 'schueler'); }); P().mentor = 'aschenfell'; catById('haeherjunges').mentor = 'brombeerjunges'; catById('distelpfote').mentor = 'sandpfote'; chron('Löwenpfote, Häherpfote und Distelpfote werden Schüler.'); } },
           ['alle', 'Löwenpfote! Häherpfote! Distelpfote!'],
           CEREMONY_END,
-          ACT({ cap: 'Aschenfell, ein grauer Kater mit dunkelblauen Augen, kommt auf dich zu. Sein Blick ist freundlich – und doch irgendwie kalt.', moves: [['aschenfell', 'player', { dx: 45, sp: 70 }]], cam: 'aschenfell', dist: 130 }),
+          ACT({ cap: 'Aschenpelz, ein grauer Kater mit dunkelblauen Augen, kommt auf dich zu. Sein Blick ist freundlich – und doch irgendwie kalt.', moves: [['aschenfell', 'player', { dx: 45, sp: 70 }]], cam: 'aschenfell', dist: 130 }),
           ['aschenfell', 'Morgen zeige ich dir unser Territorium, Löwenpfote. Ich werde einen großen Krieger aus dir machen.'],
         ]
       },
     ]
   },
   duty(13, 'Das Territorium am See', {
-    who: 'aschenfell', talkText: 'Aschenfell wartet auf dich', guide: 'aschenfell', with: ['distelpfote'],
+    who: 'aschenfell', talkText: 'Aschenpelz wartet auf dich', guide: 'aschenfell', with: ['distelpfote'],
     intro: [['aschenfell', 'Heute lernst du unsere Grenzen kennen. Distelpfote kommt mit.'], ['distelpfote', 'Ich kenne das Gesetz der Krieger schon auswendig! Die Grenzen sind das Wichtigste.']],
     patrol: ['buchenhain', 'seeufer', 'zweibeinernest'],
     at: { buchenhain: [['aschenfell', 'Dahinter beginnt der SchattenClan. Die markieren ihre Grenze jeden Tag doppelt.']], seeufer: [['aschenfell', 'Der See. Hier endet unser Gebiet, dahinter liegt der FlussClan.'], ['distelpfote', 'Und die Insel? Da ist die Große Versammlung, oder?']], zweibeinernest: [['aschenfell', 'Das alte Zweibeinernest. Blattsee holt hier Katzenminze.']] },
     hunt: 2, huntDlg: [['aschenfell', 'Nicht schlecht für den ersten Tag.']],
-    outro: [['aschenfell', 'Du lernst schnell, Löwenpfote. Schneller als die anderen.'], ['erz', 'Irgendetwas an der Art, wie Aschenfell Eichhornschweif ansieht, ist seltsam.']],
+    outro: [['aschenfell', 'Du lernst schnell, Löwenpfote. Schneller als die anderen.'], ['erz', 'Irgendetwas an der Art, wie Aschenpelz Eichhornschweif ansieht, ist seltsam.']],
   }),
   {
     ch: 13, title: 'Häherpfotes Weg', steps: [
@@ -242,7 +242,7 @@ QUESTS.push(
     ch: 13, title: 'Die Versammlung auf der Insel', steps: [
       { t: 'night', text: 'Heute ist Vollmond – deine erste Große Versammlung! Warte bis zur Nacht' },
       {
-        t: 'goto', at: 'baumgeviert', guide: 'aschenfell', text: 'Folge Aschenfell zur Insel', enter() { spawnGathering(); follow('aschenfell'); follow('distelpfote'); windKatze('heidepfote', 'Heide', L('#b08a60', '#6a5030', 0.1, '#5ab0e8')).hidden = true; },
+        t: 'goto', at: 'baumgeviert', guide: 'aschenfell', text: 'Folge Aschenpelz zur Insel', enter() { spawnGathering(); follow('aschenfell'); follow('distelpfote'); windKatze('heidepfote', 'Heide', L('#b08a60', '#6a5030', 0.1, '#5ab0e8')).hidden = true; },
         dlg: () => [
           ACT({ cap: 'Auf der Insel wimmelt es von Katzen. Eine hellbraune WindClan-Schülerin mit blauen Augen kommt direkt auf dich zu.', moves: [['heidepfote', 'player', { from: () => ({ x: LM.baumgeviert.x + 150, y: LM.baumgeviert.y - 80 }), dx: 40, sp: 80 }]], cam: 'heidepfote', dist: 140 }),
           ['heidepfote', 'Du bist neu hier, oder? Ich bin Heidepfote vom WindClan. Wollen wir … zusammen sitzen?'],
@@ -286,9 +286,9 @@ QUESTS.push(
     ]
   },
   duty(14, 'Doppeltes Leben', {
-    who: 'aschenfell', talkText: 'Aschenfell ist unzufrieden mit dir', guide: 'aschenfell',
+    who: 'aschenfell', talkText: 'Aschenpelz ist unzufrieden mit dir', guide: 'aschenfell',
     intro: [['aschenfell', 'Du gähnst schon wieder, Löwenpfote. Was machst du nachts? Heute trainieren wir, bis du umfällst.']],
-    spar: 'aschenfell', sparText: 'Kampftraining mit Aschenfell', sparDlg: [['aschenfell', 'Hm. Du kämpfst gut – aber du siehst aus, als hättest du die ganze Nacht nicht geschlafen.']],
+    spar: 'aschenfell', sparText: 'Kampftraining mit Aschenpelz', sparDlg: [['aschenfell', 'Hm. Du kämpfst gut – aber du siehst aus, als hättest du die ganze Nacht nicht geschlafen.']],
     hunt: 2, outro: [['aschenfell', 'Konzentrier dich, Löwenpfote. Ein Krieger mit zwei Herzen ist nur ein halber Krieger.'], ['erz', 'Nacht für Nacht schleichst du in die Tunnel. Tagsüber bist du müde – und Distelpfote wird misstrauisch.']],
   }),
   {
@@ -469,18 +469,18 @@ QUESTS.push(
         tick() { const pc = P(); for (const id of ['kirschjunges', 'maulwurfjunges']) { const c = catById(id); if (c.ai.m === 'hold' && dist(c.x, c.y, pc.x, pc.y) < 50) { c.ai = { m: 'follow' }; c.slow = true; say(c, 'Hilfe! Es brennt!'); } } },
         target: () => { const c = ['kirschjunges', 'maulwurfjunges'].map(catById).find(c => c.ai.m === 'hold'); return c || LM.seeufer; },
         check: () => ['kirschjunges', 'maulwurfjunges'].every(id => { const c = catById(id); return dist(c.x, c.y, LM.seeufer.x, LM.seeufer.y) < 230; }),
-        dlg: () => [['erz', 'Die Jungen sind in Sicherheit. Aber Eichhornschweif und Aschenfell fehlen!']]
+        dlg: () => [['erz', 'Die Jungen sind in Sicherheit. Aber Eichhornschweif und Aschenpelz fehlen!']]
       },
       {
-        t: 'goto', who: 'aschenfell', near: 70, text: 'Eichhornschweif und Aschenfell sind noch am Feuer – lauf!', enter() { const a = catById('aschenfell'), e = catById('eichhornjunges'); a.x = LM.lager.x + 20; a.y = LM.lager.y - 140; a.ai = { m: 'hold' }; e.x = LM.lager.x - 20; e.y = LM.lager.y - 150; e.ai = { m: 'hold' }; },
+        t: 'goto', who: 'aschenfell', near: 70, text: 'Eichhornschweif und Aschenpelz sind noch am Feuer – lauf!', enter() { const a = catById('aschenfell'), e = catById('eichhornjunges'); a.x = LM.lager.x + 20; a.y = LM.lager.y - 140; a.ai = { m: 'hold' }; e.x = LM.lager.x - 20; e.y = LM.lager.y - 150; e.ai = { m: 'hold' }; },
         dlg: () => [
-          ['erz', 'Durch den Rauch hörst du Stimmen. Aschenfell versperrt Eichhornschweif den Weg aus den Flammen.'],
+          ['erz', 'Durch den Rauch hörst du Stimmen. Aschenpelz versperrt Eichhornschweif den Weg aus den Flammen.'],
           ['aschenfell', 'Du hast mich damals für Brombeerkralle verlassen, Eichhornschweif. Jetzt sollst du verlieren, was du am meisten liebst.'],
-          ['eichhornjunges', 'Lass meine Jungen in Ruhe, Aschenfell!'],
+          ['eichhornjunges', 'Lass meine Jungen in Ruhe, Aschenpelz!'],
           ['eichhornjunges', '… Sie sind nicht meine Jungen. Ich habe sie nie geboren. Aber ich liebe sie trotzdem, als wären es meine eigenen.'],
           ['player', '(erstarrt) … Was?!'],
           ['aschenfell', 'Dann wird der ganze Wald dieses Geheimnis bald kennen.'],
-          ACT({ cap: 'Mit einem letzten Blick verschwindet Aschenfell im Rauch. Hinter dir prasselt der Regen herab und löscht die Flammen.', moves: [['aschenfell', () => ({ x: LM.lager.x + 60, y: LM.lager.y - LM.lager.r - 100 }), { sp: 150, hide: true }]], cam: 'aschenfell', start() { G.weather = 'regen'; }, end() { G.fire = null; const a = catById('aschenfell'); a.hidden = false; a.ai = { m: 'home' }; } }),
+          ACT({ cap: 'Mit einem letzten Blick verschwindet Aschenpelz im Rauch. Hinter dir prasselt der Regen herab und löscht die Flammen.', moves: [['aschenfell', () => ({ x: LM.lager.x + 60, y: LM.lager.y - LM.lager.r - 100 }), { sp: 150, hide: true }]], cam: 'aschenfell', start() { G.weather = 'regen'; }, end() { G.fire = null; const a = catById('aschenfell'); a.hidden = false; a.ai = { m: 'home' }; } }),
         ], done() { for (const c of clanCats()) if (c !== P() && c.ai && (c.ai.m === 'hold' || c.ai.m === 'goto')) c.ai = { m: 'home' }; ['kirschjunges', 'maulwurfjunges'].forEach(id => { const c = catById(id); c.slow = false; c.ai = { m: 'home' }; }); chron('Feuer in der Steinmulde. Eichhornschweif gesteht: Sie ist nicht die Mutter der Drei.'); }
       },
     ]
@@ -491,8 +491,8 @@ QUESTS.push(
       { t: 'talk', who: 'haeherjunges', text: 'Frag Häherpfote, was er spürt', dlg: () => [['haeherjunges', 'Ich habe Blattsee beobachtet. Sie wird traurig, wenn wir in ihrer Nähe sind. Und sie riecht … irgendwie vertraut.'], ['player', 'Du meinst …?'], ['haeherjunges', 'Ich meine gar nichts. Noch nicht.']] },
       {
         t: 'scene', dlg: () => [
-          ['erz', 'Am nächsten Morgen: Aufregung am Bach an der Grenze. Aschenfell liegt im Wasser. Tot.'],
-          { do: () => { const a = catById('aschenfell'); if (a && a.alive) killCat(a, 'Aschenfell wird tot im Bach gefunden.'); } },
+          ['erz', 'Am nächsten Morgen: Aufregung am Bach an der Grenze. Aschenpelz liegt im Wasser. Tot.'],
+          { do: () => { const a = catById('aschenfell'); if (a && a.alive) killCat(a, 'Aschenpelz wird tot im Bach gefunden.'); } },
           ['sammy', 'Wer tut so etwas? Wer tötet einen Clan-Gefährten?'],
           ['distelpfote', '(sehr leise, zitternd) … Er hätte es allen erzählt. Er hätte den Clan zerstört.'],
           ['erz', 'Nur du hast gehört, was Distelblatt gesagt hat.'],
@@ -514,7 +514,7 @@ QUESTS.push(
   // ---------------- BUCH 18: SONNENAUFGANG ----------------
   duty(18, 'Die Ruhe vor dem Sturm', {
     who: 'brombeerjunges', talkText: 'Brombeerkralle braucht dich für eine Jagdpatrouille', guide: 'graupfote', gap: 3, tasks: 4,
-    intro: [['brombeerjunges', 'Löwenglut, jag mit Graustreif. Der Clan ist unruhig seit Aschenfells Tod. Volle Mägen helfen.']],
+    intro: [['brombeerjunges', 'Löwenglut, jag mit Graustreif. Der Clan ist unruhig seit Aschenpelz’ Tod. Volle Mägen helfen.']],
     patrol: ['zweibeinernest'], at: { zweibeinernest: [['graupfote', 'Weißt du, Löwenglut, Geheimnisse sind wie Dornen im Pelz. Irgendwann muss man sie herausziehen.']] },
     hunt: 3, outro: [['brombeerjunges', 'Danke, Löwenglut. Heute Nacht ist Große Versammlung. Ich habe ein ungutes Gefühl.']],
   }),
@@ -534,11 +534,11 @@ QUESTS.push(
       {
         t: 'goto', at: 'tunnelein', noPatrol: true, text: 'Distelblatt rennt davon – Richtung Tunnel! Folge ihr!', enter() { const d = catById('distelpfote'); d.ai = { m: 'script', x: LM.tunnelein.x, y: LM.tunnelein.y - 20, sp: 200 }; say(d, 'Lasst mich in Ruhe!'); },
         dlg: () => [
-          ['distelpfote', 'Ich war es, Löwenglut. Ich habe Aschenfell getötet. Ich wollte den Clan schützen – und habe selbst das Gesetz gebrochen.'],
+          ['distelpfote', 'Ich war es, Löwenglut. Ich habe Aschenpelz getötet. Ich wollte den Clan schützen – und habe selbst das Gesetz gebrochen.'],
           ['player', 'Distelblatt, komm zurück! Wir finden einen Weg!'],
           ACT({ cap: 'Distelblatt dreht sich um und verschwindet im dunklen Tunnel. Dann bebt die Erde – und der Eingang stürzt ein!', moves: [['distelpfote', 'tunnelein', { dy: -35, sp: 140, hide: true }]], cam: 'tunnelein', dist: 150, shake: 7, wait: 2.5 }),
           ['erz', 'Staub und Steine. Dann Stille. Distelblatt ist fort.'],
-        ], done() { const d = catById('distelpfote'); d.hidden = true; d.clan = 'verschollen'; d.ai = { m: 'home' }; chron('Distelblatt gesteht, Aschenfell getötet zu haben, und verschwindet in den einstürzenden Tunneln.'); }
+        ], done() { const d = catById('distelpfote'); d.hidden = true; d.clan = 'verschollen'; d.ai = { m: 'home' }; chron('Distelblatt gesteht, Aschenpelz getötet zu haben, und verschwindet in den einstürzenden Tunneln.'); }
       },
     ]
   },
@@ -574,7 +574,7 @@ Object.assign(RECAP, {
   15: 'Die Tunnel sind geflutet, die Freundschaft mit Heidepfote ist vorbei. Da kommen Boten aus den Bergen …',
   16: 'Löwenglut und Distelblatt sind Krieger. Löwenglut weiß jetzt: Er kann im Kampf nicht verletzt werden.',
   17: 'Die Sonne ist verschwunden, und der SchattenClan hat sich unter Sols Einfluss vom SternenClan abgewandt.',
-  18: 'Eichhornschweif ist nicht die Mutter der Drei. Aschenfell ist tot – und Distelblatt hütet ein schreckliches Geheimnis.',
+  18: 'Eichhornschweif ist nicht die Mutter der Drei. Aschenpelz ist tot – und Distelblatt hütet ein schreckliches Geheimnis.',
 });
 CHATTER.s3 = [
   ['Häherpfote erkennt jedes Kraut am Geruch. Unheimlich.', 'Blattsee sagt, er hat eine besondere Gabe.'],

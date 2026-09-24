@@ -25,7 +25,7 @@ function createStartCats() {
     { id: 'halbschweif', pre: 'Halb', suf: 'schweif', rank: 'aeltester', age: 135, sex: 'm', look: L('#5a3a22', '#2a1a0e', 0, '#d98b2b', { tailL: 0.5 }) },
     { id: 'fleckenschweif', pre: 'Flecken', suf: 'schweif', rank: 'aeltester', age: 145, sex: 'w', look: L('#b56a3a', null, 0, '#e8b923', { patch: '#2b2220' }) },
     { id: 'rotschweif', pre: 'Rot', suf: 'schweif', rank: 'zweiter', age: 80, sex: 'm', alive: false, look: L('#b0582a', '#7a3010', 0, '#e8b923') },
-    { id: 'aschenjunges', pre: 'Aschen', suf: 'pelz', rank: 'junges', age: 3, sex: 'w', look: L('#6e6e74', null, 0, '#4fa3d9'), storyLock: true, mother: 'frostfell' },
+    { id: 'aschenjunges', pre: 'Ruß', suf: 'pelz', rank: 'junges', age: 3, sex: 'w', look: L('#6e6e74', null, 0, '#4fa3d9'), storyLock: true, mother: 'frostfell' },
     { id: 'farnjunges', pre: 'Farn', suf: 'pelz', rank: 'junges', age: 3, sex: 'm', look: L('#b08050', '#7a5030', 0, '#7bc043'), storyLock: true, mother: 'frostfell' },
     { id: 'dornenjunges', pre: 'Dornen', suf: 'kralle', rank: 'junges', age: 3, sex: 'm', look: L('#a07040', '#5a3a1a', 0, '#e8b923'), storyLock: true, mother: 'frostfell' },
     { id: 'prinzessin', fixed: 'Prinzessin', rank: 'hauskaetzchen', clan: 'haus', age: 10, sex: 'w', look: L('#b89468', '#7a5a38', 0.45, '#7bc043'), homePos: { x: LM.prinzessin.x, y: LM.prinzessin.y + 60 } },
