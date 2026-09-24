@@ -140,6 +140,12 @@ function buildWater() {
   const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(lv, 3)); lg.setIndex(li); lg.computeVertexNormals();
   const luv = []; for (let i = 0; i < lv.length; i += 3) luv.push(lv[i] / 130, lv[i + 2] / 130); lg.setAttribute('uv', new THREE.Float32BufferAttribute(luv, 2));
   const lake = new THREE.Mesh(lg, mat); lake.position.set(LAKE.x, LAKE_LEVEL, LAKE.y); SC.add(lake);
+  // Baumbrücke vom Nordwest-Ufer zur Insel (entsteht in „Sternenglanz“)
+  { const a = -2.1, p1 = { x: LAKE.x + Math.cos(a) * (lakeR(a) + 60), y: LAKE.y + Math.sin(a) * (lakeR(a) + 60) }, p2 = { x: LM0.insel.x + Math.cos(a) * 40, y: LM0.insel.y + Math.sin(a) * 40 };
+    const len = dist(p1.x, p1.y, p2.x, p2.y), g = new THREE.Group();
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(16, 24, len, 10).rotateZ(Math.PI / 2), toonMat({ color: 0x5e4630 })); trunk.castShadow = true; g.add(trunk);
+    for (let i = 0; i < 4; i++) { const b = new THREE.Mesh(new THREE.CylinderGeometry(3, 6, 90, 6), toonMat({ color: 0x5e4630 })); b.position.set(-len / 2 + 30 + i * 18, 20, (i % 2 ? 1 : -1) * 30); b.rotation.set(0.9 * (i % 2 ? 1 : -1), 0, 0.4); g.add(b); }
+    g.position.set((p1.x + p2.x) / 2, LAKE_LEVEL + 10, (p1.y + p2.y) / 2); g.rotation.y = -Math.atan2(p2.y - p1.y, p2.x - p1.x); g.visible = false; SC.add(g); W3.bridge = g; }
   const oc = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1900).rotateX(-Math.PI / 2), mat); oc.position.set(12800, OCEAN_LEVEL, 700); SC.add(oc);
   const moon = new THREE.Mesh(new THREE.CircleGeometry(48, 32).rotateX(-Math.PI / 2), new THREE.MeshPhongMaterial({ color: 0x9fc8ff, emissive: 0x3a5a9a, shininess: 120, transparent: true, opacity: 0.9 }));
   moon.position.set(LM0.mondsee.x, heightAt(LM0.mondsee.x, LM0.mondsee.y) + 3, LM0.mondsee.y); SC.add(moon); W3.mondsee = moon;
@@ -734,6 +740,7 @@ function render3D(t, dt, tx, tz, title) {
   updateMarkers(t, title || (typeof Cut !== 'undefined' && Cut.cur) ? [] : targets());
   U_TIME.value = t;
   if (W3.waterTex) { W3.waterTex.offset.y -= dt * 0.12; W3.waterTex.offset.x = Math.sin(t * 0.3) * 0.05; }
+  if (W3.bridge) W3.bridge.visible = !!(G && G.flags && (G.flags.bruecke || (G.flags.see && (QUESTS[G.story.q] ? QUESTS[G.story.q].ch : 99) >= 11)));
   if (W3.fallTex) { W3.fallTex.offset.y += dt * 1.4; if (W3.fall && dist(tx, tz, W3.fall.x, W3.fall.y) < 900 && Math.random() < dt * 6) FX3.splash(W3.fall.x + rand(-40, 40), W3.fall.y + rand(-5, 25)); }
   if (!title && !window.NORENDER_FX) FX3.ambient(dt, t);
   FX3.update(dt, t);
