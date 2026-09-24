@@ -168,7 +168,7 @@ function buildRoad() {
 }
 
 // ---------- Bäume ----------
-const treeH = t => t.tr > 40 ? 900 : (t.k === 'pine' ? 520 + t.c * 260 : 420 + t.c * 380);
+const treeH = t => t.tr > 40 ? 450 : (t.k === 'pine' ? 260 + t.c * 130 : 210 + t.c * 190);
 function inst(geo, n, shadow = true, mat) {
   const m = new THREE.InstancedMesh(geo, mat || toonMat({ color: 0xffffff }), Math.max(1, n));
   m.count = n; m.frustumCulled = false; m.castShadow = shadow; m.receiveShadow = true; SC.add(m); return m;

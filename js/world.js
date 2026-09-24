@@ -222,7 +222,7 @@ function addRock(R, x, y, r, collide = true, col) {
   if (collide) addCol(x, y, r * 0.85);
 }
 function addTree(R, x, y, kind, big) {
-  const r = big ? big * 1.9 : (kind === 'pine' ? 75 + R() * 35 : 120 + R() * 90);
+  const r = big ? big * 1.5 : (kind === 'pine' ? 60 + R() * 28 : 90 + R() * 65);
   const t = { x, y, r, tr: big ? 55 : (kind === 'pine' ? 15 + R() * 8 : 18 + R() * 16), k: kind, c: R() };
   OB.trees.push(t); addCol(x, y, t.tr);
 }
