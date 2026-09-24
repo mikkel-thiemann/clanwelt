@@ -661,10 +661,29 @@ insertStepsBefore('Der Stamm des eilenden Wassers', st => st.at === 'lager', [
 ]);
 
 // --- Buch 9: Die große Wanderung dauert viele Tage ---
-insertStepsBefore('Der sterbende Wald', st => st.t === 'custom' && /Wanderung/.test(st.text), (() => {
-  const mig = () => { if (!G.flags.wanderung) { G.flags.wanderung = 1; startMigration(); } };
-  const mleg = (pos, text, lines) => ({ t: 'custom', noPatrol: true, text, enter: mig, target: () => pos, check: () => { const pc = P(); if (dist(pc.x, pc.y, pos.x, pos.y) > 260) return false; const cs = clanCats().filter(c => c !== pc && !c.hidden); return !cs.length || cs.filter(c => dist(c.x, c.y, pc.x, pc.y) < 900).length >= cs.length * 0.5; }, dlg: lines ? () => lines : undefined });
+insertStepsBefore('Der sterbende Wald', st => st.t === 'custom' && st.target && st.target().x === 6760, (() => {
+  // Wanderung läuft: alle folgen (auch nach dem Laden eines Spielstands wieder)
+  const mig = () => { G.flags.wanderung = 1; startMigration(); };
+  const gathered = () => { const pc = P(), cs = clanCats().filter(c => c !== pc && !c.hidden); return [cs.filter(c => dist(c.x, c.y, pc.x, pc.y) < 900).length, cs.length]; };
+  const mleg = (pos, text, lines) => ({
+    t: 'custom', noPatrol: true, enter: mig, target: () => pos,
+    text: () => { const [n, all] = gathered(); return dist(P().x, P().y, pos.x, pos.y) < 260 && n < all * 0.5 ? `Warte, bis alle Clans aufgeholt haben (${n}/${all} DonnerClan-Katzen da)` : text + ' – folge dem gelben Pfeil'; },
+    check: () => { const pc = P(); if (dist(pc.x, pc.y, pos.x, pos.y) > 260) return false; const [n, all] = gathered(); return !all || n >= all * 0.5; }, dlg: lines ? () => lines : undefined,
+  });
+  const bg = () => LM.baumgeviert;
   return [
+    {
+      t: 'goto', at: 'baumgeviert', noPatrol: true, text: 'Die große Wanderung beginnt: Führe deinen Clan zum Baumgeviert – dort warten die anderen drei Clans',
+      enter() { clanFollow(); if (!ENTS.some(e => e.migrant)) spawnMigrants(bg().x, bg().y, false); },
+      dlg: () => [
+        ACT({ cap: 'Am Baumgeviert warten schon SchattenClan, FlussClan und WindClan – zum ersten Mal ohne Streit, alle vier Clans an einem Ort.', moves: [], cam: 'baumgeviert', dist: 420, pitch: 0.45, orbit: 0.12, wait: 3.5 }),
+        ['wander_schatten', 'Der SchattenClan ist bereit. Wir folgen euch.'],
+        ['wander_fluss', 'Der FlussClan auch. Unser Fluss ist vergiftet – hier gibt es nichts mehr für uns.'],
+        ['wander_wind', 'Ich bin alt … aber der WindClan kommt mit. Führ uns, Brombeerkralle.'],
+        ['sammy', 'Dann gehen wir. Vier Clans – ein Weg. Brombeerkralle kennt ihn. Folgt ihm!'],
+        { do: () => { G.flags.wanderung = 1; migrantsFollow(); clanFollow(); } },
+      ]
+    },
     mleg({ x: 1300, y: 700 }, 'Die große Wanderung, Tag 1: Führe alle Clans am Baumgeviert vorbei zu den Hochfelsen', [ACT({ cap: 'Ein langer Zug aus Katzen aller vier Clans schlängelt sich durch das Land. Die Ältesten und die Jungen gehen in der Mitte.', moves: [], cam: 'player', dist: 420, pitch: 0.45, orbit: 0.1, wait: 3 })]),
     campAt('Die erste Nacht fern der Heimat. Katzen aus vier Clans schlafen dicht nebeneinander.', clanNear, [['kleinohr', 'Meine alten Knochen … Aber ich schaffe das. Ich schaffe das.']], mig),
     sleepStep('Die große Wanderung, Tag 2: Schlaft bis zum Morgen (E: ausruhen)', null, mig),

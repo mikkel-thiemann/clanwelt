@@ -66,15 +66,29 @@ function spawnBulldozers() {
   const paths = [[{ x: 2500, y: 2050 }, { x: 2950, y: 2250 }], [{ x: 1700, y: 2600 }, { x: 1600, y: 3050 }], [{ x: 2800, y: 2700 }, { x: 3150, y: 2500 }], [{ x: 2000, y: 1700 }, { x: 2500, y: 1650 }]];
   for (const [a, b] of paths) ENTS.push({ kind: 'bagger', name: 'Monster der Zweibeiner', x: a.x, y: a.y, a, b, dir: 0, r: 110, team: 'zweibeiner', hostile: false, story: false, persistent: true });
 }
+// Die drei anderen Clans auf der großen Wanderung: jeweils Anführer und Krieger
+const MIG_CLANS = ['schatten', 'fluss', 'wind'];
+function spawnMigrants(x, y, follow) {
+  for (const e of ENTS) if (e.migrant) e.gone = true;
+  MIG_CLANS.forEach((k, j) => {
+    const a = j / 3 * TAU, cx = x + Math.cos(a) * 140, cy = y + Math.sin(a) * 140;
+    spawnClanCat(k, cx, cy, { id: 'wander_' + k, name: clanLeaderName(k), rank: 'anfuehrer', look: leaderLook(k), hostile: false, truce: true, story: true, migrant: true, followP: follow, slot: (j - 1) * 0.9, wander: follow ? undefined : { x: cx, y: cy, r: 50 } });
+    for (let i = 0; i < 5; i++) spawnClanCat(k, cx + rand(-70, 70), cy + rand(-70, 70), { hostile: false, truce: true, story: true, migrant: true, followP: follow, slot: (j * 5 + i - 7) * 0.2, wander: follow ? undefined : { x: cx, y: cy, r: 80 } });
+  });
+  for (const id of ['bernsteinjunges', 'kraehenpfote']) { const c = catById(id); if (c && c.alive && c.clan !== 'donner') { c.hidden = false; c.x = x + rand(-60, 60); c.y = y + rand(-60, 60); c.ai = { m: follow ? 'follow' : 'hold' }; } }
+}
+function migrantsFollow() { for (const e of ENTS) if (e.migrant) { e.followP = true; e.wander = undefined; } for (const id of ['bernsteinjunges', 'kraehenpfote']) { const c = catById(id); if (c && c.alive && !c.hidden && c.clan !== 'donner') c.ai = { m: 'follow' }; } }
+function clanFollow() { for (const c of clanCats()) if (c !== P()) { c.ai = { m: 'follow' }; c.hidden = false; c.slow = c.rank === 'junges' || c.rank === 'aeltester'; } }
 function startMigration() {
-  for (const c of clanCats()) if (c !== P()) { c.ai = { m: 'follow' }; c.hidden = false; c.slow = c.rank === 'junges' || c.rank === 'aeltester'; }
+  clanFollow();
   const pc = P();
-  ['schatten', 'fluss', 'wind'].forEach((k, j) => { for (let i = 0; i < 4; i++) spawnClanCat(k, pc.x + rand(-120, 120), pc.y + rand(-120, 120), { hostile: false, truce: true, story: true, followP: true, slot: (j * 4 + i - 6) * 0.25 }); });
-  toast('Alle Clans folgen dir. Der See liegt hinter den Bergen im Osten.');
+  if (!ENTS.some(e => e.migrant)) spawnMigrants(pc.x, pc.y, true); else migrantsFollow();
+  toast('Alle vier Clans folgen dir. Der See liegt hinter den Bergen im Osten – folge dem gelben Pfeil.');
 }
 function arriveAtLake() {
   G.flags.see = true; G.flags.zerstoert = 1; applyRelocation(true);
   for (const e of ENTS) if (e.kind === 'bagger' || e.story) e.gone = true;
+  for (const id of ['bernsteinjunges', 'kraehenpfote']) { const c = catById(id); if (c && c.clan !== 'donner') { c.hidden = true; c.ai = { m: 'home' }; } }
   for (const c of G.cats) if (c.alive && c.clan === 'donner') { c.slow = false; if (c !== P()) placeAtHome(c); }
   G.clan.pile = clanCats().length * 1.2; G.clan.terr = 60;
   for (const k in G.others) G.others[k].rel = clamp(G.others[k].rel + 20, 0, 100);
@@ -796,8 +810,9 @@ const QUESTS = [
         ], done() { for (const e of ENTS) if (e.gathering) e.gone = true; goHome('sammy'); G.flags.zerstoert = 0.85; chron('Alle vier Clans beschließen, den Wald gemeinsam zu verlassen.'); }
       },
       {
-        t: 'custom', noPatrol: true, text: 'Die große Wanderung: Führe alle Clans über die Berge nach Osten zum großen See',
-        enter() { if (!G.flags.wanderung) { G.flags.wanderung = 1; startMigration(); } },
+        t: 'custom', noPatrol: true,
+        enter() { G.flags.wanderung = 1; startMigration(); },
+        text: () => { const pc = P(), cs = clanCats().filter(c => c !== pc && !c.hidden), n = cs.filter(c => dist(c.x, c.y, pc.x, pc.y) < 900).length; return dist(pc.x, pc.y, 6760, 2980) < 380 && n < cs.length * 0.6 ? `Warte, bis alle Clans aufgeholt haben (${n}/${cs.length} DonnerClan-Katzen da)` : 'Die große Wanderung, letzter Tag: Führe alle Clans auf den Hügel über dem See – folge dem gelben Pfeil'; },
         target: () => ({ x: 6760, y: 2980 }),
         check: () => { const pc = P(); if (dist(pc.x, pc.y, 6760, 2980) > 380) return false; const cs = clanCats().filter(c => c !== pc && !c.hidden); return cs.filter(c => dist(c.x, c.y, pc.x, pc.y) < 900).length >= cs.length * 0.6; },
         dlg: () => [
