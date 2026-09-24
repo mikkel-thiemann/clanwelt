@@ -570,10 +570,10 @@ const QUESTS = [
       {
         t: 'custom', text: 'LAUF zur Schlucht! Der Anführer der Meute darf dich nicht erwischen!', at: 'schlucht', noPatrol: true,
         enter() { for (const e of ENTS) if (e.meute) e.gone = true; const s = LM.schlangenfelsen; spawnBeast('meute', s.x + 60, s.y - 40, { chase: true, story: true, meute: true, boss: true }); for (let i = 0; i < 2; i++) spawnBeast('hund', s.x - 70 + i * 40, s.y - 60, { story: true, meute: true, group: 'hunde' }); toast('„Meute, Meute! Töten, töten!“ – Lauf!'); },
-        check: () => { const d = ENTS.find(e => e.kind === 'meute'); return d && dist(d.x, d.y, LM.schlucht.x, LM.schlucht.y) < 170 && dist(P().x, P().y, LM.schlucht.x, LM.schlucht.y) < 170; },
+        check: () => { const d = ENTS.find(e => e.kind === 'meute'); return d && dist(P().x, P().y, LM.schlucht.x, LM.schlucht.y) < 170 && dist(d.x, d.y, P().x, P().y) < 320; },
         dlg: () => [
           ['erz', 'Du rennst zum Rand der Schlucht. Der riesige Hund ist direkt hinter dir. Seine Zähne schnappen nach deinem Schwanz –'],
-          ACT({ cap: 'Da springt eine blaugraue Gestalt aus dem Farn! Blaustern stürzt sich auf den Hund – und beide fallen in die Schlucht!', moves: [['blaustern', 'schlucht', { from: () => nearPlayer(200), sp: 280, hide: true }], [ENTS.find(e => e.kind === 'meute'), 'schlucht', { sp: 200, delay: 0.5 }]], cam: 'blaustern', shake: 4, dist: 160, end() { for (const e of ENTS) if (e.meute) e.gone = true; } }),
+          ACT({ cap: 'Da springt eine blaugraue Gestalt aus dem Farn! Blaustern stürzt sich auf den Hund – und beide fallen in die Schlucht!', moves: [['blaustern', () => ({ x: 3500, y: 2735 }), { from: () => nearPlayer(200), sp: 280, hide: true }], [ENTS.find(e => e.kind === 'meute'), () => ({ x: 3500, y: 2770 }), { sp: 220, delay: 0.5, hide: true }]], cam: 'blaustern', shake: 4, dist: 160, end() { for (const e of ENTS) if (e.meute) e.gone = true; } }),
           ACT({ cap: 'Du springst hinterher in den reißenden Fluss. Zwei FlussClan-Krieger – Nebelfuß und Steinfell – helfen dir, Blaustern ans Ufer zu ziehen.', moves: [['player', 'schlucht', { sp: 200 }], ['blaustern', 'player', { from: () => ({ x: LM.schlucht.x - 60, y: LM.schlucht.y + 40 }), dx: 30, sp: 40, sleep: true, delay: 1 }]], cam: 'player', dist: 150, wait: 2 }),
           ['blaustern', 'Nebelfuß … Steinfell … meine Jungen. Vergebt mir, dass ich euch damals weggegeben habe …'],
           ['blaustern', 'Feuerherz … du bist das Feuer, das den Clan retten wird. Das hat Tüpfelblatt gesehen … Führe sie gut, mein Krieger …'],

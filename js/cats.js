@@ -396,8 +396,13 @@ function updateEnts(dt) {
       continue;
     }
     if (e.ai === 'leader') { e.dir += angDiff(e.dir, Math.atan2(pc.y - e.y, pc.x - e.x)) * dt * 3; moveEnt(e, 0, 0, dt); continue; }
-    if (e.chase) { // Meute-Anführer jagt den Spieler
-      if (dist(e.x, e.y, pc.x, pc.y) > 40) steer(e, pc.x, pc.y, e.speed, dt); else fightStep(e, pc, dt);
+    if (e.chase) { // Meute-Anführer jagt den Spieler – bleibt er an Bäumen hängen oder fällt zurück, holt er auf
+      const d = dist(e.x, e.y, pc.x, pc.y);
+      if (d > 40) {
+        const ox = e.x, oy = e.y; steer(e, pc.x, pc.y, e.speed, dt);
+        e.stuckT = Math.hypot(e.x - ox, e.y - oy) < e.speed * dt * 0.3 ? (e.stuckT || 0) + dt : 0;
+        if (d > 340 || e.stuckT > 0.6) { const a = Math.atan2(e.y - pc.y, e.x - pc.x); e.x = pc.x + Math.cos(a) * 230; e.y = pc.y + Math.sin(a) * 230; e.stuckT = 0; }
+      } else fightStep(e, pc, dt);
       continue;
     }
     if (e.warnT !== undefined && !e.hostile) { // Grenzpatrouille warnt zuerst

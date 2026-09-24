@@ -12,7 +12,7 @@ const LM = {
   eulenbaum: { x: 1750, y: 1950, r: 110, name: 'Eulenbaum' },
   sonnenfelsen: { x: 1420, y: 2300, r: 170, name: 'Sonnenfelsen' },
   schlangenfelsen: { x: 3700, y: 2350, r: 150, name: 'Schlangenfelsen' },
-  schlucht: { x: 3330, y: 2750, r: 110, name: 'Schlucht' },
+  schlucht: { x: 3570, y: 2760, r: 110, name: 'Schlucht' },
   donnerweg: { x: 2300, y: 1520, r: 110, name: 'Donnerweg' },
   baumgeviert: { x: 1420, y: 1640, r: 190, name: 'Baumgeviert' },
   schattenlager: { x: 3250, y: 650, r: 200, name: 'SchattenClan-Lager' },
