@@ -74,7 +74,7 @@ function detailTexture() {
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
 }
 function buildTerrain3D() {
-  const geo = new THREE.PlaneGeometry(W, H, Math.round(W / 20), 210); geo.rotateX(-Math.PI / 2); geo.translate(W / 2, 0, H / 2);
+  const geo = new THREE.PlaneGeometry(W, H, Math.round(W / 20), Math.round(H / 20)); geo.rotateX(-Math.PI / 2); geo.translate(W / 2, 0, H / 2);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i++) pos.setY(i, heightAt(pos.getX(i), pos.getZ(i)));
   geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(pos.count * 3), 3));
@@ -140,7 +140,7 @@ function buildWater() {
   const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(lv, 3)); lg.setIndex(li); lg.computeVertexNormals();
   const luv = []; for (let i = 0; i < lv.length; i += 3) luv.push(lv[i] / 130, lv[i + 2] / 130); lg.setAttribute('uv', new THREE.Float32BufferAttribute(luv, 2));
   const lake = new THREE.Mesh(lg, mat); lake.position.set(LAKE.x, LAKE_LEVEL, LAKE.y); SC.add(lake);
-  const oc = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1900).rotateX(-Math.PI / 2), mat); oc.position.set(12000, OCEAN_LEVEL, 850); SC.add(oc);
+  const oc = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1900).rotateX(-Math.PI / 2), mat); oc.position.set(12800, OCEAN_LEVEL, 700); SC.add(oc);
   const moon = new THREE.Mesh(new THREE.CircleGeometry(48, 32).rotateX(-Math.PI / 2), new THREE.MeshPhongMaterial({ color: 0x9fc8ff, emissive: 0x3a5a9a, shininess: 120, transparent: true, opacity: 0.9 }));
   moon.position.set(LM0.mondsee.x, heightAt(LM0.mondsee.x, LM0.mondsee.y) + 3, LM0.mondsee.y); SC.add(moon); W3.mondsee = moon;
 }
@@ -320,7 +320,7 @@ function buildGrass() {
   const mat = windy(new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide }), 0.35, true);
   const R = mulberry32(99), spots = [];
   let tries = 0;
-  while (spots.length < 48000 && tries++ < 200000) {
+  while (spots.length < 58000 && tries++ < 240000) {
     const x = R() * W, y = R() * H, t = territoryAt(x, y, true);
     if (inRoad(x, y) || isWater(x, y) || (riverOn(y) && Math.abs(x - riverX(y)) < RIVER_HW + 10)) continue;
     const dens = { donner: 0.55, fluss: 1, wind: 0.8, zweibeiner: 0.35, schatten: 0.3, baumgeviert: 1, hochland: 0.3, donnerweg: 0, berge: 0.2, kueste: 0.3, fremdland: 0.7 }[t] || 0;

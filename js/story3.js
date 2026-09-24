@@ -669,7 +669,7 @@ insertStepsBefore('Der Stamm des eilenden Wassers', st => st.at === 'lager', [
 ]);
 
 // --- Buch 9: Die große Wanderung dauert viele Tage ---
-insertStepsBefore('Der sterbende Wald', st => st.t === 'custom' && st.target && st.target().x === 10560, (() => {
+insertStepsBefore('Der sterbende Wald', st => st.t === 'custom' && st.target && st.target().x === 10350, (() => {
   // Wanderung läuft: alle folgen (auch nach dem Laden eines Spielstands wieder)
   const mig = () => { G.flags.wanderung = 1; startMigration(); };
   const gathered = () => { const pc = P(), cs = clanCats().filter(c => c !== pc && !c.hidden); return [cs.filter(c => dist(c.x, c.y, pc.x, pc.y) < 900).length, cs.length]; };

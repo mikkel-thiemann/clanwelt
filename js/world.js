@@ -1,7 +1,7 @@
 'use strict';
 // ===== Die Welt: Territorien, Landschaft, Hindernisse =====
 // Welt: alter Wald (x < OLD_W), Fremdland (bis FREMD_E), Berge, See und Küste im Osten
-const W = 12000, H = 4200, CELL = 128, OLD_W = 5300, FREMD_E = 9040, EAST = 3800;
+const W = 13600, H = 5000, CELL = 128, OLD_W = 5300, FREMD_E = 9040, EAST = 3800;
 
 const LM = {
   garten: { x: 2100, y: 3700, r: 170, name: 'Sammys Garten' },
@@ -34,22 +34,22 @@ const LM = {
   stamm: { x: 9600, y: 1650, r: 110, name: 'Höhle des Stammes' },
   dachsbau: { x: 10800, y: 1150, r: 90, name: 'Mitternachts Bau' },
   wassernest: { x: 11220, y: 800, r: 140, name: 'Wassernest der Sonne' },
-  steinmulde: { x: 10270, y: 3120, r: 215, name: 'DonnerClan-Lager (Steinmulde)' },
-  schatten2: { x: 11050, y: 2380, r: 190, name: 'SchattenClan-Lager' },
-  fluss2: { x: 11100, y: 3780, r: 190, name: 'FlussClan-Lager' },
-  wind2: { x: 11680, y: 3080, r: 190, name: 'WindClan-Lager' },
-  insel: { x: 11050, y: 3060, r: 100, name: 'Die Insel' },
-  mondsee: { x: 11600, y: 2060, r: 70, name: 'Mondsee' },
-  zweibeinernest: { x: 10250, y: 3600, r: 110, name: 'Verlassenes Zweibeinernest' },
-  buchenhain: { x: 10280, y: 2780, r: 110, name: 'Buchenhain' },
-  seeufer: { x: 10680, y: 3440, r: 90, name: 'Seeufer' },
+  steinmulde: { x: 10630, y: 3490, r: 215, name: 'DonnerClan-Lager (Steinmulde)' },
+  schatten2: { x: 11800, y: 2380, r: 190, name: 'SchattenClan-Lager' },
+  fluss2: { x: 11875, y: 4480, r: 190, name: 'FlussClan-Lager' },
+  wind2: { x: 12745, y: 3430, r: 190, name: 'WindClan-Lager' },
+  insel: { x: 11800, y: 3400, r: 100, name: 'Die Insel' },
+  mondsee: { x: 12625, y: 1900, r: 70, name: 'Mondsee' },
+  zweibeinernest: { x: 10600, y: 4210, r: 110, name: 'Verlassenes Zweibeinernest' },
+  buchenhain: { x: 10645, y: 2980, r: 110, name: 'Buchenhain' },
+  seeufer: { x: 11245, y: 3970, r: 90, name: 'Seeufer' },
   purdy: { x: 6750, y: 1560, r: 110, name: 'Purdys Garten' },
   fremdstadt: { x: 6700, y: 1150, r: 200, name: 'Zweibeinerort im Fremdland' },
   bauernhof: { x: 8250, y: 2950, r: 160, name: 'Bauernhof' },
   fremdgrenze: { x: 5450, y: 1500, r: 150, name: 'Grenze der Clan-Territorien' },
   bergpass: { x: 9560, y: 1080, r: 120, name: 'Bergpass' },
-  tunnelein: { x: 10180, y: 2700, r: 80, name: 'Eingang zu den Tunneln' },
-  tunnelaus: { x: 11820, y: 3300, r: 80, name: 'Tunnel-Ausgang (WindClan)' },
+  tunnelein: { x: 10495, y: 2860, r: 80, name: 'Eingang zu den Tunneln' },
+  tunnelaus: { x: 12955, y: 3760, r: 80, name: 'Tunnel-Ausgang (WindClan)' },
 };
 // Unveränderte Kopie der Orte (für Höhen und Bodenfarben); LM selbst wird beim Umzug an den See verändert
 const LM0 = JSON.parse(JSON.stringify(LM));
@@ -58,10 +58,11 @@ function applyRelocation(on) {
   for (const k in RELOC) { const src = on ? LM0[RELOC[k]] : LM0[k]; Object.assign(LM[k], { x: src.x, y: src.y, r: src.r, name: on && k === 'lager' ? 'DonnerClan-Lager (Steinmulde)' : src.name }); }
 }
 // ----- See, Meer -----
-const LAKE = { x: 11050, y: 3060 };
-const lakeR = a => 420 + Math.sin(a * 3) * 40 + Math.sin(a * 5 + 1) * 25;
+// Der See am neuen Zuhause – groß, damit alle vier Territorien Platz haben
+const LAKE = { x: 11800, y: 3400 }, LAKE_K = 1.5;
+const lakeR = a => (420 + Math.sin(a * 3) * 40 + Math.sin(a * 5 + 1) * 25) * LAKE_K;
 function lakeDist(x, y) { const a = Math.atan2(y - LAKE.y, x - LAKE.x); return dist(x, y, LAKE.x, LAKE.y) / lakeR(a); }
-function inLake(x, y) { return x > 10300 && lakeDist(x, y) < 1 && dist(x, y, LM0.insel.x, LM0.insel.y) > 95; }
+function inLake(x, y) { return x > 10300 && lakeDist(x, y) < 1 && dist(x, y, LM0.insel.x, LM0.insel.y) > 140; }
 const oceanEdge = y => 11320 + Math.sin(y / 260) * 70;
 function inOcean(x, y) { return y < 1650 && x > oceanEdge(y); }
 const TERR_NAMES = {
@@ -138,15 +139,16 @@ function territoryAt(x, y, raw) {
   if (x > OLD_W) {
     if (inLake(x, y)) return 'see';
     if (x > 10050 && lakeDist(x, y) < 2.45) {
-      if (dist(x, y, LM0.insel.x, LM0.insel.y) < 110) return raw || !G || !G.flags || !G.flags.see ? 'see' : 'baumgeviert';
+      if (dist(x, y, LM0.insel.x, LM0.insel.y) < 150) return raw || !G || !G.flags || !G.flags.see ? 'see' : 'baumgeviert';
       const a = Math.atan2(y - LAKE.y, x - LAKE.x) * 180 / Math.PI;
-      return a > 135 || a < -150 ? 'donner' : a < -45 ? 'schatten' : a < 45 ? 'wind' : a < 135 ? 'fluss' : 'donner';
+      return a > 135 || a < -135 ? 'donner' : a < -45 ? 'schatten' : a < 45 ? 'wind' : a < 135 ? 'fluss' : 'donner';
     }
-    if (x > 10100 && y < 1800) return 'kueste';
+    if (x > 10100 && y < 1650) return 'kueste';
     if (x < FREMD_E) return 'fremdland';
     if (x < 10150) return 'berge';
     return 'hochland';
   }
+  if (y > 4250) return 'fremdland'; // südlich des alten Waldes: fremdes Land
   if (!raw && typeof G !== 'undefined' && G && G.flags && G.flags.see && !(y > 3440 && x > 1060)) return 'verlassen';
   if (y > 3440 && x > 1060) return 'zweibeiner';
   const bg = raw ? LM0.baumgeviert : LM.baumgeviert;
@@ -182,7 +184,7 @@ function groundColor(x, y, o) {
   const t = territoryAt(x, y, true);
   const dl = dist(x, y, LM0.lager.x, LM0.lager.y), dsm = dist(x, y, LM0.steinmulde.x, LM0.steinmulde.y);
   if (dsm < LM0.steinmulde.r) { o[0] = 150 + j; o[1] = 140 + j; o[2] = 120 + j; return o; }
-  if (x > 10050 && y > 1800 && lakeDist(x, y) < 1.1) { o[0] = 176 + j; o[1] = 160 + j; o[2] = 118 + j; return o; }
+  if (x > 10050 && y > 1650 && lakeDist(x, y) < 1.1) { o[0] = 176 + j; o[1] = 160 + j; o[2] = 118 + j; return o; }
   if (t === 'kueste') { const d = oceanEdge(y) - x; if (d < 170) { o[0] = 220 + j; o[1] = 200 + j; o[2] = 150 + j; return o; } o[0] = lerp(160, 120, n) + j; o[1] = lerp(150, 140, n) + j; o[2] = 100 + j; return o; }
   if (t === 'fremdland') {
     const b = fremdBiome(x, y);
@@ -347,7 +349,7 @@ function buildObjects() {
     const x = gx + (R() - 0.5) * 48, y = gy + (R() - 0.5) * 48, rr = R(), t = territoryAt(x, y, true);
     if (roadDist(x, y) < ROAD_HW + 60) continue;
     if (isWater(x, y) && !marshPool(x, y)) continue;
-    if (x > 10050 && y > 1800 && lakeDist(x, y) < 1.12) { if (rr < 0.3 && lakeDist(x, y) > 1.02) addBush(x, y, 18 + R() * 8, 'reed'); continue; }
+    if (x > 10050 && y > 1650 && lakeDist(x, y) < 1.12) { if (rr < 0.3 && lakeDist(x, y) > 1.02) addBush(x, y, 18 + R() * 8, 'reed'); continue; }
     if (t === 'fremdland') {
       const b = fremdBiome(x, y);
       if (b === 'stadt' || nearLM(x, y, 40)) continue;
@@ -396,7 +398,7 @@ function buildObjects() {
   }
   for (let i = 0; i < 7; i++) OB.herbs.push({ x: 1500 + i * 280 + R() * 80, y: 3380 + R() * 60, k: 'katzenminze' });
   for (let i = 0; i < 6; i++) OB.herbs.push({ x: 150 + R() * 1100, y: 1000 + R() * 600, k: pick(['schafgarbe', 'mohn']) });
-  for (let i = 0; i < 25; i++) { const x = 10100 + R() * 700, y = 2500 + R() * 1400; if (territoryAt(x, y, true) === 'donner' && !isWater(x, y) && !nearLM(x, y, 20)) OB.herbs.push({ x, y, k: pick(kinds) }); }
+  for (let i = 0; i < 25; i++) { const x = 10150 + R() * 900, y = 2700 + R() * 1700; if (territoryAt(x, y, true) === 'donner' && !isWater(x, y) && !nearLM(x, y, 20)) OB.herbs.push({ x, y, k: pick(kinds) }); }
 }
 
 const HERBS = {
@@ -470,7 +472,7 @@ function heightAt(x, y) {
   const hd = dist(x, y, HOCH.x, HOCH.y); if (hd < 420) h += 110 * Math.pow(1 - hd / 420, 1.6);
   return h;
 }
-const LAKE_LEVEL = baseH(11050, 3060) - 6, OCEAN_LEVEL = -12;
+const LAKE_LEVEL = baseH(LAKE.x, LAKE.y) - 6, OCEAN_LEVEL = -12;
 const bumpY = (v, c, w) => clamp(1 - Math.abs(v - c) / w, 0, 1);
 function heightNew(x, y, h) {
   // Berge mit zwei Pässen
@@ -478,12 +480,12 @@ function heightNew(x, y, h) {
   if (mb > 0) { const pass = Math.max(bumpY(y, 1650, 280), bumpY(y, 3150, 320)); h += Math.pow(mb, 1.4) * (140 + NOISE(x / 300, y / 300) * 170) * (1 - 0.7 * pass); }
   if (x < OLD_W) h = lerp(h, baseH(x, y), clamp((OLD_W - x) / 200, 0, 1));
   // Küste und Meer
-  if (y < 1800 && x > 10100) { const d = oceanEdge(y) - x; h = lerp(h, h * 0.3, 0.6); if (d < 250) h = lerp(OCEAN_LEVEL - 18, h * 0.3, clamp(d / 250, 0, 1)); }
+  if (y < 1650 && x > 10100) { const d = oceanEdge(y) - x; h = lerp(h, h * 0.3, 0.6); if (d < 250) h = lerp(OCEAN_LEVEL - 18, h * 0.3, clamp(d / 250, 0, 1)); }
   // See, Insel, Lager
-  if (x > 10050 && y > 1800) {
+  if (x > 10050 && y > 1650) {
     const ld = lakeDist(x, y);
     if (ld < 1.35) { const k = clamp((ld - 0.8) / 0.55, 0, 1), s = k * k * (3 - 2 * k); h = lerp(LAKE_LEVEL - 16, h, s); }
-    h = flatTo(h, x, y, LM0.insel.x, LM0.insel.y, 70, LAKE_LEVEL + 7, 40);
+    h = flatTo(h, x, y, LM0.insel.x, LM0.insel.y, 105, LAKE_LEVEL + 7, 50);
     h = flatTo(h, x, y, LM0.steinmulde.x, LM0.steinmulde.y, LM0.steinmulde.r - 30, baseH(LM0.steinmulde.x, LM0.steinmulde.y) - 16, 70);
     for (const k of ['schatten2', 'fluss2', 'wind2']) { const l = LM0[k]; h = flatTo(h, x, y, l.x, l.y, l.r, baseH(l.x, l.y)); }
     const md = dist(x, y, LM0.mondsee.x, LM0.mondsee.y); if (md < 420) h += 70 * Math.pow(1 - md / 420, 1.3); if (md < 45) h -= 6;

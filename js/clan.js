@@ -333,7 +333,7 @@ const EVENTS = [
 const PROPHECIES = ['„Wenn der Schnee schmilzt, wird ein Stern fallen.“', '„Drei Pfoten werden den Wald vor dem Sturm bewahren.“', '„Das Wasser wird zurückkehren, wenn die Blätter fallen.“',
   '„Ein Schatten wächst im Kiefernwald.“', '„Wolken werden den Mond verhüllen, doch Licht findet einen Weg.“', '„Nur der Mut eines Jungen wird die Dunkelheit brechen.“'];
 function donnerPlaces() { return G.flags.see ? [LM.buchenhain, LM.zweibeinernest, LM.seeufer] : [LM.schlangenfelsen, LM.platane, LM.eulenbaum, LM.sonnenfelsen]; }
-function borderPoint(k) { if (G.flags.see) return k === 'schatten' ? { x: 10700, y: 2600, name: 'die SchattenClan-Grenze' } : k === 'fluss' ? { x: 10750, y: 3650, name: 'die FlussClan-Grenze' } : { x: 11250, y: 3450, name: 'die WindClan-Grenze' }; return k === 'schatten' ? { x: 2600, y: 1560, name: 'die Grenze am Donnerweg' } : k === 'fluss' ? { x: 1320, y: 2200, name: 'die Sonnenfelsen' } : { x: 1330, y: 1420, name: 'die WindClan-Grenze' }; }
+function borderPoint(k) { if (G.flags.see) return k === 'schatten' ? { x: 10760, y: 2800, name: 'die SchattenClan-Grenze' } : k === 'fluss' ? { x: 10950, y: 4250, name: 'die FlussClan-Grenze' } : { x: 12860, y: 2340, name: 'die WindClan-Grenze' }; return k === 'schatten' ? { x: 2600, y: 1560, name: 'die Grenze am Donnerweg' } : k === 'fluss' ? { x: 1320, y: 2200, name: 'die Sonnenfelsen' } : { x: 1330, y: 1420, name: 'die WindClan-Grenze' }; }
 
 // ===== Aufträge (Missionen) =====
 function makeMission(type, o = {}) {
@@ -488,12 +488,23 @@ function foreignPatrols(dt) {
 function populateCamps() {
   const pc = P();
   for (const cp of OB.camps) {
-    if (cp.clan === 'donner' || (cp.clan === 'wind' && G.flags.windExil && !cp.lake) || cp.lake !== !!G.flags.see || G.flags.zerstoert) continue;
-    const near = dist(pc.x, pc.y, cp.lm.x, cp.lm.y) < 900;
+    if (cp.clan === 'donner' || (cp.clan === 'wind' && G.flags.windExil && !cp.lake) || cp.lake !== !!G.flags.see || (G.flags.zerstoert && !cp.lake)) continue;
+    const near = dist(pc.x, pc.y, cp.lm.x, cp.lm.y) < 1000;
     const have = ENTS.filter(e => e.campOf === cp.clan);
-    if (near && !have.length) for (let i = 0; i < 6; i++) spawnClanCat(cp.clan, cp.lm.x + rand(-100, 100), cp.lm.y + rand(-100, 100), { hostile: false, campOf: cp.clan, wander: { x: cp.lm.x, y: cp.lm.y, r: 140 }, rank: pick(['krieger', 'krieger', 'koenigin', 'aeltester', 'schueler']) });
+    if (near && !have.length) {
+      // Ein ganzes Lager: Anführer, Heiler, Krieger, Schüler, Königin mit Jungen, Älteste
+      const L0 = cp.lm, at = (r) => { const a = Math.random() * TAU, d = Math.random() * r; return [L0.x + Math.cos(a) * d, L0.y + Math.sin(a) * d]; };
+      const add = (rank, o = {}) => { const [x, y] = at(o.r || 120); return spawnClanCat(cp.clan, x, y, Object.assign({ hostile: false, campOf: cp.clan, rank, wander: { x: L0.x, y: L0.y, r: o.r || 140 } }, o)); };
+      add('anfuehrer', { id: 'lager_' + cp.clan, name: clanLeaderName(cp.clan), look: leaderLook(cp.clan), r: 50 });
+      add('heiler', { r: 90 });
+      for (let i = 0; i < 4; i++) add('krieger');
+      for (let i = 0; i < 2; i++) add('schueler');
+      add('koenigin', { r: 70 });
+      for (let i = 0; i < 2; i++) add('junges', { kit: true, r: 60 });
+      add('aeltester', { r: 80 });
+    }
     if (!near) have.forEach(e => e.gone = true);
-    if (near && dist(pc.x, pc.y, cp.lm.x, cp.lm.y) < cp.lm.r && !Story.noPatrols()) for (const e of have) if (!e.hostile && !e.defeated && G.others[cp.clan].rel < 80) { e.hostile = true; e.wander = null; if (chance(0.3)) say(e, 'Ein Eindringling im Lager!'); }
+    if (near && dist(pc.x, pc.y, cp.lm.x, cp.lm.y) < cp.lm.r && !Story.noPatrols()) for (const e of have) if (!e.hostile && !e.defeated && !e.kit && !['koenigin', 'aeltester', 'heiler'].includes(e.rank) && G.others[cp.clan].rel < 80) { e.hostile = true; e.wander = null; if (chance(0.3)) say(e, 'Ein Eindringling im Lager!'); }
   }
 }
 

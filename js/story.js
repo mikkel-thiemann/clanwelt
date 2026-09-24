@@ -812,9 +812,9 @@ const QUESTS = [
       {
         t: 'custom', noPatrol: true,
         enter() { G.flags.wanderung = 1; startMigration(); },
-        text: () => { const pc = P(), cs = clanCats().filter(c => c !== pc && !c.hidden), n = cs.filter(c => dist(c.x, c.y, pc.x, pc.y) < 900).length; return dist(pc.x, pc.y, 10560, 2980) < 380 && n < cs.length * 0.6 ? `Warte, bis alle Clans aufgeholt haben (${n}/${cs.length} DonnerClan-Katzen da)` : 'Die große Wanderung, letzter Tag: Führe alle Clans auf den Hügel über dem See – folge dem gelben Pfeil'; },
-        target: () => ({ x: 10560, y: 2980 }),
-        check: () => { const pc = P(); if (dist(pc.x, pc.y, 10560, 2980) > 380) return false; const cs = clanCats().filter(c => c !== pc && !c.hidden); return cs.filter(c => dist(c.x, c.y, pc.x, pc.y) < 900).length >= cs.length * 0.6; },
+        text: () => { const pc = P(), cs = clanCats().filter(c => c !== pc && !c.hidden), n = cs.filter(c => dist(c.x, c.y, pc.x, pc.y) < 900).length; return dist(pc.x, pc.y, 10350, 3150) < 380 && n < cs.length * 0.6 ? `Warte, bis alle Clans aufgeholt haben (${n}/${cs.length} DonnerClan-Katzen da)` : 'Die große Wanderung, letzter Tag: Führe alle Clans auf den Hügel über dem See – folge dem gelben Pfeil'; },
+        target: () => ({ x: 10350, y: 3150 }),
+        check: () => { const pc = P(); if (dist(pc.x, pc.y, 10350, 3150) > 380) return false; const cs = clanCats().filter(c => c !== pc && !c.hidden); return cs.filter(c => dist(c.x, c.y, pc.x, pc.y) < 900).length >= cs.length * 0.6; },
         dlg: () => [
           ACT({ cap: 'Nach vielen Tagen erreicht ihr einen Hügel. Unter euch glitzert ein riesiger See.', moves: [], cam: { x: LAKE.x, y: LAKE.y }, start() { G.time = Math.floor(G.time / 1440) * 1440 + 19 * 60; }, pass: 150, passT: 5, dist: 900, pitch: 0.35, orbit: 0.05, wait: 4.5 }),
           ['erz', 'Unter euch liegt der See. In der Nacht spiegelt sich das Silbervlies darin – als würde der SternenClan selbst im Wasser leuchten.'],
