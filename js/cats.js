@@ -211,12 +211,12 @@ function updatePrey(dt, pc) {
 
 // ===== Transiente Wesen (Gegner, andere Clans, Tiere) =====
 const BEASTS = {
-  fuchs: { name: 'Fuchs', hp: 70, atk: 11, sp: 185, r: 13, col: '#c8641e' },
-  hund: { name: 'Hund', hp: 110, atk: 14, sp: 215, r: 15, col: '#7a5a3a' },
-  dachs: { name: 'Dachs', hp: 140, atk: 16, sp: 140, r: 15, col: '#555' },
-  meute: { name: 'Anführer der Meute', hp: 9999, atk: 18, sp: 205, r: 18, col: '#3a2e26' },
+  fuchs: { name: 'Fuchs', hp: 70, atk: 11, sp: 185, r: 18, col: '#c8641e' },
+  hund: { name: 'Hund', hp: 110, atk: 14, sp: 215, r: 24, col: '#7a5a3a' },
+  dachs: { name: 'Dachs', hp: 140, atk: 16, sp: 140, r: 20, col: '#555' },
+  meute: { name: 'Anführer der Meute', hp: 9999, atk: 18, sp: 205, r: 28, col: '#3a2e26' },
   ratte: { name: 'Ratte', hp: 16, atk: 4, sp: 165, r: 6, col: '#6a625a' },
-  scharfzahn: { name: 'Scharfzahn', hp: 360, atk: 17, sp: 230, r: 20, col: '#b8925a' },
+  scharfzahn: { name: 'Scharfzahn', hp: 360, atk: 17, sp: 230, r: 30, col: '#b8925a' },
 };
 function spawnBeast(kind, x, y, o = {}) {
   const B = BEASTS[kind];
@@ -386,7 +386,7 @@ function updateEnts(dt) {
     if (e.kind === 'bagger') { // Zweibeiner-Monster fährt hin und her
       const tg = e.leg ? e.b : e.a;
       if (steer(e, tg.x, tg.y, 55, dt, 20)) e.leg = !e.leg;
-      if (dist(e.x, e.y, pc.x, pc.y) < 45 && !(pc.carHit > 0)) { pc.carHit = 1; hurt(pc, 25, e); toast('Vorsicht vor den Monstern der Zweibeiner!'); }
+      if (dist(e.x, e.y, pc.x, pc.y) < 120 && !(pc.carHit > 0)) { pc.carHit = 1; hurt(pc, 25, e); toast('Vorsicht vor den Monstern der Zweibeiner!'); }
       continue;
     }
     if (e.followP) { // folgt dem Spieler (z. B. WindClan auf dem Heimweg, gerettete Junge)
@@ -540,7 +540,7 @@ function carPos(rd, s, lane) {
 let carTimer = 2;
 function updateCars(dt) {
   carTimer -= dt;
-  if (carTimer <= 0) { carTimer = rand(2.2, 6); const d = chance(0.5) ? 1 : -1; const rd = ROADS[chance(0.75) ? 0 : 1]; CARS.push({ rd, s: d > 0 ? 0 : rd.len, d, lane: d > 0 ? 20 : -20, sp: rand(300, 430), col: pick(['#c0392b', '#2980b9', '#f1c40f', '#ecf0f1', '#27ae60', '#8e44ad', '#34495e']) }); }
+  if (carTimer <= 0) { carTimer = rand(2.2, 6); const d = chance(0.5) ? 1 : -1; const rd = ROADS[chance(0.75) ? 0 : 1]; CARS.push({ rd, s: d > 0 ? 0 : rd.len, d, lane: d > 0 ? 70 : -70, sp: rand(650, 900), col: pick(['#c0392b', '#2980b9', '#f1c40f', '#ecf0f1', '#27ae60', '#8e44ad', '#34495e']) }); }
   const pc = P();
   for (let i = CARS.length - 1; i >= 0; i--) {
     const c = CARS[i]; c.s += c.d * c.sp * dt;
@@ -548,7 +548,7 @@ function updateCars(dt) {
     const p = carPos(c.rd, c.s, c.lane); c.x = p.x; c.y = p.y; c.a = p.a + (c.d < 0 ? Math.PI : 0);
     for (const e of [pc, ...ENTS.filter(e => e.kind === 'cat' || e.beast), ...G.cats.filter(k => k.alive && !k.hidden && k !== pc)]) {
       if (e.carHit > 0) continue;
-      if (dist(e.x, e.y, c.x, c.y) < 34) {
+      if (dist(e.x, e.y, c.x, c.y) < 95) {
         e.carHit = 1.2;
         const a = Math.atan2(e.y - c.y, e.x - c.x);
         if (e === pc) { if (G.player.invul <= 0) { hurt(pc, 35, c); toast('Ein Monster hat dich erwischt! Pass auf dem Donnerweg auf!'); } }

@@ -13,15 +13,15 @@ const LM = {
   sonnenfelsen: { x: 1420, y: 2300, r: 170, name: 'Sonnenfelsen' },
   schlangenfelsen: { x: 3700, y: 2350, r: 150, name: 'Schlangenfelsen' },
   schlucht: { x: 3570, y: 2760, r: 110, name: 'Schlucht' },
-  donnerweg: { x: 2300, y: 1520, r: 110, name: 'Donnerweg' },
-  baumgeviert: { x: 1420, y: 1640, r: 190, name: 'Baumgeviert' },
+  donnerweg: { x: 2300, y: 1560, r: 110, name: 'Donnerweg' },
+  baumgeviert: { x: 1450, y: 1700, r: 190, name: 'Baumgeviert' },
   schattenlager: { x: 3250, y: 650, r: 200, name: 'SchattenClan-Lager' },
   flusslager: { x: 560, y: 2350, r: 200, name: 'FlussClan-Lager' },
   windlager: { x: 620, y: 1250, r: 200, name: 'WindClan-Lager' },
   scheune: { x: 380, y: 340, r: 120, name: 'Mikuschs Hof' },
   mondstein: { x: 1000, y: 420, r: 70, name: 'Mondstein (Hochfelsen)' },
   prinzessin: { x: 1700, y: 3700, r: 120, name: 'Prinzessins Garten' },
-  tunnel: { x: 1880, y: 330, r: 110, name: 'Tunnel am Donnerweg' },
+  tunnel: { x: 1760, y: 330, r: 110, name: 'Tunnel am Donnerweg' },
   kraehenort: { x: 2500, y: 260, r: 150, name: 'Krähenort' },
   hochkiefern: { x: 3350, y: 3150, r: 120, name: 'Hochkiefern' },
   baumsaege: { x: 3300, y: 3720, r: 150, name: 'Baumsägeort' },
@@ -94,7 +94,7 @@ const ROADS = (() => {
 const roadGrid = new Map();
 for (const rd of ROADS) for (let i = 1; i < rd.pts.length; i++) {
   const [ax, ay] = rd.pts[i - 1], [bx, by] = rd.pts[i], sg = { ax, ay, bx, by, c0: rd.cum[i - 1], l: rd.cum[i] - rd.cum[i - 1] };
-  const i0 = Math.floor((Math.min(ax, bx) - 140) / CELL), i1 = Math.floor((Math.max(ax, bx) + 140) / CELL), j0 = Math.floor((Math.min(ay, by) - 140) / CELL), j1 = Math.floor((Math.max(ay, by) + 140) / CELL);
+  const i0 = Math.floor((Math.min(ax, bx) - 330) / CELL), i1 = Math.floor((Math.max(ax, bx) + 330) / CELL), j0 = Math.floor((Math.min(ay, by) - 330) / CELL), j1 = Math.floor((Math.max(ay, by) + 330) / CELL);
   for (let p = i0; p <= i1; p++) for (let q = j0; q <= j1; q++) { const k = p * 4096 + q; let arr = roadGrid.get(k); if (!arr) roadGrid.set(k, arr = []); arr.push(sg); }
 }
 // Abstand zum nächsten Donnerweg; setzt RD.x/RD.y (nächster Punkt auf der Straße) und RD.along (Weglänge)
@@ -107,14 +107,16 @@ function roadDist(x, y) {
   }
   return RD.d;
 }
-function inRoad(x, y) { return roadDist(x, y) < 46; }
+const ROAD_HW = 140; // halbe Straßenbreite
+function inRoad(x, y) { return roadDist(x, y) < ROAD_HW; }
 // Liegt der Punkt nördlich des Hauptwegs (Hochfelsen-/SchattenClan-Seite)?
 function northOfRoad(x, y) {
   if (x < ROAD_J) return y < diagY(x);
   return y < roadY(Math.min(x, ROAD_BEND - 150)) + (x > ROAD_BEND - 150 ? 150 : 0);
 }
 function riverOn(y) { return y > RIVER_TOP && y < 3440; }
-function inRiver(x, y) { return riverOn(y) && Math.abs(x - riverX(y)) < 52 && !inRoad(x, y); }
+const RIVER_HW = 115; // halbe Flussbreite
+function inRiver(x, y) { return riverOn(y) && Math.abs(x - riverX(y)) < RIVER_HW && !inRoad(x, y); }
 function marshPool(x, y) { return y < 1150 && x > 2350 && x < 4300 && NOISE(x / 260 + 50, y / 260 + 50) > 0.7; }
 function isWater(x, y) { return inRiver(x, y) || marshPool(x, y) || inLake(x, y) || inOcean(x, y); }
 function territoryAt(x, y, raw) {
@@ -139,7 +141,7 @@ function territoryAt(x, y, raw) {
   if (northOfRoad(x, y)) return x < branchX(y) || x > 4500 ? 'hochland' : 'schatten';
   if (x > ROAD_BEND) return 'hochland';
   if (y < windS(x) && x < windE(y)) return 'wind';
-  if (x < riverX(y) + 52) return 'fluss';
+  if (x < riverX(y) + RIVER_HW) return 'fluss';
   return 'donner';
 }
 
@@ -149,16 +151,16 @@ let terrainCanvas = null;
 function groundColor(x, y, o) {
   const n = NOISE(x / 220, y / 220), m = NOISE(x / 35 + 300, y / 35 + 300), j = (m - 0.5) * 18;
   let r, g, b;
-  if (roadDist(x, y) < 46) {
+  if (roadDist(x, y) < ROAD_HW) {
     const dy = RD.d, along = RD.along;
-    if (dy < 2.5 && Math.floor(along / 70) % 2 === 0) { r = 215; g = 210; b = 180; }
-    else if (dy > 41) { r = 95; g = 92; b = 84; }
+    if (dy < 5 && Math.floor(along / 200) % 2 === 0) { r = 215; g = 210; b = 180; }
+    else if (dy > ROAD_HW - 10) { r = 95; g = 92; b = 84; }
     else { r = 58; g = 58; b = 62; }
     o[0] = r + j * .4; o[1] = g + j * .4; o[2] = b + j * .4; return o;
   }
   const rd = Math.abs(x - riverX(y));
-  if (riverOn(y) && rd < 52) { const t = rd / 52; o[0] = 35 + t * 25 + j * .5; o[1] = 88 + t * 30 + j * .5; o[2] = 145 - t * 10 + (m > 0.62 ? 20 : 0); return o; }
-  if (riverOn(y) && rd < 68) { o[0] = 140 + j; o[1] = 128 + j; o[2] = 92 + j; return o; }
+  if (riverOn(y) && rd < RIVER_HW) { const t = rd / RIVER_HW; o[0] = 35 + t * 25 + j * .5; o[1] = 88 + t * 30 + j * .5; o[2] = 145 - t * 10 + (m > 0.62 ? 20 : 0); return o; }
+  if (riverOn(y) && rd < RIVER_HW + 22) { o[0] = 140 + j; o[1] = 128 + j; o[2] = 92 + j; return o; }
   if (inOcean(x, y)) { const d = x - oceanEdge(y); o[0] = 40 + j * .4; o[1] = 90 - Math.min(40, d / 8) + j * .4; o[2] = 150 - Math.min(30, d / 10); return o; }
   if (inLake(x, y)) { const d = 1 - lakeDist(x, y); o[0] = 35 + j * .4; o[1] = 90 - d * 30; o[2] = 140 - d * 20; return o; }
   const t = territoryAt(x, y, true);
@@ -220,8 +222,8 @@ function addRock(R, x, y, r, collide = true, col) {
   if (collide) addCol(x, y, r * 0.85);
 }
 function addTree(R, x, y, kind, big) {
-  const r = big ? big : (kind === 'pine' ? 30 + R() * 16 : 36 + R() * 26);
-  const t = { x, y, r, tr: big ? 30 : 9 + R() * 5, k: kind, c: R() };
+  const r = big ? big * 1.9 : (kind === 'pine' ? 75 + R() * 35 : 120 + R() * 90);
+  const t = { x, y, r, tr: big ? 55 : (kind === 'pine' ? 15 + R() * 8 : 18 + R() * 16), k: kind, c: R() };
   OB.trees.push(t); addCol(x, y, t.tr);
 }
 function addBush(x, y, r, k) { const b = { x, y, r, k }; OB.bushes.push(b); gridAdd(bushGrid, b, r); }
@@ -260,7 +262,7 @@ function buildObjects() {
   addRect(3496, 3476, 8, 460, 'fence');
   for (let i = 0; i < 4; i++) for (let j = 0; j < 2; j++) {
     const x = 3620 + i * 380, y = 3530 + j * 330;
-    if (Math.abs(x + 120 - ROAD_BEND) < 200) continue;
+    if (Math.abs(x + 120 - ROAD_BEND) < 330) continue;
     OB.houses.push({ x, y, w: 240, h: 190, roof: ['#6e4a3a', '#5a5f6e', '#7a3030', '#8a3b2e'][(i + j) % 4] }); addRect(x, y, 240, 190, 'house');
   }
   OB.flats.push({ k: 'bed', x: 2100, y: 3890 });
@@ -314,26 +316,26 @@ function buildObjects() {
   // --- Wald, Moor, Sumpf ---
   for (let gy = 30; gy < H; gy += 60) for (let gx = 30; gx < W; gx += 60) {
     const x = gx + (R() - 0.5) * 48, y = gy + (R() - 0.5) * 48, rr = R(), t = territoryAt(x, y, true);
-    if (roadDist(x, y) < 90) continue;
+    if (roadDist(x, y) < ROAD_HW + 60) continue;
     if (isWater(x, y) && !marshPool(x, y)) continue;
     if (x > 6250 && y > 1800 && lakeDist(x, y) < 1.12) { if (rr < 0.3 && lakeDist(x, y) > 1.02) addBush(x, y, 18 + R() * 8, 'reed'); continue; }
-    if (t === 'berge') { if (rr < 0.09) addRock(R, x, y, 20 + R() * 45, true, 115 + R() * 30 | 0); else if (rr < 0.14) addTree(R, x, y, 'pine'); continue; }
+    if (t === 'berge') { if (rr < 0.09) addRock(R, x, y, 20 + R() * 45, true, 115 + R() * 30 | 0); else if (rr < 0.11) addTree(R, x, y, 'pine'); continue; }
     if (t === 'kueste') { if (x > oceanEdge(y) - 180) continue; if (rr < 0.06) addBush(x, y, 16 + R() * 10, R() < 0.5 ? 'heather' : 'reed'); else if (rr < 0.07) addRock(R, x, y, 14 + R() * 16); continue; }
-    if (riverOn(y) && Math.abs(x - riverX(y)) < 85 && x < OLD_W) { if (rr < 0.28 && Math.abs(x - riverX(y)) > 58) addBush(x, y, 18 + R() * 8, 'reed'); continue; }
+    if (riverOn(y) && Math.abs(x - riverX(y)) < RIVER_HW + 45 && x < OLD_W) { if (rr < 0.35 && Math.abs(x - riverX(y)) > RIVER_HW + 8) addBush(x, y, 20 + R() * 10, 'reed'); continue; }
     if (nearLM(x, y, 40)) continue;
     if (x > 3360 && x < 3500 && y > 2540 && y < 2970) continue;
     if (dist(x, y, HOCH.x, HOCH.y) < 260 || dist(x, y, LM0.kraehenort.x, LM0.kraehenort.y) < 190) { if (rr < 0.04) addRock(R, x, y, 14 + R() * 20); continue; }
-    if (t === 'zweibeiner' && x > 3110 && x < 3490 && y < 3940 && y > 3500) { if (rr < 0.2 && (x < 3230 || y < 3680)) addTree(R, x, y, 'pine'); continue; }
+    if (t === 'zweibeiner' && x > 3110 && x < 3490 && y < 3940 && y > 3500) { if (rr < 0.08 && (x < 3230 || y < 3680)) addTree(R, x, y, 'pine'); continue; }
     if (dist(x, y, LM0.steinmulde.x, LM0.steinmulde.y) < LM0.steinmulde.r + 30) continue;
     if (t === 'donner') {
-      if (rr < 0.27) addTree(R, x, y, R() < 0.15 ? 'birch' : 'oak');
-      else if (rr < 0.5) addBush(x, y, 20 + R() * 14, R() < 0.7 ? 'fern' : 'bramble');
+      if (rr < 0.075) addTree(R, x, y, R() < 0.15 ? 'birch' : 'oak');
+      else if (rr < 0.36) addBush(x, y, 26 + R() * 22, R() < 0.7 ? 'fern' : 'bramble');
     } else if (t === 'schatten') {
       if (marshPool(x, y)) { if (rr < 0.1) addBush(x, y, 16, 'reed'); continue; }
-      if (rr < 0.33) addTree(R, x, y, 'pine');
-      else if (rr < 0.37) addBush(x, y, 18 + R() * 10, R() < 0.5 ? 'reed' : 'fern');
+      if (rr < 0.1) addTree(R, x, y, 'pine');
+      else if (rr < 0.16) addBush(x, y, 22 + R() * 14, R() < 0.5 ? 'reed' : 'fern');
     } else if (t === 'fluss') {
-      if (rr < 0.08) addTree(R, x, y, 'willow');
+      if (rr < 0.035) addTree(R, x, y, 'willow');
       else if (rr < 0.2) addBush(x, y, 18 + R() * 10, R() < 0.5 ? 'reed' : 'fern');
     } else if (t === 'wind') {
       if (rr < 0.012) addTree(R, x, y, 'oak');
@@ -342,7 +344,7 @@ function buildObjects() {
     } else if (t === 'hochland') {
       if (rr < 0.05) addRock(R, x, y, 16 + R() * 26);
       else if (rr < 0.12) addBush(x, y, 16, 'heather');
-      else if (rr < 0.135 && x > ROAD_BEND) addTree(R, x, y, 'pine');
+      else if (rr < 0.126 && x > ROAD_BEND) addTree(R, x, y, 'pine');
     } else if (t === 'zweibeiner') {
       if (y < 3920 && y > 3500 && x > 1110 && x < 3490 && rr < 0.06) addBush(x, y, 16 + R() * 8, 'garden');
     }
@@ -421,9 +423,9 @@ function heightAt(x, y) {
   if (y > 3300) h = lerp(h, 0, clamp((y - 3300) / 150, 0, 1));
   // Straße
   const rd = roadDist(x, y);
-  if (rd < 110) { const k = clamp((rd - 50) / 60, 0, 1), s = k * k * (3 - 2 * k); h = lerp(roadLevel(x, y) - 1.5, h, s); }
+  if (rd < ROAD_HW + 150) { const k = clamp((rd - ROAD_HW - 10) / 140, 0, 1), s = k * k * (3 - 2 * k); h = lerp(roadLevel(x, y) - 1.5, h, s); }
   // Fluss
-  if (y < 3460 && y > RIVER_TOP - 10) { const d = Math.abs(x - riverX(y)); if (d < 75) { const k = clamp((d - 42) / 33, 0, 1), s = k * k * (3 - 2 * k); h = lerp(baseH(riverX(y), y) - 17, h, s); } }
+  if (y < 3460 && y > RIVER_TOP - 10) { const d = Math.abs(x - riverX(y)); if (d < RIVER_HW + 40) { const k = clamp((d - RIVER_HW + 15) / 55, 0, 1), s = k * k * (3 - 2 * k); h = lerp(baseH(riverX(y), y) - 17, h, s); } }
   if (marshPool(x, y)) h -= 5;
   // Schlucht
   if (x > 3360 && x < 3500 && y > 2540 && y < 2970) { const k = Math.min(x - 3360, 3500 - x, y - 2540, 2970 - y); h = lerp(h, -70, clamp(k / 25, 0, 1)); }

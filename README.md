@@ -31,6 +31,8 @@ Freunde sterben, neue Feinde tauchen auf. Du führst den Clan durch viele Monde.
 - **Anführer-Entscheidungen:** Beutemangel, fremde Katzen, Streit, Krankheit, Prophezeiungen, Überfälle, Zeremonien
 - **Mehrere Generationen:** Andere Clan-Katzen spielen; stirbt der Anführer, geht es mit dem Nachfolger weiter
 - **Lebensweg:** Blick zurück vom kleinen Hauskätzchen bis heute
+- **Echte Größen:** Alles hat die richtige Größe im Vergleich zu einer Katze: dicke, hohe Bäume, große Hunde und Dachse, breite Donnerwege mit riesigen Monstern, hohe Häuser und Zäune, ein breiterer Fluss.
+- **Zeit vergeht wirklich:** Statt „Tagelang regnet es“ nur zu lesen, erlebst du die Tage: Regen, Hitze, Nachtlager, Suchen. Die große Wanderung zum See, die Heimreise vom Wassernest und die Reise zum Stamm dauern mehrere Tage mit Nachtlagern.
 - **Staffel 3 – Die Macht der Drei (Buch 13–18):** Der geheime Blick, Fluss der Finsternis, Verbannt, Zeit der Dunkelheit, Lange Schatten, Sonnenaufgang. Du spielst Löwenpfote/Löwenglut: die Prophezeiung der Drei, Häherpfotes Gabe, Träume vom dunklen Wald, Heidepfote und die Tunnel, die Reise zum Stamm, Sol und die verschwundene Sonne, das Feuer in der Steinmulde und die Wahrheit über eure Eltern.
 - **Mehr Staffel 2:** Purdy und der Bergpass, niemand glaubt den Auserwählten, Abschied vom alten Wald, das neue Lager, Blattpfotes Geheimnis und dunkle Träume.
 - **Filmszenen:** Wichtige Momente werden gezeigt, nicht nur erzählt – Blaustern geht ins Ahnentor zum Mondstein, der SternenClan schreitet aus dem Sternenlicht, Tigerkralle flieht aus dem Lager, der WindClan rennt heim ins Moor, Blaustern stürzt mit dem Hund in die Schlucht und vieles mehr (Leertaste überspringt).

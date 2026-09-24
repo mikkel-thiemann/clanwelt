@@ -280,12 +280,12 @@ function animateCat(m, e, t, dt, o) {
 
 // ---------- Tiere ----------
 const BEAST_LOOK = {
-  fuchs: { len: 17, h: 7, col: '#c8641e', leg: '#3a2418', snout: 1, ears: 'spitz', tail: 'buschig', tip: '#fff', scale: 1.05 },
-  hund: { len: 20, h: 9, col: '#8a6a44', leg: '#6a4e30', snout: 0.8, ears: 'haengend', tail: 'duenn', scale: 1.25 },
-  meute: { len: 22, h: 10, col: '#3a2e26', leg: '#2a201a', snout: 0.9, ears: 'spitz', tail: 'duenn', scale: 1.6 },
-  dachs: { len: 18, h: 6.5, col: '#5a5a5a', leg: '#222', snout: 0.7, ears: 'klein', tail: 'kurz', head: '#eee', scale: 1.15 },
-  ratte: { len: 7, h: 3.4, col: '#6a625a', leg: '#6a625a', snout: 0.8, ears: 'klein', tail: 'lang', scale: 1 },
-  scharfzahn: { len: 23, h: 9, col: '#b8925a', leg: '#9a7440', snout: 0.55, ears: 'klein', tail: 'lang', scale: 1.8 },
+  fuchs: { len: 17, h: 7, col: '#c8641e', leg: '#3a2418', snout: 1, ears: 'spitz', tail: 'buschig', tip: '#fff', scale: 1.6 },
+  hund: { len: 20, h: 9, col: '#8a6a44', leg: '#6a4e30', snout: 0.8, ears: 'haengend', tail: 'duenn', scale: 2.1 },
+  meute: { len: 22, h: 10, col: '#3a2e26', leg: '#2a201a', snout: 0.9, ears: 'spitz', tail: 'duenn', scale: 2.3 },
+  dachs: { len: 18, h: 6.5, col: '#5a5a5a', leg: '#222', snout: 0.7, ears: 'klein', tail: 'kurz', head: '#eee', scale: 1.6 },
+  ratte: { len: 7, h: 3.4, col: '#6a625a', leg: '#6a625a', snout: 0.8, ears: 'klein', tail: 'lang', scale: 1.35 },
+  scharfzahn: { len: 23, h: 9, col: '#b8925a', leg: '#9a7440', snout: 0.55, ears: 'klein', tail: 'lang', scale: 2.5 },
 };
 function makeBeastModel(kind) {
   const L = BEAST_LOOK[kind], g = geos(), root = new THREE.Group(), body = new THREE.Group(); root.add(body);
@@ -362,7 +362,7 @@ function makePreyModel(k) {
 
 // ---------- Auto ----------
 function makeCarModel(col) {
-  const g = geos(), root = new THREE.Group();
+  const g = geos(), root = new THREE.Group(); root.scale.setScalar(3.8);
   const b = mk(g.box, toonMat({ color: col }), 76, 16, 34, 0, 14, 0, root); b.castShadow = true;
   mk(g.box, sharedMat('#2a3440'), 38, 13, 30, -4, 28, 0, root);
   for (const [x, z] of [[24, 16], [24, -16], [-24, 16], [-24, -16]]) { const w = mk(g.cyl, sharedMat('#151515'), 7, 5, 7, x, 7, z, root); w.rotation.x = Math.PI / 2; }
@@ -377,7 +377,7 @@ function makeBaggerModel() {
   const arm = new THREE.Group(); arm.position.set(34, 34, 0); root.add(arm);
   mk(g.box, y, 46, 8, 10, 22, 0, 0, arm);
   mk(g.box, sharedMat('#6a6a6a'), 10, 26, 46, 46, -12, 0, arm);
-  root.userData = { arm }; root.scale.setScalar(1.3);
+  root.userData = { arm }; root.scale.setScalar(3.4);
   return root;
 }
 function disposeModel(m) {

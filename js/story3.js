@@ -133,7 +133,7 @@ insertQuestsAfter('Die neue Heimat', [duty(10, 'Das neue Lager', {
   who: 'sammy', talkText: 'Feuerstern verteilt die Arbeit im neuen Lager', guide: 'sandpfote',
   intro: [['sammy', 'Die Steinmulde braucht Baue, und wir müssen unser Territorium kennenlernen. Brombeerkralle, geh mit Sandsturm auf Patrouille – danach jagt ihr.']],
   patrol: ['seeufer', 'zweibeinernest'], at: { seeufer: [['sandpfote', 'Hier beginnt das Gebiet des FlussClans. Riechst du die Fischluft?']], zweibeinernest: [['sandpfote', 'Die Zweibeiner kommen nur in der Blattgrüne hierher. Pass trotzdem auf.']] },
-  hunt: 3, outro: [['sammy', 'Gut gemacht. Der Frischbeutehaufen ist voll – zum ersten Mal seit Monden.'], ['erz', 'Nacht für Nacht wächst das neue Lager. Die Krieger flechten Brombeerranken zu Bauen.']], fx: { food: 10, morale: 6 },
+  hunt: 3, outro: [['sammy', 'Gut gemacht. Der Frischbeutehaufen ist voll – zum ersten Mal seit Monden.'], ACT({ cap: 'Nacht für Nacht wächst das neue Lager. Die Krieger flechten Brombeerranken zu Bauen, die Schüler schleppen Moos.', moves: [], cam: 'player', pass: 1440, passT: 6, dist: 260, pitch: 0.45, orbit: 0.15, wait: 5 })], fx: { food: 10, morale: 6 },
 })]);
 
 // Buch 11: Blattpfote läuft davon
@@ -354,7 +354,7 @@ QUESTS.push(
   },
   {
     ch: 14, title: 'Der Fluss der Finsternis', steps: [
-      { t: 'scene', dlg: () => [['erz', 'Tagelang regnet es. Blattsee und Häherpfote sehen besorgt aus.'], ['haeherjunges', 'Das Wasser in den Tunneln steigt. Ich spüre es in meinen Pfoten. Wenn heute Nacht jemand dort unten ist …'], ['player', 'Heidepfote! Sie wollte mich heute treffen!']], done() { G.weather = 'regen'; } },
+      { t: 'scene', dlg: () => [['erz', 'Der Regen hört einfach nicht auf. Blattsee und Häherpfote sehen besorgt aus.'], ['haeherjunges', 'Das Wasser in den Tunneln steigt. Ich spüre es in meinen Pfoten. Wenn heute Nacht jemand dort unten ist …'], ['player', 'Heidepfote! Sie wollte mich heute treffen!']], done() { G.weather = 'regen'; } },
       {
         t: 'goto', at: 'tunnelein', noPatrol: true, text: 'Schnell zu den Tunneln – Heidepfote ist in Gefahr!', enter() { G.weather = 'regen'; follow('haeherjunges'); follow('distelpfote'); const h = catById('heidepfote'); h.hidden = true; windKatze('windpfote', 'Wind', L('#1e1e22', null, 0, '#e8b923'), { sex: 'm' }).hidden = true; },
         dlg: () => [
@@ -522,7 +522,7 @@ QUESTS.push(
       { t: 'talk', who: 'haeherjunges', text: 'Frag Häherpfote, was er spürt', dlg: () => [['haeherjunges', 'Ich habe Blattsee beobachtet. Sie wird traurig, wenn wir in ihrer Nähe sind. Und sie riecht … irgendwie vertraut.'], ['player', 'Du meinst …?'], ['haeherjunges', 'Ich meine gar nichts. Noch nicht.']] },
       {
         t: 'scene', dlg: () => [
-          ['erz', 'Am nächsten Morgen: Aufregung am Bach an der Grenze. Aschenpelz liegt im Wasser. Tot.'],
+          ['erz', 'Im Morgengrauen: Aufregung am Bach an der Grenze. Aschenpelz liegt im Wasser. Tot.'],
           { do: () => { const a = catById('aschenfell'); if (a && a.alive) killCat(a, 'Aschenpelz wird tot im Bach gefunden.'); } },
           ['sammy', 'Wer tut so etwas? Wer tötet einen Clan-Gefährten?'],
           ['distelpfote', '(sehr leise, zitternd) … Er hätte es allen erzählt. Er hätte den Clan zerstört.'],
@@ -575,7 +575,7 @@ QUESTS.push(
   },
   {
     ch: 18, title: 'Sonnenaufgang', steps: [
-      { t: 'scene', dlg: () => [['erz', 'Tagelang sucht der Clan nach Distelblatt. Vergeblich.'], ['blattjunges', 'Feuerstern. Ich habe das Gesetz der Krieger gebrochen. Ich kann nicht länger Heilerin sein. Häherfeder ist bereit.'], ['sammy', 'Blattsee … Der SternenClan wird entscheiden. Aber der Clan wird dich nicht verstoßen.'], { do: () => { const b = catById('blattjunges'); if (b) setRank(b, 'krieger'); } }] },
+      { t: 'scene', dlg: () => [['erz', 'Tagelang habt ihr gesucht. Von Distelblatt gibt es keine Spur.'], ['blattjunges', 'Feuerstern. Ich habe das Gesetz der Krieger gebrochen. Ich kann nicht länger Heilerin sein. Häherfeder ist bereit.'], ['sammy', 'Blattsee … Der SternenClan wird entscheiden. Aber der Clan wird dich nicht verstoßen.'], { do: () => { const b = catById('blattjunges'); if (b) setRank(b, 'krieger'); } }] },
       {
         t: 'goto', at: 'seeufer', guide: 'haeherjunges', guideSay: 'Komm, Löwenglut. Zum See, bei Sonnenaufgang.', text: 'Geh mit Häherfeder bei Sonnenaufgang ans Seeufer', enter() { follow('haeherjunges'); G.time = Math.floor(G.time / 1440) * 1440 + 1440 + 5 * 60; },
         dlg: () => [
@@ -597,6 +597,126 @@ QUESTS.push(
     ]
   },
 );
+
+
+// ================= ZEIT VERGEHT WIRKLICH: Warten, Schlafen, Suchen, mehrtägige Reisen =================
+// Tage vergehen (mit Wetter). Man kann jagen, dem Clan helfen oder mit E ausruhen.
+function waitDays(n, text, o = {}) {
+  return {
+    t: 'custom', camp: true, noPatrol: !!o.noPatrol,
+    text: () => { const left = Math.max(0, Math.ceil((G.story.waitUntil - G.time) / 1440)); return `${text} – noch ${left} ${left === 1 ? 'Tag' : 'Tage'} (jage, hilf dem Clan oder ruh dich aus mit E)`; },
+    enter() { G.story.waitUntil = (day() + n) * 1440 + 7 * 60; if (o.weather !== undefined) G.weather = o.weather; },
+    tick() { if (o.weather !== undefined && G.weather !== o.weather) G.weather = o.weather; },
+    check: () => G.time >= G.story.waitUntil, dlg: o.dlg,
+  };
+}
+// Eine Nacht durchschlafen (erst wenn mindestens 6 Stunden vergangen sind und es Morgen ist)
+function sleepStep(text, lines, fol) {
+  return {
+    t: 'custom', camp: true, noPatrol: true, text: () => (text || 'Schlaf bis zum Morgen (E: ausruhen)') + (G.time - (G.story.sleepFrom || 0) < 360 && hour() >= 6 && hour() < 17 ? ' – ruh dich erst bis zum Abend aus, dann schlaf' : ''),
+    enter() { G.story.sleepFrom = G.time; if (fol) fol(); },
+    check: () => G.time - (G.story.sleepFrom || 0) >= 360 && hour() >= 6 && hour() < 11,
+    dlg: () => [ACT({ cap: 'Die Sonne geht auf. Ein neuer Tag beginnt.', moves: [], cam: 'player', dist: 200, pitch: 0.35, orbit: 0.1, wait: 2 }), ...(lines || [])],
+  };
+}
+// Nachtlager unterwegs: alle Begleiter rollen sich um dich herum zusammen
+function campAt(cap, idsFn, lines, fol) {
+  return {
+    t: 'night', camp: true, noPatrol: true, text: 'Es wird Abend. Rastet, bis es Nacht ist (E: ausruhen)', enter() { if (fol) fol(); },
+    dlg: () => [ACT({ cap, moves: idsFn().map((id, i) => [id, 'player', { dx: Math.cos(i * 1.1) * (40 + i * 6), dy: Math.sin(i * 1.1) * (40 + i * 6), sp: 60, sleep: true }]), cam: 'player', dist: 190, pitch: 0.45, orbit: 0.12, wait: 2 }), ...(lines || [])],
+  };
+}
+// Ein Wegstück einer Reise
+function leg(pos, text, lines, fol, o = {}) { return Object.assign({ t: 'goto', noPatrol: true, pos: () => Object.assign({ r: 110 }, pos), text, enter() { if (fol) fol(); }, dlg: lines ? () => lines : undefined }, o); }
+const journeyIds = () => JOURNEY.filter(id => { const c = catById(id); return c && c.alive && !c.hidden; });
+const journey3Ids = () => JOURNEY3.filter(id => { const c = catById(id); return c && c.alive && !c.hidden; });
+const clanNear = () => clanCats().filter(c => c !== P() && !c.hidden && dist(c.x, c.y, P().x, P().y) < 700).slice(0, 10).map(c => c.id);
+
+// --- Buch 1: Die Nacht im Körbchen ---
+insertStepsBefore('Prolog: Ein Hauskätzchen träumt', st => st.at === 'waldrand' && st.enter, [
+  sleepStep('Schlaf in deinem Körbchen bis zum Morgen (E: ausruhen)', [['wulle', '(ruft über den Zaun) Sammy! Geh nicht! Du wirst nie wiederkommen!'], ['player', 'Doch, Wulle. Ich muss.']]),
+]);
+// --- Buch 3: Tagelanger Regen vor der Flut ---
+insertStepsBefore('Die Flut', st => st.t === 'scene', [waitDays(2, 'Blattfrische: Es regnet und regnet. Der Fluss steigt', { weather: 'regen' })]);
+// --- Buch 4: Hitze vor dem Feuer ---
+insertStepsBefore('Feuer!', st => st.t === 'scene', [waitDays(2, 'Blattgrüne: Seit Tagen kein Regen. Die Beute versteckt sich vor der Hitze', { weather: null })]);
+// --- Buch 6: Sandsturm erwartet Junge ---
+insertStepsBefore('Die letzte Schlacht', st => st.t === 'scene', [waitDays(3, 'Der Wald erholt sich vom Kampf. Sandsturm erwartet Junge – versorge die Kinderstube mit Beute')]);
+// --- Buch 9: Die Monster kommen näher ---
+insertStepsBefore('Der sterbende Wald', st => st.t === 'scene', [waitDays(1, 'Die Monster der Zweibeiner fressen sich durch den Wald. Jage, was du noch findest')]);
+
+// --- Buch 8: Die Heimreise vom Wassernest der Sonne dauert Tage ---
+insertStepsBefore('Der Stamm des eilenden Wassers', st => st.at === 'stamm', [
+  sleepStep('Schlaft in den Dünen bis zum Morgen (E: ausruhen)', [['eichhornjunges', 'Jetzt müssen wir den ganzen Weg zurück … und schnell. Der Wald ist in Gefahr!']], journeyFollow),
+  leg({ x: 6650, y: 1300 }, 'Heimreise Tag 1: Zurück durch die Dünen zu den Bergen', [['kraehenpfote', 'Diesmal verlaufen wir uns nicht. Ich hab mir den Weg gemerkt.']], journeyFollow),
+  campAt('Die erste Nacht der Heimreise. Unter euch rauscht irgendwo ein Wasserfall.', journeyIds, [['sturmpelz', 'Hört ihr das? Wasser, das über Felsen stürzt. Dort drüben gibt es bestimmt Schutz.']], journeyFollow),
+  sleepStep('Heimreise Tag 2: Schlaft bis zum Morgen (E: ausruhen)', null, journeyFollow),
+]);
+insertStepsBefore('Der Stamm des eilenden Wassers', st => st.at === 'lager', [
+  leg(LM0.bergpass, 'Heimreise Tag 3: Über den Bergpass zurück nach Westen', [['erz', 'Ihr blickt noch einmal zurück zur Höhle des Stammes. Federschweif bleibt für immer in den Bergen.']], journeyFollow),
+  campAt('Eine traurige Nacht. Niemand spricht. Einer fehlt.', journeyIds, [['eichhornjunges', '(leise) Sie war so mutig, Brombeerkralle.'], ['player', 'Ja. Wir werden sie nie vergessen.']], journeyFollow),
+  sleepStep('Heimreise Tag 4: Schlaft bis zum Morgen (E: ausruhen)', null, journeyFollow),
+  leg(LM0.purdy, 'Heimreise Tag 4: Vorbei an Purdys Garten', [['erz', 'Purdy sitzt auf seinem Zaun und winkt euch mit dem Schwanz zu.']], journeyFollow),
+  leg({ x: 2330, y: 760 }, 'Heimreise Tag 4: Über den Donnerweg – fast zu Hause!', null, journeyFollow),
+]);
+
+// --- Buch 9: Die große Wanderung dauert viele Tage ---
+insertStepsBefore('Der sterbende Wald', st => st.t === 'custom' && /Wanderung/.test(st.text), (() => {
+  const mig = () => { if (!G.flags.wanderung) { G.flags.wanderung = 1; startMigration(); } };
+  const mleg = (pos, text, lines) => ({ t: 'custom', noPatrol: true, text, enter: mig, target: () => pos, check: () => { const pc = P(); if (dist(pc.x, pc.y, pos.x, pos.y) > 260) return false; const cs = clanCats().filter(c => c !== pc && !c.hidden); return !cs.length || cs.filter(c => dist(c.x, c.y, pc.x, pc.y) < 900).length >= cs.length * 0.5; }, dlg: lines ? () => lines : undefined });
+  return [
+    mleg({ x: 1300, y: 700 }, 'Die große Wanderung, Tag 1: Führe alle Clans am Baumgeviert vorbei zu den Hochfelsen', [ACT({ cap: 'Ein langer Zug aus Katzen aller vier Clans schlängelt sich durch das Land. Die Ältesten und die Jungen gehen in der Mitte.', moves: [], cam: 'player', dist: 420, pitch: 0.45, orbit: 0.1, wait: 3 })]),
+    campAt('Die erste Nacht fern der Heimat. Katzen aus vier Clans schlafen dicht nebeneinander.', clanNear, [['kleinohr', 'Meine alten Knochen … Aber ich schaffe das. Ich schaffe das.']], mig),
+    sleepStep('Die große Wanderung, Tag 2: Schlaft bis zum Morgen (E: ausruhen)', null, mig),
+    mleg({ x: 2330, y: 760 }, 'Tag 2: Bringt alle sicher über den Donnerweg', [['erz', 'Krieger stellen sich an den Rand des Donnerwegs. Nur wenn kein Monster kommt, huschen die Jungen hinüber.'], ['sammy', 'Alle drüben? Gut. Weiter!']]),
+    { t: 'catch', n: 3, noPatrol: true, text: 'Tag 2: Die Ältesten und Jungen sind erschöpft – jage für die Wanderer', enter: mig, dlg: () => [['goldbluete', 'Danke. Die Jungen hätten keinen Schritt mehr geschafft.']] },
+    mleg({ x: 3900, y: 620 }, 'Tag 2: Weiter durch das Hochland nach Osten'),
+    campAt('Die zweite Nacht. Irgendwo heult ein Fuchs. Die Krieger halten abwechselnd Wache.', clanNear, null, mig),
+    sleepStep('Die große Wanderung, Tag 3: Schlaft bis zum Morgen (E: ausruhen)', null, mig),
+    mleg({ x: LM0.bergpass.x, y: LM0.bergpass.y }, 'Tag 3: Hinauf in die Berge – zum Bergpass', [ACT({ cap: 'Der Weg über die Berge ist steil und kalt. Die Krieger tragen die kleinsten Jungen im Maul.', moves: [], cam: 'player', dist: 380, pitch: 0.4, orbit: 0.1, wait: 3 })]),
+    campAt('Eine eisige Nacht in den Bergen. Alle drängen sich eng zusammen.', clanNear, [['erz', 'Riesenstern, der alte Anführer des WindClans, hustet die ganze Nacht.']], mig),
+    sleepStep('Die große Wanderung, Tag 4: Schlaft bis zum Morgen (E: ausruhen)', null, mig),
+    mleg({ x: 6000, y: 2300 }, 'Tag 4: Steigt die Berge hinab ins Tal'),
+  ];
+})());
+
+// --- Staffel 3, Buch 14: Weitere heimliche Treffen in den Tunneln ---
+insertQuestsAfter('Doppeltes Leben', [{
+  ch: 14, title: 'Heimliche Treffen', steps: [
+    { t: 'night', camp: true, text: 'Wieder ist es Nacht. Schleich dich zu den Tunneln (warte bis zur Nacht)' },
+    leg(LM0.tunnelein, 'Schleich dich zum Tunneleingang', [tunnelWalk('tunnelein', []), ACT({ cap: 'Heidepfote wartet schon am unterirdischen Fluss.', moves: [['heidepfote', 'player', { from: () => ({ x: LM.tunnelein.x + 110, y: LM.tunnelein.y + 60 }), dx: 40, sp: 70 }]], cam: 'heidepfote', dist: 120 }), ['heidepfote', 'Heute zeige ich dir, wie WindClan-Katzen Kaninchen jagen: schnell und flach am Boden!'], ['player', 'Und ich zeig dir den DonnerClan-Jagdkauer. Dafür brauchst du viel Geduld.']], null, { done() { catById('heidepfote').hidden = true; } }),
+    sleepStep('Schlaf bis zum Morgen im Schülerbau (E: ausruhen)', [['aschenfell', 'Schon wieder so müde, Löwenpfote? Du hast Moos in den Ohren. Wo warst du?'], ['player', '… Nirgends.']]),
+    { t: 'night', camp: true, text: 'Die nächste Nacht. Noch ein Treffen (warte bis zur Nacht)' },
+    leg(LM0.tunnelein, 'Schleich dich wieder zu den Tunneln', [tunnelWalk('tunnelein', []), ['heidepfote', 'Löwenpfote … manchmal wünschte ich, wir wären im selben Clan.'], ACT({ cap: 'Da raschelt es hinter dir im Gang. Eine schwarze Gestalt steht im Dunkeln.', moves: [['distelpfote', 'player', { from: () => ({ x: LM.tunnelein.x - 20, y: LM.tunnelein.y - 30 }), dx: -40, sp: 60 }]], cam: 'distelpfote', dist: 120 }), ['distelpfote', 'Ich wusste es! Löwenpfote, du triffst dich mit einer WindClan-Katze?!'], ['player', 'Distelpfote, bitte … sag es niemandem.'], ['distelpfote', 'Dieses eine Mal. Aber es muss aufhören.']], null, { done() { catById('heidepfote').hidden = true; goHome('distelpfote'); } }),
+  ]
+}]);
+// --- Staffel 3, Buch 14: Tagelanger Regen ---
+insertStepsBefore('Der Fluss der Finsternis', st => st.t === 'scene', [waitDays(2, 'Es regnet seit Tagen. Das Wasser im See steigt', { weather: 'regen' })]);
+// --- Staffel 3, Buch 15: Die Reise zum Stamm dauert Tage ---
+insertStepsBefore('Boten aus den Bergen', st => st.at === 'bergpass', [
+  leg({ x: 6050, y: 2350 }, 'Reise Tag 1: Verlasst das Territorium Richtung Berge', [['bach', 'Die Berge sind weiter, als sie aussehen. Spart eure Kräfte.']], journey3Follow),
+  campAt('Die erste Nacht unter freiem Himmel. Häherpfote liegt wach und lauscht dem Wind.', journey3Ids, [['haeherjunges', 'Die Berge flüstern, Löwenpfote. Sie erinnern sich an Katzen, die vor langer Zeit hier waren.']], journey3Follow),
+  sleepStep('Reise Tag 2: Schlaft bis zum Morgen (E: ausruhen)', null, journey3Follow),
+]);
+insertStepsBefore('Boten aus den Bergen', st => st.t === 'catch', [
+  campAt('Eine eisige Nacht am Pass. Schnee fällt auf euer Fell.', journey3Ids, null, journey3Follow),
+  sleepStep('Reise Tag 3: Schlaft bis zum Morgen (E: ausruhen)', null, journey3Follow),
+]);
+insertStepsBefore('Heimkehr und Kriegernamen', st => st.at === 'lager', [
+  leg(LM0.bergpass, 'Heimreise Tag 1: Zurück über den Bergpass', null, journey3Follow),
+  campAt('Die letzte Nacht in den Bergen. Unten im Tal glitzert schon der See.', journey3Ids, null, journey3Follow),
+  sleepStep('Heimreise Tag 2: Schlaft bis zum Morgen (E: ausruhen)', null, journey3Follow),
+]);
+// --- Staffel 3, Buch 17: Die Nacht vor dem Fund am Bach ---
+insertStepsBefore('Wer sind unsere Eltern?', st => st.t === 'scene', [sleepStep('Schlaf bis zum Morgen – wenn du kannst (E: ausruhen)')]);
+// --- Staffel 3, Buch 18: Die Suche nach Distelblatt ---
+insertStepsBefore('Sonnenaufgang', st => st.t === 'scene', [
+  leg(LM0.tunnelein, 'Such Distelblatt am eingestürzten Tunnel', [['erz', 'Nur Geröll und Staub. Du gräbst, bis deine Pfoten bluten. Nichts.']], () => follow('graupfote')),
+  leg(LM0.tunnelaus, 'Such am Tunnelausgang im WindClan-Gebiet', [['erz', 'Auch hier ist der Gang eingestürzt. Kein Geruch von Distelblatt.'], ['graupfote', 'Komm, Löwenglut. Wir suchen morgen weiter.']], () => follow('graupfote')),
+  sleepStep('Schlaf bis zum Morgen (E: ausruhen)', null, () => follow('graupfote')),
+  leg(LM0.seeufer, 'Such am Seeufer', [['erz', 'Nur Wellen und Wind. Keine Pfotenabdrücke.']], () => follow('graupfote')),
+  leg(LM0.buchenhain, 'Such im Buchenhain', [['graupfote', 'Nichts. Es tut mir leid, Löwenglut.']], () => follow('graupfote'), { done() { goHome('graupfote'); } }),
+]);
 
 // ---------- Rückblicke zum Buchanfang ----------
 Object.assign(RECAP, {

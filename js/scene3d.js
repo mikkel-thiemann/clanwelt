@@ -111,7 +111,7 @@ function recolorTerrain(s) {
 function buildWater() {
   const v = [], idx = [];
   let n = 0;
-  for (let y = Math.floor(RIVER_TOP / 20) * 20 - 20; y <= 3470; y += 20) { const yy = clamp(y, RIVER_TOP, 3440), cx = riverX(yy), wl = waterLevel(yy); v.push(cx - 66, wl, y, cx + 66, wl, y); W3.wuv = W3.wuv || []; W3.wuv.push(0, y / 130, 1, y / 130); if (n) idx.push(n * 2 - 2, n * 2, n * 2 - 1, n * 2 - 1, n * 2, n * 2 + 1); n++; }
+  for (let y = Math.floor(RIVER_TOP / 20) * 20 - 20; y <= 3470; y += 20) { const yy = clamp(y, RIVER_TOP, 3440), cx = riverX(yy), wl = waterLevel(yy); v.push(cx - RIVER_HW - 14, wl, y, cx + RIVER_HW + 14, wl, y); W3.wuv = W3.wuv || []; W3.wuv.push(0, y / 130, 1, y / 130); if (n) idx.push(n * 2 - 2, n * 2, n * 2 - 1, n * 2 - 1, n * 2, n * 2 + 1); n++; }
   const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(v, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(W3.wuv, 2)); geo.setIndex(idx); geo.computeVertexNormals();
   const wc = document.createElement('canvas'); wc.width = wc.height = 128; const wg = wc.getContext('2d');
   wg.fillStyle = '#9ab8d8'; wg.fillRect(0, 0, 128, 128);
@@ -128,11 +128,11 @@ function buildWater() {
     const edge = fg.createLinearGradient(0, 0, 64, 0); edge.addColorStop(0, 'rgba(0,0,0,1)'); edge.addColorStop(0.22, 'rgba(0,0,0,0)'); edge.addColorStop(0.78, 'rgba(0,0,0,0)'); edge.addColorStop(1, 'rgba(0,0,0,1)');
     fg.globalCompositeOperation = 'destination-out'; fg.fillStyle = edge; fg.fillRect(0, 0, 64, 128);
     const ft = new THREE.CanvasTexture(fc); ft.wrapT = THREE.RepeatWrapping; ft.colorSpace = THREE.SRGBColorSpace; ft.repeat.set(1, 1.2); W3.fallTex = ft;
-    const fall = new THREE.Mesh(new THREE.PlaneGeometry(120, 1, 1, 1).translate(0, 0.5, 0), new THREE.MeshBasicMaterial({ color: 0xffffff, map: ft, transparent: true, opacity: 0.92, side: THREE.DoubleSide, depthWrite: false }));
+    const fall = new THREE.Mesh(new THREE.PlaneGeometry(250, 1, 1, 1).translate(0, 0.5, 0), new THREE.MeshBasicMaterial({ color: 0xffffff, map: ft, transparent: true, opacity: 0.92, side: THREE.DoubleSide, depthWrite: false }));
     const foam = new THREE.Mesh(new THREE.CircleGeometry(1, 24).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.45, depthWrite: false }));
-    foam.scale.set(62, 1, 26); foam.position.set(fx, bot + 1.2, RIVER_TOP + 8); SC.add(foam);
+    foam.scale.set(130, 1, 40); foam.position.set(fx, bot + 1.2, RIVER_TOP + 8); SC.add(foam);
     fall.scale.y = Math.max(20, top - bot); fall.position.set(fx, bot, fy); fall.rotation.x = -0.35; SC.add(fall); W3.fall = { x: fx, y: RIVER_TOP + 10, h: bot };
-    const pool = new THREE.Mesh(new THREE.CircleGeometry(70, 24).rotateX(-Math.PI / 2), mat); pool.position.set(fx, bot + 0.5, RIVER_TOP + 20); SC.add(pool); }
+    const pool = new THREE.Mesh(new THREE.CircleGeometry(140, 24).rotateX(-Math.PI / 2), mat); pool.position.set(fx, bot + 0.5, RIVER_TOP + 20); SC.add(pool); }
   const gorge = new THREE.Mesh(new THREE.PlaneGeometry(140, 430).rotateX(-Math.PI / 2), mat); gorge.position.set(3430, -58, 2755); SC.add(gorge);
   // See (unregelmäßiger Rand)
   const lv = [0, 0, 0], li = [], N = 96;
@@ -159,7 +159,7 @@ function buildRoad() {
     for (let i = 0; i < P_.length; i++) {
       const [x, y] = P_[i], a = P_[Math.max(0, i - 1)], b = P_[Math.min(P_.length - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, nx = -(b[1] - a[1]) / l, ny = (b[0] - a[0]) / l;
       const h = roadLevel(x, y) + 0.6 + ri * 0.15;
-      v.push(x - nx * 46, h, y - ny * 46, x + nx * 46, h, y + ny * 46); uv.push(0, rd.cum[i] / 110, 1, rd.cum[i] / 110);
+      v.push(x - nx * ROAD_HW, h, y - ny * ROAD_HW, x + nx * ROAD_HW, h, y + ny * ROAD_HW); uv.push(0, rd.cum[i] / 330, 1, rd.cum[i] / 330);
       if (n > first) idx.push(n * 2 - 2, n * 2 - 1, n * 2, n * 2 - 1, n * 2 + 1, n * 2); n++;
     }
   });
@@ -168,7 +168,7 @@ function buildRoad() {
 }
 
 // ---------- Bäume ----------
-const treeH = t => t.tr > 20 ? 170 : (t.k === 'pine' ? 60 : 80 + t.c * 55);
+const treeH = t => t.tr > 40 ? 900 : (t.k === 'pine' ? 520 + t.c * 260 : 420 + t.c * 380);
 function inst(geo, n, shadow = true, mat) {
   const m = new THREE.InstancedMesh(geo, mat || toonMat({ color: 0xffffff }), Math.max(1, n));
   m.count = n; m.frustumCulled = false; m.castShadow = shadow; m.receiveShadow = true; SC.add(m); return m;
@@ -189,7 +189,7 @@ function buildTrees() {
   W3.inst.trees = { dec, pin, cA, cB, cC, cD, cE, pL, trunk, all: T };
   placeCanopies(1);
 }
-const felled = t => G && G.flags && G.flags.zerstoert && t.x < OLD_W && t.y < 3440 && hashStr(t.x + ':' + t.y) < G.flags.zerstoert && t.tr < 20;
+const felled = t => G && G.flags && G.flags.zerstoert && t.x < OLD_W && t.y < 3440 && hashStr(t.x + ':' + t.y) < G.flags.zerstoert && t.tr < 40;
 function placeTrunks() {
   const { all, trunk } = W3.inst.trees;
   all.forEach((t, i) => { const g = heightAt(t.x, t.y), h = felled(t) ? 5 : treeH(t) + (t.k === 'pine' ? 0 : 10); _o.position.set(t.x, g - 2, t.y); _o.rotation.set(0, t.c * 6, 0); _o.scale.set(t.tr, h, t.tr); _o.updateMatrix(); trunk.setMatrixAt(i, _o.matrix); });
@@ -213,7 +213,7 @@ function placeCanopies(s) {
   pin.forEach((t, i) => {
     const g = heightAt(t.x, t.y);
     for (let k = 0; k < 3; k++) {
-      _o.position.set(t.x, g + 40 + t.c * 30 + k * 38, t.y); _o.rotation.set(0, t.c * 5 + k, 0); const r = t.r * (1 - k * 0.22) * (felled(t) ? 0.0001 : 1); _o.scale.set(r, 80 - k * 12, r); _o.updateMatrix();
+      const H = treeH(t); _o.position.set(t.x, g + H * (0.32 + k * 0.2), t.y); _o.rotation.set(0, t.c * 5 + k, 0); const r = t.r * (1 - k * 0.22) * (felled(t) ? 0.0001 : 1); _o.scale.set(r, H * (0.42 - k * 0.06), r); _o.updateMatrix();
       pL.setMatrixAt(i * 3 + k, _o.matrix); pL.setColorAt(i * 3 + k, _c.set(s === 3 && k === 2 ? '#dfe8ea' : ['#1f4326', '#28552e', '#336638'][k]).multiplyScalar(0.9 + t.c * 0.2));
     }
   });
@@ -322,7 +322,7 @@ function buildGrass() {
   let tries = 0;
   while (spots.length < 36000 && tries++ < 150000) {
     const x = R() * W, y = R() * H, t = territoryAt(x, y, true);
-    if (inRoad(x, y) || isWater(x, y) || (riverOn(y) && Math.abs(x - riverX(y)) < 62)) continue;
+    if (inRoad(x, y) || isWater(x, y) || (riverOn(y) && Math.abs(x - riverX(y)) < RIVER_HW + 10)) continue;
     const dens = { donner: 0.55, fluss: 1, wind: 0.8, zweibeiner: 0.35, schatten: 0.3, baumgeviert: 1, hochland: 0.3, donnerweg: 0, berge: 0.2, kueste: 0.3 }[t] || 0;
     if (R() > dens) continue;
     let bad = false; for (const cp of OB.camps) if (dist(x, y, cp.lm.x, cp.lm.y) < cp.lm.r - 30) { bad = true; break; }
@@ -385,16 +385,16 @@ function buildRocks() {
 function buildHouses() {
   const box = new THREE.BoxGeometry(1, 1, 1), roof = new THREE.ConeGeometry(0.7071, 1, 4).rotateY(Math.PI / 4);
   for (const h of OB.houses) {
-    const g = heightAt(h.x + h.w / 2, h.y + h.h / 2), cx = h.x + h.w / 2, cz = h.y + h.h / 2, wh = h.barn ? 80 : 62;
+    const g = heightAt(h.x + h.w / 2, h.y + h.h / 2), cx = h.x + h.w / 2, cz = h.y + h.h / 2, wh = h.barn ? 300 : 220;
     const wall = new THREE.Mesh(box, sharedMat(h.barn ? '#8a3a28' : '#e8dcc4')); wall.scale.set(h.w, wh, h.h); wall.position.set(cx, g + wh / 2, cz); wall.castShadow = wall.receiveShadow = true; SC.add(wall);
-    const rf = new THREE.Mesh(roof, sharedMat(h.roof)); rf.scale.set(h.w * 1.12, 48, h.h * 1.12); rf.position.set(cx, g + wh + 24, cz); rf.castShadow = true; SC.add(rf);
+    const rf = new THREE.Mesh(roof, sharedMat(h.roof)); rf.scale.set(h.w * 1.12, 150, h.h * 1.12); rf.position.set(cx, g + wh + 75, cz); rf.castShadow = true; SC.add(rf);
     if (!h.barn) {
-      for (const dx of [-0.28, 0.28]) { const w = new THREE.Mesh(box, sharedMat('#9cc8e8')); w.scale.set(26, 20, 1); w.position.set(cx + dx * h.w, g + 34, h.y - 0.6); SC.add(w); }
-      const d = new THREE.Mesh(box, sharedMat('#6a4a30')); d.scale.set(22, 36, 1); d.position.set(cx, g + 18, h.y + h.h + 0.6); SC.add(d);
-    } else { const d = new THREE.Mesh(box, sharedMat('#3a2418')); d.scale.set(50, 56, 1); d.position.set(cx, g + 28, h.y + h.h + 0.6); SC.add(d); }
+      for (const dx of [-0.28, 0.28]) { const w = new THREE.Mesh(box, sharedMat('#9cc8e8')); w.scale.set(48, 55, 1); w.position.set(cx + dx * h.w, g + 140, h.y - 0.6); SC.add(w); }
+      const d = new THREE.Mesh(box, sharedMat('#6a4a30')); d.scale.set(46, 110, 1); d.position.set(cx, g + 55, h.y + h.h + 0.6); SC.add(d);
+    } else { const d = new THREE.Mesh(box, sharedMat('#3a2418')); d.scale.set(110, 190, 1); d.position.set(cx, g + 95, h.y + h.h + 0.6); SC.add(d); }
   }
   const fence = OB.rects.filter(r => r.kind === 'fence'), fm = inst(box, fence.length);
-  fence.forEach((r, i) => { const g = heightAt(r.x + r.w / 2, r.y + r.h / 2); _o.position.set(r.x + r.w / 2, g + 13, r.y + r.h / 2); _o.rotation.set(0, 0, 0); _o.scale.set(r.w, 26, r.h); _o.updateMatrix(); fm.setMatrixAt(i, _o.matrix); fm.setColorAt(i, _c.set('#8a6a44')); });
+  fence.forEach((r, i) => { const g = heightAt(r.x + r.w / 2, r.y + r.h / 2); _o.position.set(r.x + r.w / 2, g + 55, r.y + r.h / 2); _o.rotation.set(0, 0, 0); _o.scale.set(r.w, 110, r.h); _o.updateMatrix(); fm.setMatrixAt(i, _o.matrix); fm.setColorAt(i, _c.set('#8a6a44')); });
   const bed = new THREE.Mesh(new THREE.TorusGeometry(13, 5, 8, 20), sharedMat('#b04040')); bed.rotation.x = -Math.PI / 2; bed.position.set(2100, heightAt(2100, 3890) + 4, 3890); SC.add(bed);
   const cush = new THREE.Mesh(new THREE.CylinderGeometry(12, 12, 3, 16), sharedMat('#e8d8c0')); cush.position.set(2100, heightAt(2100, 3890) + 2, 3890); SC.add(cush);
 }
