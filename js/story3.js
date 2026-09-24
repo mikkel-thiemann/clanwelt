@@ -33,7 +33,7 @@ function tunnelWalk(to, ids, cap) {
 // Buch 7: Purdy, der Hund und der Bergpass (auf dem Weg zum Wassernest der Sonne)
 insertStepsBefore('Ein Traum vom SternenClan', st => st.t === 'catch', [
   {
-    t: 'goto', at: 'purdy', noPatrol: true, text: 'Folgt dem Donnerweg nach Osten – dort steht ein einsames Zweibeinernest',
+    t: 'goto', at: 'purdy', noPatrol: true, text: 'Tag 3: Im Fremdland liegt ein Zweibeinerort. Sucht dort nach einem Weg',
     enter() { journeyFollow(); const p = ensureCat('purdy', { fixed: 'Purdy', rank: 'einzel', clan: 'einzel', sex: 'm', age: 150, home: 'purdy', look: L('#8a6a4a', '#4a3020', 0.3, '#e8b923', { long: true }) }); p.home = 'purdy'; p.storyLock = true; p.hidden = true; },
     dlg: () => [
       ACT({ cap: 'Ein alter, zerzauster Kater schlurft aus dem Garten.', moves: [['purdy', 'player', { from: () => ({ x: LM.purdy.x, y: LM.purdy.y - 60 }), dx: 45, sp: 45 }]], cam: 'purdy' }),
@@ -48,6 +48,9 @@ insertStepsBefore('Ein Traum vom SternenClan', st => st.t === 'catch', [
     enter() { journeyFollow(); follow('purdy'); }, spawn() { spawnBeast('hund', LM.purdy.x + 130, LM.purdy.y + 80, { group: 'purdyhund', story: true }); },
     dlg: () => [['purdy', 'Puh! Der Köter hat mich schon immer gehasst.'], ['eichhornjunges', 'Das war knapp! Gut gekämpft, Brombeerkralle.'], ['bernsteinjunges', 'Wir sind ein gutes Team – obwohl wir aus vier Clans kommen.']]
   },
+  { t: 'goto', pos: () => ({ x: 7980, y: 1350, r: 110 }), noPatrol: true, text: 'Tag 3: Überquert den großen Donnerweg – hier rasen viele Monster!', enter() { journeyFollow(); follow('purdy'); }, dlg: () => [['purdy', 'Puh! Jedes Mal denke ich, diesmal erwischt es mich. Weiter, weiter!']] },
+  { t: 'night', camp: true, noPatrol: true, text: 'Es wird Abend. Rastet am Waldrand im Fremdland (E: ausruhen)', enter() { journeyFollow(); follow('purdy'); }, dlg: () => [['purdy', 'Früher bin ich jeden Tag so weit gelaufen. Na ja … fast jeden Tag.'], ['eichhornjunges', '(flüstert) Er schnarcht lauter als Kleinohr.']] },
+  morningStep('Tag 4: Schlaft bis zum Morgen (E: ausruhen)'),
   {
     t: 'goto', at: 'bergpass', noPatrol: true, guide: 'purdy', guideSay: 'Hier hinauf, meine Lieben. Und nicht nach unten schauen!', text: 'Folgt Purdy hinauf zum Bergpass', enter() { journeyFollow(); follow('purdy'); },
     dlg: () => [
@@ -82,13 +85,14 @@ insertStepsBefore('Ein Traum vom SternenClan', st => st.at === 'purdy', [
   },
   campNight('Die zweite Nacht. Nasses Fell, leere Mägen. Niemand redet viel.', [['sturmpelz', 'Wie weit ist es noch bis zum Wassernest der Sonne?'], ['player', 'Ich weiß es nicht. Aber wir kommen an.']]),
   morningStep('Tag 3: Schlaft bis zum Morgen (E: ausruhen)'),
+  { t: 'goto', at: 'fremdgrenze', noPatrol: true, text: 'Tag 3: Verlasst die Clan-Territorien nach Osten', enter() { journeyFollow(); }, dlg: () => [ACT({ cap: 'Hinter euch liegt der letzte Grenzstein mit Clan-Geruch. Vor euch: fremdes Land – Felder, Zweibeinernester und Wege, die keine Katze kennt.', moves: [], cam: 'player', dist: 480, pitch: 0.45, orbit: 0.1, wait: 3.5 }), ['bernsteinjunges', 'Hier riecht nichts mehr nach irgendeinem Clan. Nur nach Zweibeinern und Kühen.'], ['kraehenpfote', 'Und nach Hunden. Bleibt dicht zusammen.']] },
 ]);
 insertStepsBefore('Ein Traum vom SternenClan', st => st.at === 'wassernest', [
   campNight('Oben in den Bergen ist die Nacht eisig. Der Wind heult um die Felsen, und ihr kuschelt euch eng zusammen.', [['bernsteinjunges', 'Ich kann meine Pfoten nicht mehr spüren …'], ['eichhornjunges', 'Rück näher. Wärme teilen. So machen es Clan-Katzen.']]),
-  morningStep('Tag 4: Schlaft bis zum Morgen (E: ausruhen)'),
-  { t: 'goto', pos: () => ({ x: 6650, y: 1300, r: 110 }), noPatrol: true, text: 'Tag 4: Steigt die Berge hinab – immer der Sonne nach', enter() { journeyFollow(); }, dlg: () => [ACT({ cap: 'Der Abstieg ist steil. Steine rollen unter euren Pfoten weg. Dann wird der Boden sandig.', moves: [], cam: 'player', dist: 260, pitch: 0.35, orbit: 0.1, wait: 2.5 }), ['federschweif', 'Riecht ihr das? Salz! Wie Tränen, nur viel stärker.']] },
-  { t: 'goto', pos: () => ({ x: 7050, y: 1150, r: 110 }), noPatrol: true, guide: 'federschweif', guideSay: 'Hier entlang! Der Geruch wird stärker!', text: 'Tag 4: Ihr habt euch in den Dünen verlaufen. Folge Federschweifs Nase', enter() { journeyFollow(); }, dlg: () => [['kraehenpfote', 'Überall nur Sand! Wir laufen im Kreis!'], ['federschweif', 'Nein. Hört ihr das Rauschen? Wir sind fast da.']] },
-  { t: 'catch', n: 1, noPatrol: true, text: 'Tag 4: Ein letztes Mal jagen, bevor ihr das Wasser erreicht', enter() { journeyFollow(); } },
+  morningStep('Tag 5: Schlaft bis zum Morgen (E: ausruhen)'),
+  { t: 'goto', pos: () => ({ x: 10450, y: 1300, r: 110 }), noPatrol: true, text: 'Tag 5: Steigt die Berge hinab – immer der Sonne nach', enter() { journeyFollow(); }, dlg: () => [ACT({ cap: 'Der Abstieg ist steil. Steine rollen unter euren Pfoten weg. Dann wird der Boden sandig.', moves: [], cam: 'player', dist: 260, pitch: 0.35, orbit: 0.1, wait: 2.5 }), ['federschweif', 'Riecht ihr das? Salz! Wie Tränen, nur viel stärker.']] },
+  { t: 'goto', pos: () => ({ x: 10850, y: 1150, r: 110 }), noPatrol: true, guide: 'federschweif', guideSay: 'Hier entlang! Der Geruch wird stärker!', text: 'Tag 5: Ihr habt euch in den Dünen verlaufen. Folge Federschweifs Nase', enter() { journeyFollow(); }, dlg: () => [['kraehenpfote', 'Überall nur Sand! Wir laufen im Kreis!'], ['federschweif', 'Nein. Hört ihr das Rauschen? Wir sind fast da.']] },
+  { t: 'catch', n: 1, noPatrol: true, text: 'Tag 5: Ein letztes Mal jagen, bevor ihr das Wasser erreicht', enter() { journeyFollow(); } },
 ]);
 
 // Buch 8: Niemand glaubt den Auserwählten
@@ -141,10 +145,10 @@ insertQuestsBefore('Die Dachse', [{
   ch: 11, title: 'Blattpfotes Geheimnis', gap: 2, steps: [
     { t: 'scene', dlg: () => [['erz', 'Eines Morgens ist Blattpfote verschwunden. Und auch aus dem WindClan fehlt eine Katze: Krähenfeder.'], ['eichhornjunges', 'Meine Schwester … mit Krähenfeder?! Brombeerkralle, wir müssen sie finden!']], done() { follow('eichhornjunges'); } },
     {
-      t: 'goto', pos: () => ({ x: 6050, y: 2350, r: 90 }), guide: 'eichhornjunges', guideSay: 'Ich rieche ihre Spur! Richtung Berge!', noPatrol: true, text: 'Folge Eichhornschweif auf Blattpfotes Spur in die Hügel',
+      t: 'goto', pos: () => ({ x: 9850, y: 2350, r: 90 }), guide: 'eichhornjunges', guideSay: 'Ich rieche ihre Spur! Richtung Berge!', noPatrol: true, text: 'Folge Eichhornschweif auf Blattpfotes Spur in die Hügel',
       enter() { follow('eichhornjunges'); ['blattjunges', 'kraehenpfote'].forEach(id => { const c = catById(id); if (c) { c.hidden = true; c.ai = { m: 'hold' }; } }); },
       dlg: () => [
-        ACT({ cap: 'Zwischen den Felsen sitzen zwei Katzen dicht beieinander.', moves: [['blattjunges', 'player', { from: () => ({ x: 6000, y: 2280 }), dx: 50, sp: 50 }], ['kraehenpfote', 'player', { from: () => ({ x: 5960, y: 2300 }), dx: 70, dy: 35, sp: 50 }]], cam: 'blattjunges' }),
+        ACT({ cap: 'Zwischen den Felsen sitzen zwei Katzen dicht beieinander.', moves: [['blattjunges', 'player', { from: () => ({ x: 9800, y: 2280 }), dx: 50, sp: 50 }], ['kraehenpfote', 'player', { from: () => ({ x: 9760, y: 2300 }), dx: 70, dy: 35, sp: 50 }]], cam: 'blattjunges' }),
         ['blattjunges', 'Eichhornschweif … ich liebe Krähenfeder. Aber eine Heilerin darf keinen Gefährten haben.'],
         ['kraehenpfote', 'Wir wollten ganz neu anfangen. Irgendwo, wo es keine Clans gibt.'],
         ['eichhornjunges', 'Blattpfote, der Clan braucht dich! Rußpelz braucht dich!'],
@@ -648,7 +652,7 @@ insertStepsBefore('Der sterbende Wald', st => st.t === 'scene', [waitDays(1, 'Di
 // --- Buch 8: Die Heimreise vom Wassernest der Sonne dauert Tage ---
 insertStepsBefore('Der Stamm des eilenden Wassers', st => st.at === 'stamm', [
   sleepStep('Schlaft in den Dünen bis zum Morgen (E: ausruhen)', [['eichhornjunges', 'Jetzt müssen wir den ganzen Weg zurück … und schnell. Der Wald ist in Gefahr!']], journeyFollow),
-  leg({ x: 6650, y: 1300 }, 'Heimreise Tag 1: Zurück durch die Dünen zu den Bergen', [['kraehenpfote', 'Diesmal verlaufen wir uns nicht. Ich hab mir den Weg gemerkt.']], journeyFollow),
+  leg({ x: 10450, y: 1300 }, 'Heimreise Tag 1: Zurück durch die Dünen zu den Bergen', [['kraehenpfote', 'Diesmal verlaufen wir uns nicht. Ich hab mir den Weg gemerkt.']], journeyFollow),
   campAt('Die erste Nacht der Heimreise. Unter euch rauscht irgendwo ein Wasserfall.', journeyIds, [['sturmpelz', 'Hört ihr das? Wasser, das über Felsen stürzt. Dort drüben gibt es bestimmt Schutz.']], journeyFollow),
   sleepStep('Heimreise Tag 2: Schlaft bis zum Morgen (E: ausruhen)', null, journeyFollow),
 ]);
@@ -656,12 +660,16 @@ insertStepsBefore('Der Stamm des eilenden Wassers', st => st.at === 'lager', [
   leg(LM0.bergpass, 'Heimreise Tag 3: Über den Bergpass zurück nach Westen', [['erz', 'Ihr blickt noch einmal zurück zur Höhle des Stammes. Federschweif bleibt für immer in den Bergen.']], journeyFollow),
   campAt('Eine traurige Nacht. Niemand spricht. Einer fehlt.', journeyIds, [['eichhornjunges', '(leise) Sie war so mutig, Brombeerkralle.'], ['player', 'Ja. Wir werden sie nie vergessen.']], journeyFollow),
   sleepStep('Heimreise Tag 4: Schlaft bis zum Morgen (E: ausruhen)', null, journeyFollow),
-  leg(LM0.purdy, 'Heimreise Tag 4: Vorbei an Purdys Garten', [['erz', 'Purdy sitzt auf seinem Zaun und winkt euch mit dem Schwanz zu.']], journeyFollow),
-  leg({ x: 2330, y: 760 }, 'Heimreise Tag 4: Über den Donnerweg – fast zu Hause!', null, journeyFollow),
+  leg({ x: 7550, y: 1350 }, 'Heimreise Tag 4: Über den großen Donnerweg im Fremdland', [['sturmpelz', 'Wartet … jetzt! Lauft!']], journeyFollow),
+  leg(LM0.purdy, 'Heimreise Tag 4: Durch den Zweibeinerort, vorbei an Purdys Garten', [['erz', 'Purdy sitzt auf seinem Zaun und winkt euch mit dem Schwanz zu.']], journeyFollow),
+  leg(LM0.fremdgrenze, 'Heimreise Tag 4: Zurück in die Clan-Territorien', [['eichhornjunges', 'Riecht ihr das? SchattenClan-Grenzmarkierungen! Wir sind fast zu Hause!']], journeyFollow),
+  campAt('Die letzte Nacht der Heimreise – schon wieder auf Clan-Gebiet.', journeyIds, null, journeyFollow),
+  sleepStep('Heimreise Tag 5: Schlaft bis zum Morgen (E: ausruhen)', null, journeyFollow),
+  leg({ x: 2330, y: 760 }, 'Heimreise Tag 5: Über den Donnerweg – fast zu Hause!', null, journeyFollow),
 ]);
 
 // --- Buch 9: Die große Wanderung dauert viele Tage ---
-insertStepsBefore('Der sterbende Wald', st => st.t === 'custom' && st.target && st.target().x === 6760, (() => {
+insertStepsBefore('Der sterbende Wald', st => st.t === 'custom' && st.target && st.target().x === 10560, (() => {
   // Wanderung läuft: alle folgen (auch nach dem Laden eines Spielstands wieder)
   const mig = () => { G.flags.wanderung = 1; startMigration(); };
   const gathered = () => { const pc = P(), cs = clanCats().filter(c => c !== pc && !c.hidden); return [cs.filter(c => dist(c.x, c.y, pc.x, pc.y) < 900).length, cs.length]; };
@@ -692,10 +700,20 @@ insertStepsBefore('Der sterbende Wald', st => st.t === 'custom' && st.target && 
     mleg({ x: 3900, y: 620 }, 'Tag 2: Weiter durch das Hochland nach Osten'),
     campAt('Die zweite Nacht. Irgendwo heult ein Fuchs. Die Krieger halten abwechselnd Wache.', clanNear, null, mig),
     sleepStep('Die große Wanderung, Tag 3: Schlaft bis zum Morgen (E: ausruhen)', null, mig),
-    mleg({ x: LM0.bergpass.x, y: LM0.bergpass.y }, 'Tag 3: Hinauf in die Berge – zum Bergpass', [ACT({ cap: 'Der Weg über die Berge ist steil und kalt. Die Krieger tragen die kleinsten Jungen im Maul.', moves: [], cam: 'player', dist: 380, pitch: 0.4, orbit: 0.1, wait: 3 })]),
-    campAt('Eine eisige Nacht in den Bergen. Alle drängen sich eng zusammen.', clanNear, [['erz', 'Riesenstern, der alte Anführer des WindClans, hustet die ganze Nacht.']], mig),
+    mleg({ x: LM0.fremdgrenze.x, y: LM0.fremdgrenze.y }, 'Tag 3: Führt die Clans aus den Territorien hinaus – nach Osten ins Fremdland', [ACT({ cap: 'Hinter euch liegt der letzte Grenzstein mit Clan-Geruch. Vor euch: fremdes Land – Felder, Zweibeinernester und Wege, die keine Katze kennt.', moves: [], cam: 'player', dist: 480, pitch: 0.45, orbit: 0.1, wait: 3.5 }), ['kleinohr', 'Hier war noch nie eine Clan-Katze. Nicht einmal ich.'], ['wander_wind', 'Kein Clan-Geruch mehr. Von jetzt an sind wir alle Fremde.']]),
+    mleg({ x: 6250, y: 2650 }, 'Tag 3: Über die Felder der Zweibeiner', [['erz', 'Die Felder sind riesig und flach. Kein Busch, kein Versteck. Die Katzen laufen geduckt durch die Furchen.']]),
+    campAt('Die dritte Nacht – mitten im fremden Land. Irgendwo bellt ein Hund.', clanNear, [['goldbluete', 'Die Jungen fragen, ob wir je wieder ein Zuhause haben.'], ['player', 'Sag ihnen: Ja. Bald.']], mig),
     sleepStep('Die große Wanderung, Tag 4: Schlaft bis zum Morgen (E: ausruhen)', null, mig),
-    mleg({ x: 6000, y: 2300 }, 'Tag 4: Steigt die Berge hinab ins Tal'),
+    mleg({ x: 7450, y: 2250 }, 'Tag 4: Zum großen Donnerweg im Fremdland', [['erz', 'Ein Donnerweg, breiter als jeder im alten Wald. Monster rasen in beide Richtungen, ohne Pause.'], ['sammy', 'Wir warten auf eine Lücke. Krieger zuerst, dann Königinnen mit Jungen, dann Älteste. Niemand rennt allein!']]),
+    Object.assign(mleg({ x: 8050, y: 2250 }, 'Tag 4: Bringt alle über den großen Donnerweg – jetzt ist er frei!', [['erz', 'Pfote für Pfote huschen die Clans hinüber. Alle schaffen es.']]), { noCars: true }),
+    { t: 'catch', n: 2, noPatrol: true, text: 'Tag 4: Jagt im fremden Wald – alle sind hungrig', enter: mig },
+    mleg({ x: 8650, y: 1600 }, 'Tag 4: Weiter nach Osten, den Bergen entgegen'),
+    campAt('Die vierte Nacht, am Fuß der Berge. Die Gipfel glänzen im Mondlicht.', clanNear, null, mig),
+    sleepStep('Die große Wanderung, Tag 5: Schlaft bis zum Morgen (E: ausruhen)', null, mig),
+    mleg({ x: LM0.bergpass.x, y: LM0.bergpass.y }, 'Tag 5: Hinauf in die Berge – zum Bergpass', [ACT({ cap: 'Der Weg über die Berge ist steil und kalt. Die Krieger tragen die kleinsten Jungen im Maul.', moves: [], cam: 'player', dist: 380, pitch: 0.4, orbit: 0.1, wait: 3 })]),
+    campAt('Eine eisige Nacht in den Bergen. Alle drängen sich eng zusammen.', clanNear, [['erz', 'Riesenstern, der alte Anführer des WindClans, hustet die ganze Nacht.']], mig),
+    sleepStep('Die große Wanderung, Tag 6: Schlaft bis zum Morgen (E: ausruhen)', null, mig),
+    mleg({ x: 9800, y: 2300 }, 'Steigt die Berge hinab ins Tal – der See ist nah!'),
   ];
 })());
 
@@ -713,7 +731,7 @@ insertQuestsAfter('Doppeltes Leben', [{
 insertStepsBefore('Der Fluss der Finsternis', st => st.t === 'scene', [waitDays(2, 'Es regnet seit Tagen. Das Wasser im See steigt', { weather: 'regen' })]);
 // --- Staffel 3, Buch 15: Die Reise zum Stamm dauert Tage ---
 insertStepsBefore('Boten aus den Bergen', st => st.at === 'bergpass', [
-  leg({ x: 6050, y: 2350 }, 'Reise Tag 1: Verlasst das Territorium Richtung Berge', [['bach', 'Die Berge sind weiter, als sie aussehen. Spart eure Kräfte.']], journey3Follow),
+  leg({ x: 9850, y: 2350 }, 'Reise Tag 1: Verlasst das Territorium Richtung Berge', [['bach', 'Die Berge sind weiter, als sie aussehen. Spart eure Kräfte.']], journey3Follow),
   campAt('Die erste Nacht unter freiem Himmel. Häherpfote liegt wach und lauscht dem Wind.', journey3Ids, [['haeherjunges', 'Die Berge flüstern, Löwenpfote. Sie erinnern sich an Katzen, die vor langer Zeit hier waren.']], journey3Follow),
   sleepStep('Reise Tag 2: Schlaft bis zum Morgen (E: ausruhen)', null, journey3Follow),
 ]);

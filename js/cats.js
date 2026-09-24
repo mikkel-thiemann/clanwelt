@@ -173,7 +173,7 @@ function spawnPrey(pc) {
     if (isWater(x, y) || inRoad(x, y)) return;
     for (const cp of OB.camps) if (dist(x, y, cp.lm.x, cp.lm.y) < cp.lm.r + 20) return;
     if (G.flags.zerstoert && x < OLD_W && chance(0.5 + G.flags.zerstoert * 0.4)) return;
-    let t = territoryAt(x, y); if (t === 'verlassen') t = 'donner'; if (t === 'berge' || t === 'kueste') t = 'hochland';
+    let t = territoryAt(x, y); if (t === 'verlassen') t = 'donner'; if (t === 'berge' || t === 'kueste' || t === 'fremdland') t = 'hochland';
     const opts = Object.keys(PREY_T).filter(p => PREY_T[p].ter && PREY_T[p].ter.includes(t));
     if (!opts.length) return;
     k = pick(opts);
@@ -540,7 +540,7 @@ function carPos(rd, s, lane) {
 let carTimer = 2;
 function updateCars(dt) {
   carTimer -= dt;
-  if (carTimer <= 0) { carTimer = rand(2.2, 6); const d = chance(0.5) ? 1 : -1; const rd = ROADS[chance(0.75) || (G.flags.wanderung && !G.flags.see) ? 0 : 1]; /* während der Wanderung ist der Abzweig frei */ CARS.push({ rd, s: d > 0 ? 0 : rd.len, d, lane: d > 0 ? 70 : -70, sp: rand(650, 900), col: pick(['#c0392b', '#2980b9', '#f1c40f', '#ecf0f1', '#27ae60', '#8e44ad', '#34495e']) }); }
+  if (carTimer <= 0) { carTimer = rand(2.2, 6); const d = chance(0.5) ? 1 : -1; const rr = Math.random(), noCars = Story.step() && Story.step().noCars; if (noCars) { carTimer = 1; return; } const rd = ROADS[rr < 0.5 ? 0 : rr < 0.62 && !(G.flags.wanderung && !G.flags.see) ? 1 : 2]; /* während der Wanderung ist der Abzweig frei */ CARS.push({ rd, s: d > 0 ? 0 : rd.len, d, lane: d > 0 ? 70 : -70, sp: rand(650, 900), col: pick(['#c0392b', '#2980b9', '#f1c40f', '#ecf0f1', '#27ae60', '#8e44ad', '#34495e']) }); }
   const pc = P();
   for (let i = CARS.length - 1; i >= 0; i--) {
     const c = CARS[i]; c.s += c.d * c.sp * dt;

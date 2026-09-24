@@ -15,7 +15,7 @@ const isNight = () => { const h = hour(); return h >= 20.5 || h < 5.5; };
 function newGame() {
   ENTS.length = PREY.length = CARS.length = FX.length = 0;
   G = {
-    v: 1, time: 8 * 60, nextId: 1, cats: [], playTime: 0,
+    v: 1, worldV: 2, time: 8 * 60, nextId: 1, cats: [], playTime: 0,
     player: { catId: 'sammy', hunger: 85, stamina: 100, carry: [], herbs: {}, rep: 20, lives: 0, sneak: false, points: 0, invul: 0 },
     story: { q: 0, s: 0, prog: 0 }, flags: { windExil: true }, stage: 'hauskaetzchen', stages: {},
     clan: { pile: 34, health: 80, morale: 70, terr: 80 }, others: newOtherClans(),
@@ -44,6 +44,8 @@ function loadGame() {
   const fixName = t => typeof t === 'string' ? t.replace(/Aschen(pfote|pelz|junges)/g, 'Ruß$1').replace(/Aschenfell/g, 'Aschenpelz') : t;
   for (const c of G.cats) { if (c.id === 'aschenjunges' && c.pre === 'Aschen') c.pre = 'Ruß'; if (c.id === 'aschenfell') c.suf = 'pelz'; }
   if (Array.isArray(G.chron)) for (const e of G.chron) if (e) e.t = fixName(e.t);
+  // Alte Spielstände: Berge, See und Küste liegen jetzt weiter im Osten (dazwischen das Fremdland)
+  if (!G.worldV) { for (const c of G.cats) { if (c.x > OLD_W - 60) c.x += EAST; if (c.homePos && c.homePos.x > OLD_W - 60) c.homePos.x += EAST; } G.worldV = 2; }
   applyRelocation(!!(G.flags && G.flags.see));
   if (G.flags && G.flags.zerstoert && !G.flags.see) spawnBulldozers();
   for (const c of G.cats) { c.spar = false; c.kx = c.ky = 0; if (c.ai && c.ai.m !== 'follow' && c.ai.m !== 'hold') c.ai = { m: 'home' }; if (!c.ai) c.ai = { m: 'home' }; }

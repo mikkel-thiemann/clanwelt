@@ -31,6 +31,7 @@ Freunde sterben, neue Feinde tauchen auf. Du führst den Clan durch viele Monde.
 - **Anführer-Entscheidungen:** Beutemangel, fremde Katzen, Streit, Krankheit, Prophezeiungen, Überfälle, Zeremonien
 - **Mehrere Generationen:** Andere Clan-Katzen spielen; stirbt der Anführer, geht es mit dem Nachfolger weiter
 - **Lebensweg:** Blick zurück vom kleinen Hauskätzchen bis heute
+- **Fremdland:** Zwischen den Clan-Territorien und den Bergen liegt ein großes fremdes Land mit Feldern, Wiesen, Wäldchen, einem Zweibeinerort, einem Bauernhof und einem großen Donnerweg. Die große Wanderung, die Reise zum Wassernest der Sonne und die Heimreise führen hindurch.
 - **Echte Größen:** Alles hat die richtige Größe im Vergleich zu einer Katze: dicke, hohe Bäume, große Hunde und Dachse, breite Donnerwege mit riesigen Monstern, hohe Häuser und Zäune, ein breiterer Fluss.
 - **Zeit vergeht wirklich:** Statt „Tagelang regnet es“ nur zu lesen, erlebst du die Tage: Regen, Hitze, Nachtlager, Suchen. Die große Wanderung zum See, die Heimreise vom Wassernest und die Reise zum Stamm dauern mehrere Tage mit Nachtlagern.
 - **Staffel 3 – Die Macht der Drei (Buch 13–18):** Der geheime Blick, Fluss der Finsternis, Verbannt, Zeit der Dunkelheit, Lange Schatten, Sonnenaufgang. Du spielst Löwenpfote/Löwenglut: die Prophezeiung der Drei, Häherpfotes Gabe, Träume vom dunklen Wald, Heidepfote und die Tunnel, die Reise zum Stamm, Sol und die verschwundene Sonne, das Feuer in der Steinmulde und die Wahrheit über eure Eltern.

@@ -1,6 +1,7 @@
 'use strict';
 // ===== Die Welt: Territorien, Landschaft, Hindernisse =====
-const W = 8200, H = 4200, CELL = 128, OLD_W = 5300;
+// Welt: alter Wald (x < OLD_W), Fremdland (bis FREMD_E), Berge, See und Küste im Osten
+const W = 12000, H = 4200, CELL = 128, OLD_W = 5300, FREMD_E = 9040, EAST = 3800;
 
 const LM = {
   garten: { x: 2100, y: 3700, r: 170, name: 'Sammys Garten' },
@@ -30,22 +31,25 @@ const LM = {
   korb: { x: 2100, y: 3890, r: 40, name: 'Dein Körbchen' },
   kaefige: { x: 2650, y: 2150, r: 70, name: 'Zweibeiner-Käfige' },
   // --- Staffel 2: Berge, Küste, See ---
-  stamm: { x: 5800, y: 1650, r: 110, name: 'Höhle des Stammes' },
-  dachsbau: { x: 7000, y: 1150, r: 90, name: 'Mitternachts Bau' },
-  wassernest: { x: 7420, y: 800, r: 140, name: 'Wassernest der Sonne' },
-  steinmulde: { x: 6470, y: 3120, r: 215, name: 'DonnerClan-Lager (Steinmulde)' },
-  schatten2: { x: 7250, y: 2380, r: 190, name: 'SchattenClan-Lager' },
-  fluss2: { x: 7300, y: 3780, r: 190, name: 'FlussClan-Lager' },
-  wind2: { x: 7880, y: 3080, r: 190, name: 'WindClan-Lager' },
-  insel: { x: 7250, y: 3060, r: 100, name: 'Die Insel' },
-  mondsee: { x: 7800, y: 2060, r: 70, name: 'Mondsee' },
-  zweibeinernest: { x: 6450, y: 3600, r: 110, name: 'Verlassenes Zweibeinernest' },
-  buchenhain: { x: 6480, y: 2780, r: 110, name: 'Buchenhain' },
-  seeufer: { x: 6880, y: 3440, r: 90, name: 'Seeufer' },
-  purdy: { x: 4700, y: 900, r: 110, name: 'Purdys Garten' },
-  bergpass: { x: 5760, y: 1080, r: 120, name: 'Bergpass' },
-  tunnelein: { x: 6380, y: 2700, r: 80, name: 'Eingang zu den Tunneln' },
-  tunnelaus: { x: 8020, y: 3300, r: 80, name: 'Tunnel-Ausgang (WindClan)' },
+  stamm: { x: 9600, y: 1650, r: 110, name: 'Höhle des Stammes' },
+  dachsbau: { x: 10800, y: 1150, r: 90, name: 'Mitternachts Bau' },
+  wassernest: { x: 11220, y: 800, r: 140, name: 'Wassernest der Sonne' },
+  steinmulde: { x: 10270, y: 3120, r: 215, name: 'DonnerClan-Lager (Steinmulde)' },
+  schatten2: { x: 11050, y: 2380, r: 190, name: 'SchattenClan-Lager' },
+  fluss2: { x: 11100, y: 3780, r: 190, name: 'FlussClan-Lager' },
+  wind2: { x: 11680, y: 3080, r: 190, name: 'WindClan-Lager' },
+  insel: { x: 11050, y: 3060, r: 100, name: 'Die Insel' },
+  mondsee: { x: 11600, y: 2060, r: 70, name: 'Mondsee' },
+  zweibeinernest: { x: 10250, y: 3600, r: 110, name: 'Verlassenes Zweibeinernest' },
+  buchenhain: { x: 10280, y: 2780, r: 110, name: 'Buchenhain' },
+  seeufer: { x: 10680, y: 3440, r: 90, name: 'Seeufer' },
+  purdy: { x: 6750, y: 1560, r: 110, name: 'Purdys Garten' },
+  fremdstadt: { x: 6700, y: 1150, r: 200, name: 'Zweibeinerort im Fremdland' },
+  bauernhof: { x: 8250, y: 2950, r: 160, name: 'Bauernhof' },
+  fremdgrenze: { x: 5450, y: 1500, r: 150, name: 'Grenze der Clan-Territorien' },
+  bergpass: { x: 9560, y: 1080, r: 120, name: 'Bergpass' },
+  tunnelein: { x: 10180, y: 2700, r: 80, name: 'Eingang zu den Tunneln' },
+  tunnelaus: { x: 11820, y: 3300, r: 80, name: 'Tunnel-Ausgang (WindClan)' },
 };
 // Unveränderte Kopie der Orte (für Höhen und Bodenfarben); LM selbst wird beim Umzug an den See verändert
 const LM0 = JSON.parse(JSON.stringify(LM));
@@ -54,16 +58,16 @@ function applyRelocation(on) {
   for (const k in RELOC) { const src = on ? LM0[RELOC[k]] : LM0[k]; Object.assign(LM[k], { x: src.x, y: src.y, r: src.r, name: on && k === 'lager' ? 'DonnerClan-Lager (Steinmulde)' : src.name }); }
 }
 // ----- See, Meer -----
-const LAKE = { x: 7250, y: 3060 };
+const LAKE = { x: 11050, y: 3060 };
 const lakeR = a => 420 + Math.sin(a * 3) * 40 + Math.sin(a * 5 + 1) * 25;
 function lakeDist(x, y) { const a = Math.atan2(y - LAKE.y, x - LAKE.x); return dist(x, y, LAKE.x, LAKE.y) / lakeR(a); }
-function inLake(x, y) { return x > 6500 && lakeDist(x, y) < 1 && dist(x, y, LM0.insel.x, LM0.insel.y) > 95; }
-const oceanEdge = y => 7520 + Math.sin(y / 260) * 70;
+function inLake(x, y) { return x > 10300 && lakeDist(x, y) < 1 && dist(x, y, LM0.insel.x, LM0.insel.y) > 95; }
+const oceanEdge = y => 11320 + Math.sin(y / 260) * 70;
 function inOcean(x, y) { return y < 1650 && x > oceanEdge(y); }
 const TERR_NAMES = {
   donner: 'DonnerClan-Territorium', schatten: 'SchattenClan-Territorium', fluss: 'FlussClan-Territorium',
   wind: 'WindClan-Territorium', zweibeiner: 'Zweibeinerort', donnerweg: 'Donnerweg', baumgeviert: 'Baumgeviert', hochland: 'Hochland',
-  berge: 'Die Berge', kueste: 'Küste (Wassernest der Sonne)', see: 'Der See', verlassen: 'Der alte Wald (zerstört)'
+  berge: 'Die Berge', fremdland: 'Fremdland (außerhalb der Clan-Territorien)', kueste: 'Küste (Wassernest der Sonne)', see: 'Der See', verlassen: 'Der alte Wald (zerstört)'
 };
 const CLAN_NAMES = { donner: 'DonnerClan', schatten: 'SchattenClan', fluss: 'FlussClan', wind: 'WindClan', einzel: 'Einzelläufer', haus: 'Hauskätzchen' };
 const CLAN_COLORS = { donner: '#e0a040', schatten: '#7a6aa8', fluss: '#4fa3d9', wind: '#c9c070' };
@@ -78,6 +82,8 @@ const RIVER_TOP = windS(riverX(1740)) + 8;
 // Hauptweg von Mikuschs Hof (Nordwesten) am Baumgeviert vorbei nach Osten, dann nach Süden zum Zweibeinerort;
 // Abzweig nach Norden zwischen Hochfelsen und SchattenClan
 const ROAD_J = 1650, ROAD_BEND = 4150;
+// Der große Donnerweg im Fremdland (von Norden nach Süden)
+const hwX = y => 7750 + Math.sin(y / 500) * 80;
 function diagY(x) { const t = (x + 40) / (ROAD_J + 40); return 330 + t * (roadY(ROAD_J) - 330) + Math.sin(t * Math.PI) * 40; }
 function branchX(y) { const b0 = 1800, by = roadY(b0), t = (by - y) / (by + 40); return b0 + t * 280 + Math.sin(t * 5) * 25; }
 const ROADS = (() => {
@@ -89,7 +95,8 @@ const ROADS = (() => {
   for (let y = ay + 180; y <= H + 40; y += 30) main.push([ROAD_BEND, y]);
   const by = roadY(1800);
   for (let y = by; y >= -40; y -= 30) br.push([branchX(y), y]);
-  return [main, br].map(pts => { const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + dist(pts[i][0], pts[i][1], pts[i - 1][0], pts[i - 1][1])); return { pts, cum, len: cum[cum.length - 1] }; });
+  const hw = []; for (let y = -40; y <= H + 40; y += 30) hw.push([hwX(y), y]);
+  return [main, br, hw].map(pts => { const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + dist(pts[i][0], pts[i][1], pts[i - 1][0], pts[i - 1][1])); return { pts, cum, len: cum[cum.length - 1] }; });
 })();
 const roadGrid = new Map();
 for (const rd of ROADS) for (let i = 1; i < rd.pts.length; i++) {
@@ -109,6 +116,14 @@ function roadDist(x, y) {
 }
 const ROAD_HW = 140; // halbe Straßenbreite
 function inRoad(x, y) { return roadDist(x, y) < ROAD_HW; }
+// Fremdland: Stadt, Felder, Wälder, Wiesen
+const FREMD_TOWN = { x0: 6150, x1: 7300, y0: 650, y1: 1700 };
+function fremdBiome(x, y) {
+  if (x > FREMD_TOWN.x0 && x < FREMD_TOWN.x1 && y > FREMD_TOWN.y0 && y < FREMD_TOWN.y1) return 'stadt';
+  if ((x > 7950 && x < 8750 && y > 2350 && y < 3650) || (x > 5750 && x < 6800 && y > 2100 && y < 3200)) return 'feld';
+  if (NOISE(x / 650 + 11, y / 650 + 5) > 0.57) return 'wald';
+  return 'wiese';
+}
 // Liegt der Punkt nördlich des Hauptwegs (Hochfelsen-/SchattenClan-Seite)?
 function northOfRoad(x, y) {
   if (x < ROAD_J) return y < diagY(x);
@@ -122,13 +137,14 @@ function isWater(x, y) { return inRiver(x, y) || marshPool(x, y) || inLake(x, y)
 function territoryAt(x, y, raw) {
   if (x > OLD_W) {
     if (inLake(x, y)) return 'see';
-    if (x > 6250 && lakeDist(x, y) < 2.45) {
+    if (x > 10050 && lakeDist(x, y) < 2.45) {
       if (dist(x, y, LM0.insel.x, LM0.insel.y) < 110) return raw || !G || !G.flags || !G.flags.see ? 'see' : 'baumgeviert';
       const a = Math.atan2(y - LAKE.y, x - LAKE.x) * 180 / Math.PI;
       return a > 135 || a < -150 ? 'donner' : a < -45 ? 'schatten' : a < 45 ? 'wind' : a < 135 ? 'fluss' : 'donner';
     }
-    if (x > 6300 && y < 1800) return 'kueste';
-    if (x < 6350) return 'berge';
+    if (x > 10100 && y < 1800) return 'kueste';
+    if (x < FREMD_E) return 'fremdland';
+    if (x < 10150) return 'berge';
     return 'hochland';
   }
   if (!raw && typeof G !== 'undefined' && G && G.flags && G.flags.see && !(y > 3440 && x > 1060)) return 'verlassen';
@@ -166,8 +182,15 @@ function groundColor(x, y, o) {
   const t = territoryAt(x, y, true);
   const dl = dist(x, y, LM0.lager.x, LM0.lager.y), dsm = dist(x, y, LM0.steinmulde.x, LM0.steinmulde.y);
   if (dsm < LM0.steinmulde.r) { o[0] = 150 + j; o[1] = 140 + j; o[2] = 120 + j; return o; }
-  if (x > 6250 && y > 1800 && lakeDist(x, y) < 1.1) { o[0] = 176 + j; o[1] = 160 + j; o[2] = 118 + j; return o; }
+  if (x > 10050 && y > 1800 && lakeDist(x, y) < 1.1) { o[0] = 176 + j; o[1] = 160 + j; o[2] = 118 + j; return o; }
   if (t === 'kueste') { const d = oceanEdge(y) - x; if (d < 170) { o[0] = 220 + j; o[1] = 200 + j; o[2] = 150 + j; return o; } o[0] = lerp(160, 120, n) + j; o[1] = lerp(150, 140, n) + j; o[2] = 100 + j; return o; }
+  if (t === 'fremdland') {
+    const b = fremdBiome(x, y);
+    if (b === 'stadt') { const st = (Math.abs((x - FREMD_TOWN.x0) % 330 - 165) < 26) || (Math.abs((y - FREMD_TOWN.y0) % 350 - 175) < 26); if (st) { o[0] = 70 + j * .3; o[1] = 70 + j * .3; o[2] = 74; return o; } o[0] = 96 + n * 20; o[1] = 150 + n * 25; o[2] = 64; return o; }
+    if (b === 'feld') { const s2 = Math.floor((x + y * 0.3) / 60) % 2; o[0] = (s2 ? 190 : 168) + j; o[1] = (s2 ? 168 : 150) + j; o[2] = (s2 ? 92 : 80) + j; return o; }
+    if (b === 'wald') { o[0] = lerp(52, 88, n) + j; o[1] = lerp(92, 80, n) + j; o[2] = lerp(40, 44, n) + j; return o; }
+    o[0] = lerp(118, 140, n) + j; o[1] = lerp(150, 138, n) + j; o[2] = lerp(74, 70, n) + j; return o;
+  }
   if (t === 'berge') { const hh = clamp((heightAt(x, y) - 60) / 180, 0, 1); o[0] = lerp(96, 150, hh) + j; o[1] = lerp(108, 146, hh) + j; o[2] = lerp(80, 140, hh) + j; if (hh > 0.8) { o[0] = o[1] = o[2] = 225 + j; } return o; }
   if (dl < 250) { const k = clamp((dl - 200) / 50, 0, 1); r = lerp(152, 70, k); g = lerp(128, 95, k); b = lerp(88, 45, k); }
   else if (dist(x, y, LM0.sandkuhle.x, LM0.sandkuhle.y) < LM0.sandkuhle.r) { r = 205; g = 180; b = 120; }
@@ -302,8 +325,14 @@ function buildObjects() {
   // --- Mikuschs Hof: Scheune und Haus ---
   { const sx = LM0.scheune.x - 100, sy = LM0.scheune.y - 210; addRect(sx, sy, 200, 150, 'barn'); OB.houses.push({ x: sx, y: sy, w: 200, h: 150, roof: '#8a4a2a', barn: true });
     OB.houses.push({ x: sx - 250, y: sy + 10, w: 170, h: 140, roof: '#5a4030' }); addRect(sx - 250, sy + 10, 170, 140, 'house'); }
-  // --- Purdys Zweibeinernest im Hochland ---
-  { const p = LM0.purdy; OB.houses.push({ x: p.x - 110, y: p.y - 230, w: 210, h: 150, roof: '#6e4a3a' }); addRect(p.x - 110, p.y - 230, 210, 150, 'house'); }
+  // --- Zweibeinerort im Fremdland: Häuser mit Gärten, dazwischen Wege ---
+  for (let gx = FREMD_TOWN.x0 + 40; gx < FREMD_TOWN.x1 - 200; gx += 330) for (let gy = FREMD_TOWN.y0 + 40; gy < FREMD_TOWN.y1 - 200; gy += 350) {
+    if (R() < 0.18) continue;
+    const roofs = ['#8a3b2e', '#6e4a3a', '#5a5f6e', '#7a3030', '#6a5040']; OB.houses.push({ x: gx + 40, y: gy + 30, w: 190, h: 150, roof: roofs[(R() * 5) | 0] }); addRect(gx + 40, gy + 30, 190, 150, 'house');
+    addRect(gx + 20, gy + 250, 150, 8, 'fence');
+  }
+  // --- Bauernhof mit Scheune ---
+  { const f = LM0.bauernhof; OB.houses.push({ x: f.x - 250, y: f.y - 120, w: 230, h: 170, roof: '#8a4a2a', barn: true }); addRect(f.x - 250, f.y - 120, 230, 170, 'barn'); OB.houses.push({ x: f.x + 60, y: f.y - 100, w: 170, h: 140, roof: '#6e4a3a' }); addRect(f.x + 60, f.y - 100, 170, 140, 'house'); addRect(f.x - 300, f.y + 120, 560, 8, 'fence'); }
   // --- Tunneleingänge: Felsen rund um die dunklen Löcher ---
   for (const k of ['tunnelein', 'tunnelaus']) { const t = LM0[k]; for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + (i - 2) * 0.55; addRock(R, t.x + Math.cos(a) * 60, t.y + Math.sin(a) * 45, 22 + R() * 12, true, 120); } OB.flats.push({ k: 'cave', x: t.x, y: t.y - 30 }); }
   // --- Krähenort: Müllplatz der Zweibeiner mit Zaun ---
@@ -318,7 +347,15 @@ function buildObjects() {
     const x = gx + (R() - 0.5) * 48, y = gy + (R() - 0.5) * 48, rr = R(), t = territoryAt(x, y, true);
     if (roadDist(x, y) < ROAD_HW + 60) continue;
     if (isWater(x, y) && !marshPool(x, y)) continue;
-    if (x > 6250 && y > 1800 && lakeDist(x, y) < 1.12) { if (rr < 0.3 && lakeDist(x, y) > 1.02) addBush(x, y, 18 + R() * 8, 'reed'); continue; }
+    if (x > 10050 && y > 1800 && lakeDist(x, y) < 1.12) { if (rr < 0.3 && lakeDist(x, y) > 1.02) addBush(x, y, 18 + R() * 8, 'reed'); continue; }
+    if (t === 'fremdland') {
+      const b = fremdBiome(x, y);
+      if (b === 'stadt' || nearLM(x, y, 40)) continue;
+      if (b === 'wald') { if (rr < 0.07) addTree(R, x, y, R() < 0.25 ? 'birch' : 'oak'); else if (rr < 0.3) addBush(x, y, 26 + R() * 20, R() < 0.7 ? 'fern' : 'bramble'); }
+      else if (b === 'wiese') { if (rr < 0.008) addTree(R, x, y, 'oak'); else if (rr < 0.06) addBush(x, y, 20 + R() * 14, R() < 0.5 ? 'bramble' : 'heather'); else if (rr < 0.066) addRock(R, x, y, 14 + R() * 18); }
+      else if (b === 'feld' && rr < 0.01) addBush(x, y, 18, 'bramble');
+      continue;
+    }
     if (t === 'berge') { if (rr < 0.09) addRock(R, x, y, 20 + R() * 45, true, 115 + R() * 30 | 0); else if (rr < 0.11) addTree(R, x, y, 'pine'); continue; }
     if (t === 'kueste') { if (x > oceanEdge(y) - 180) continue; if (rr < 0.06) addBush(x, y, 16 + R() * 10, R() < 0.5 ? 'heather' : 'reed'); else if (rr < 0.07) addRock(R, x, y, 14 + R() * 16); continue; }
     if (riverOn(y) && Math.abs(x - riverX(y)) < RIVER_HW + 45 && x < OLD_W) { if (rr < 0.35 && Math.abs(x - riverX(y)) > RIVER_HW + 8) addBush(x, y, 20 + R() * 10, 'reed'); continue; }
@@ -359,7 +396,7 @@ function buildObjects() {
   }
   for (let i = 0; i < 7; i++) OB.herbs.push({ x: 1500 + i * 280 + R() * 80, y: 3380 + R() * 60, k: 'katzenminze' });
   for (let i = 0; i < 6; i++) OB.herbs.push({ x: 150 + R() * 1100, y: 1000 + R() * 600, k: pick(['schafgarbe', 'mohn']) });
-  for (let i = 0; i < 25; i++) { const x = 6300 + R() * 700, y = 2500 + R() * 1400; if (territoryAt(x, y, true) === 'donner' && !isWater(x, y) && !nearLM(x, y, 20)) OB.herbs.push({ x, y, k: pick(kinds) }); }
+  for (let i = 0; i < 25; i++) { const x = 10100 + R() * 700, y = 2500 + R() * 1400; if (territoryAt(x, y, true) === 'donner' && !isWater(x, y) && !nearLM(x, y, 20)) OB.herbs.push({ x, y, k: pick(kinds) }); }
 }
 
 const HERBS = {
@@ -433,17 +470,17 @@ function heightAt(x, y) {
   const hd = dist(x, y, HOCH.x, HOCH.y); if (hd < 420) h += 110 * Math.pow(1 - hd / 420, 1.6);
   return h;
 }
-const LAKE_LEVEL = baseH(7250, 3060) - 6, OCEAN_LEVEL = -12;
+const LAKE_LEVEL = baseH(11050, 3060) - 6, OCEAN_LEVEL = -12;
 const bumpY = (v, c, w) => clamp(1 - Math.abs(v - c) / w, 0, 1);
 function heightNew(x, y, h) {
   // Berge mit zwei Pässen
-  const mb = clamp(1 - Math.abs(x - 5800) / 560, 0, 1);
+  const mb = clamp(1 - Math.abs(x - 9600) / 560, 0, 1);
   if (mb > 0) { const pass = Math.max(bumpY(y, 1650, 280), bumpY(y, 3150, 320)); h += Math.pow(mb, 1.4) * (140 + NOISE(x / 300, y / 300) * 170) * (1 - 0.7 * pass); }
   if (x < OLD_W) h = lerp(h, baseH(x, y), clamp((OLD_W - x) / 200, 0, 1));
   // Küste und Meer
-  if (y < 1800 && x > 6300) { const d = oceanEdge(y) - x; h = lerp(h, h * 0.3, clamp(1 - (x - 6300) / 400, 0, 1) < 1 ? 0.6 : 0.6); if (d < 250) h = lerp(OCEAN_LEVEL - 18, h * 0.3, clamp(d / 250, 0, 1)); }
+  if (y < 1800 && x > 10100) { const d = oceanEdge(y) - x; h = lerp(h, h * 0.3, 0.6); if (d < 250) h = lerp(OCEAN_LEVEL - 18, h * 0.3, clamp(d / 250, 0, 1)); }
   // See, Insel, Lager
-  if (x > 6250 && y > 1800) {
+  if (x > 10050 && y > 1800) {
     const ld = lakeDist(x, y);
     if (ld < 1.35) { const k = clamp((ld - 0.8) / 0.55, 0, 1), s = k * k * (3 - 2 * k); h = lerp(LAKE_LEVEL - 16, h, s); }
     h = flatTo(h, x, y, LM0.insel.x, LM0.insel.y, 70, LAKE_LEVEL + 7, 40);
@@ -454,7 +491,7 @@ function heightNew(x, y, h) {
   h = flatTo(h, x, y, LM0.stamm.x, LM0.stamm.y + 40, 60, heightAtRaw(LM0.stamm.x, LM0.stamm.y + 40), 60);
   return h;
 }
-function heightAtRaw(x, y) { const mb = clamp(1 - Math.abs(x - 5800) / 560, 0, 1); return baseH(x, y) + Math.pow(mb, 1.4) * (140 + NOISE(x / 300, y / 300) * 170) * (1 - 0.7 * Math.max(bumpY(y, 1650, 280), bumpY(y, 3150, 320))); }
+function heightAtRaw(x, y) { const mb = clamp(1 - Math.abs(x - 9600) / 560, 0, 1); return baseH(x, y) + Math.pow(mb, 1.4) * (140 + NOISE(x / 300, y / 300) * 170) * (1 - 0.7 * Math.max(bumpY(y, 1650, 280), bumpY(y, 3150, 320))); }
 function surfaceY(x, y) {
   if (inLake(x, y)) return Math.max(heightAt(x, y), LAKE_LEVEL - 5);
   if (inOcean(x, y)) return Math.max(heightAt(x, y), OCEAN_LEVEL - 5);

@@ -140,7 +140,7 @@ function buildWater() {
   const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(lv, 3)); lg.setIndex(li); lg.computeVertexNormals();
   const luv = []; for (let i = 0; i < lv.length; i += 3) luv.push(lv[i] / 130, lv[i + 2] / 130); lg.setAttribute('uv', new THREE.Float32BufferAttribute(luv, 2));
   const lake = new THREE.Mesh(lg, mat); lake.position.set(LAKE.x, LAKE_LEVEL, LAKE.y); SC.add(lake);
-  const oc = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1900).rotateX(-Math.PI / 2), mat); oc.position.set(8200, OCEAN_LEVEL, 850); SC.add(oc);
+  const oc = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1900).rotateX(-Math.PI / 2), mat); oc.position.set(12000, OCEAN_LEVEL, 850); SC.add(oc);
   const moon = new THREE.Mesh(new THREE.CircleGeometry(48, 32).rotateX(-Math.PI / 2), new THREE.MeshPhongMaterial({ color: 0x9fc8ff, emissive: 0x3a5a9a, shininess: 120, transparent: true, opacity: 0.9 }));
   moon.position.set(LM0.mondsee.x, heightAt(LM0.mondsee.x, LM0.mondsee.y) + 3, LM0.mondsee.y); SC.add(moon); W3.mondsee = moon;
 }
@@ -320,10 +320,10 @@ function buildGrass() {
   const mat = windy(new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide }), 0.35, true);
   const R = mulberry32(99), spots = [];
   let tries = 0;
-  while (spots.length < 36000 && tries++ < 150000) {
+  while (spots.length < 48000 && tries++ < 200000) {
     const x = R() * W, y = R() * H, t = territoryAt(x, y, true);
     if (inRoad(x, y) || isWater(x, y) || (riverOn(y) && Math.abs(x - riverX(y)) < RIVER_HW + 10)) continue;
-    const dens = { donner: 0.55, fluss: 1, wind: 0.8, zweibeiner: 0.35, schatten: 0.3, baumgeviert: 1, hochland: 0.3, donnerweg: 0, berge: 0.2, kueste: 0.3 }[t] || 0;
+    const dens = { donner: 0.55, fluss: 1, wind: 0.8, zweibeiner: 0.35, schatten: 0.3, baumgeviert: 1, hochland: 0.3, donnerweg: 0, berge: 0.2, kueste: 0.3, fremdland: 0.7 }[t] || 0;
     if (R() > dens) continue;
     let bad = false; for (const cp of OB.camps) if (dist(x, y, cp.lm.x, cp.lm.y) < cp.lm.r - 30) { bad = true; break; }
     if (bad || (y > 3940 && y < 4140) || dist(x, y, LM.sandkuhle.x, LM.sandkuhle.y) < LM.sandkuhle.r) continue;

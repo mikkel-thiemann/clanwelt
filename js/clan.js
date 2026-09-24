@@ -333,7 +333,7 @@ const EVENTS = [
 const PROPHECIES = ['„Wenn der Schnee schmilzt, wird ein Stern fallen.“', '„Drei Pfoten werden den Wald vor dem Sturm bewahren.“', '„Das Wasser wird zurückkehren, wenn die Blätter fallen.“',
   '„Ein Schatten wächst im Kiefernwald.“', '„Wolken werden den Mond verhüllen, doch Licht findet einen Weg.“', '„Nur der Mut eines Jungen wird die Dunkelheit brechen.“'];
 function donnerPlaces() { return G.flags.see ? [LM.buchenhain, LM.zweibeinernest, LM.seeufer] : [LM.schlangenfelsen, LM.platane, LM.eulenbaum, LM.sonnenfelsen]; }
-function borderPoint(k) { if (G.flags.see) return k === 'schatten' ? { x: 6900, y: 2600, name: 'die SchattenClan-Grenze' } : k === 'fluss' ? { x: 6950, y: 3650, name: 'die FlussClan-Grenze' } : { x: 7450, y: 3450, name: 'die WindClan-Grenze' }; return k === 'schatten' ? { x: 2600, y: 1560, name: 'die Grenze am Donnerweg' } : k === 'fluss' ? { x: 1320, y: 2200, name: 'die Sonnenfelsen' } : { x: 1330, y: 1420, name: 'die WindClan-Grenze' }; }
+function borderPoint(k) { if (G.flags.see) return k === 'schatten' ? { x: 10700, y: 2600, name: 'die SchattenClan-Grenze' } : k === 'fluss' ? { x: 10750, y: 3650, name: 'die FlussClan-Grenze' } : { x: 11250, y: 3450, name: 'die WindClan-Grenze' }; return k === 'schatten' ? { x: 2600, y: 1560, name: 'die Grenze am Donnerweg' } : k === 'fluss' ? { x: 1320, y: 2200, name: 'die Sonnenfelsen' } : { x: 1330, y: 1420, name: 'die WindClan-Grenze' }; }
 
 // ===== Aufträge (Missionen) =====
 function makeMission(type, o = {}) {
