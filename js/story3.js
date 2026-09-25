@@ -878,6 +878,111 @@ insertStepsBefore('Die neue Heimat', st => st.t === 'night', [
   },
 ]);
 
+
+// ================= ERFUNDENE KAPITEL DURCH ECHTE BUCH-EREIGNISSE ERSETZEN =================
+function replaceQuest(title, newTitle, steps, extra) { const q = QUESTS[questIdx(title)]; if (!q) return; q.title = newTitle; q.steps = steps; Object.assign(q, extra || {}); }
+
+// --- Buch 1: Tüpfelblatt (statt „Schülerpflichten“) ---
+replaceQuest('Schülerpflichten', 'Tüpfelblatt', [
+  { t: 'talk', who: 'tuepfelblatt', text: 'Besuche Tüpfelblatt im Heilerbau', dlg: () => [
+    ACT({ cap: 'Im Heilerbau duftet es nach Kräutern. Eine schildpattfarbene Kätzin mit sanften Augen sieht dich an.', moves: [['tuepfelblatt', 'player', { dx: 35, sp: 40 }]], cam: 'tuepfelblatt', dist: 120 }),
+    ['tuepfelblatt', 'Du bist also das Hauskätzchen, von dem alle reden. Feuerpfote. Ein schöner Name – er passt zu deinem Fell.'],
+    ['tuepfelblatt', 'Der SternenClan hat mir etwas über Feuer gesagt … Aber das ist nichts für einen Schüler. Hilfst du mir? Ich brauche Ringelblumen.'],
+  ] },
+  { t: 'herb', kind: 'ringelblume', n: 2, text: 'Sammle 2 Ringelblumen für Tüpfelblatt (sie leuchten orange)' },
+  { t: 'talk', who: 'tuepfelblatt', text: 'Bring Tüpfelblatt die Ringelblumen', dlg: () => [
+    ['tuepfelblatt', 'Danke, Feuerpfote. Ringelblume verhindert, dass Wunden schlimm werden. Merk dir das – eines Tages brauchst du es.'],
+    ['erz', 'Als du den Heilerbau verlässt, spürst du ihren Blick in deinem Fell. Du weißt nicht warum, aber du freust dich schon auf das nächste Mal.'],
+    { do: () => { gainXp(P(), 30); chron('Feuerpfote freundet sich mit der Heilerin Tüpfelblatt an.'); } },
+  ] },
+]);
+
+// --- Buch 2: Kampf an der Schlucht – Weißkralle stürzt (statt „Kampf um die Sonnenfelsen“) ---
+replaceQuest('Kampf um die Sonnenfelsen', 'Kampf an der Schlucht', [
+  { t: 'talk', who: 'weisspelz', text: 'Weißpelz hat FlussClan-Geruch in eurem Gebiet gefunden', dlg: () => [['weisspelz', 'Der FlussClan jagt in unserem Territorium – nahe der Schlucht! Feuerherz, Graustreif, ihr kommt mit.']], done() { follow('weisspelz'); follow('graupfote'); } },
+  {
+    t: 'defeat', group: 'schlucht', n: 3, at: 'schlucht', spawnNear: 900, noPatrol: true, guide: 'weisspelz', guideSay: 'Zur Schlucht! Schnell!', text: 'Vertreibt die FlussClan-Jäger von der Schlucht!', enter() { follow('weisspelz'); follow('graupfote'); },
+    spawn() { const s = LM.schlucht; spawnClanCat('fluss', s.x + 40, s.y - 40, { id: 'weisskralle_e', group: 'schlucht', story: true, name: 'Weißkralle', look: L('#e8e4dc', '#9a9690', 0, '#e8b923'), lv: 3, hp: 120 }); storyFoes('schlucht', 'fluss', 2, { x: s.x + 60, y: s.y + 40 }, { lv: 2 }); },
+    dlg: () => [
+      ACT({ cap: 'Weißkralle weicht vor dir zurück – zu weit. Seine Hinterpfoten rutschen über die Kante, und er stürzt in die Schlucht!', moves: [[ENTS.find(e => e.id === 'weisskralle_e'), () => ({ x: 3500, y: 2760 }), { sp: 160, hide: true }]], cam: 'player', shake: 3, dist: 170, end() { const w = ENTS.find(e => e.id === 'weisskralle_e'); if (w) w.gone = true; } }),
+      ['erz', 'Ein Schrei – dann nur noch das Rauschen des Flusses tief unten. Die FlussClan-Krieger fliehen.'],
+      ['graupfote', '(starrt in die Schlucht) Er … er war Silberflusses Clan-Gefährte …'],
+      ['player', 'Ich wollte das nicht. Ich wollte ihn nur vertreiben.'],
+      ['weisspelz', 'Es war ein Unfall, Feuerherz. Der FlussClan hätte nicht auf unserem Gebiet jagen dürfen.'],
+      { do: () => { clearStoryEnts(); applyFx({ rel: { fluss: -15 }, terr: 5 }); ['weisspelz', 'graupfote'].forEach(goHome); chron('Bei einem Kampf an der Schlucht stürzt der FlussClan-Krieger Weißkralle in den Tod.'); } },
+    ]
+  },
+]);
+
+// --- Buch 6: Die Gefangenen des TigerClans (statt „Vorbereitung auf die Schlacht“) ---
+replaceQuest('Vorbereitung auf die Schlacht', 'Die Gefangenen des TigerClans', [
+  { t: 'talk', who: 'graupfote', text: 'Graustreif ist in großer Sorge', dlg: () => [['graupfote', 'Feuerstern! Tigerstern hält meine Jungen Federpfote und Sturmpfote im FlussClan-Lager gefangen – weil sie halb DonnerClan sind! Er will sie töten lassen!'], ['player', 'Dann holen wir sie heute Nacht heraus. Riesenstern vom WindClan hilft uns.']], done() { follow('graupfote'); } },
+  { t: 'night', text: 'Wartet bis zur Nacht – dann schleicht ihr zum FlussClan-Lager' },
+  {
+    t: 'goto', at: 'flusslager', noPatrol: true, text: 'Schleicht zum FlussClan-Lager', enter() { follow('graupfote'); },
+    dlg: () => [
+      { do: () => { const f = LM.flusslager; spawnClanCat('schatten', f.x + 40, f.y - 30, { id: 'tigerstern_f', name: 'Tigerstern', look: catById('tigerkralle').look, hostile: false, story: true, ai: 'leader' }); spawnClanCat('fluss', f.x - 20, f.y + 30, { id: 'steinfell_e', name: 'Steinfell', look: L('#7a7e84', null, 0, '#e8b923'), hostile: false, story: true }); spawnClanCat('schatten', f.x + 20, f.y + 50, { id: 'schwarzfuss_e', name: 'Schwarzfuß', look: L('#1e1e22', null, 0.2, '#e8b923', { size: 1.1 }), hostile: false, story: true }); spawnClanCat('fluss', f.x - 50, f.y + 70, { id: 'federpfote_e', name: 'Federpfote', look: L('#b8bec8', '#7a808a', 0, '#5ab0e8'), kit: true, hostile: false, story: true }); spawnClanCat('fluss', f.x - 20, f.y + 80, { id: 'sturmpfote_e', name: 'Sturmpfote', look: L('#5a5a62', null, 0, '#e8b923', { long: true }), kit: true, hostile: false, story: true }); } },
+      ACT({ cap: 'Im Lager stehen Federpfote und Sturmpfote zitternd vor Tigerstern. Steinfell, ihr Mentor, stellt sich vor sie.', moves: [['steinfell_e', 'federpfote_e', { dx: 30, sp: 60 }]], cam: 'tigerstern_f', dist: 200 }),
+      ['tigerstern_f', 'Steinfell. Töte die Halbclan-Schüler. Das ist ein Befehl.'],
+      ['steinfell_e', 'Niemals. Sie sind meine Schüler – und sie sind unschuldig.'],
+      ['tigerstern_f', 'Schwarzfuß. Du weißt, was zu tun ist.'],
+      ACT({ cap: 'Schwarzfuß springt Steinfell an. Steinfell kämpft tapfer – doch er ist geschwächt. Er fällt.', moves: [['schwarzfuss_e', 'steinfell_e', { sp: 200 }]], cam: 'steinfell_e', shake: 3, dist: 150 }),
+      { do: () => { const s = ENTS.find(e => e.id === 'steinfell_e'); if (s) s.sleep = true; } },
+      ['player', 'JETZT! Graustreif, hol die Jungen!'],
+      ACT({ cap: 'Ihr stürmt ins Lager. Graustreif packt Federpfote und Sturmpfote – und ihr flieht in die Dunkelheit.', moves: [['graupfote', 'federpfote_e', { sp: 220 }], ['federpfote_e', 'player', { dx: -40, sp: 180, delay: 1 }], ['sturmpfote_e', 'player', { dx: -60, dy: 30, sp: 180, delay: 1.1 }]], cam: 'graupfote', dist: 180 }),
+      ['graupfote', 'Ich habe sie! Meine Jungen sind in Sicherheit!'],
+      ['erz', 'Zurück im Lager erfährst du noch etwas Schreckliches: Dunkelstreif hat Tigerstern die ganze Zeit geholfen. Er hat sogar versucht, ein Junges mit Todesbeeren zu vergiften.'],
+      ['player', 'Dunkelstreif. Du bist verbannt. Geh zu deinem Tigerstern.'],
+      { do: () => { clearStoryEnts(); const d = catById('dunkelstreif'); if (d && d.alive) { d.clan = 'schatten'; d.hidden = true; d.ai = { m: 'home' }; } goHome('graupfote'); chron('Steinfell stirbt, weil er Federpfote und Sturmpfote nicht töten will. Feuerstern und Graustreif retten die beiden. Dunkelstreif wird als Verräter verbannt.'); } },
+    ]
+  },
+]);
+
+// --- Buch 11: Wolkenschweif und Lichtherz verschwinden (statt „Grenzen am See“) ---
+replaceQuest('Grenzen am See', 'Wolkenschweif und Lichtherz', [
+  { t: 'scene', dlg: () => [['erz', 'Eines Morgens sind Wolkenschweif und Lichtherz verschwunden. Ihr Geruch führt zum alten Zweibeinernest.'], ['sammy', 'Brombeerkralle, nimm Eichhornschweif mit und sucht sie. Vielleicht haben die Zweibeiner sie gefangen.']], done() { follow('eichhornjunges'); for (const id of ['wolkenjunges', 'lichtherz']) { const c = catById(id); if (c) { c.hidden = true; } } } },
+  { t: 'goto', at: 'zweibeinernest', guide: 'eichhornjunges', guideSay: 'Ich rieche sie! Hier entlang!', text: 'Folge Eichhornschweif zum verlassenen Zweibeinernest', enter() { follow('eichhornjunges'); }, dlg: () => [['erz', 'Am Zweibeinernest riecht es frisch nach Zweibeinern – und nach Wolkenschweif. Aber die Spur endet an einem Monster-Weg.'], ['eichhornjunges', 'Sie sind fort … Brombeerkralle, was, wenn sie nie wiederkommen?']] },
+  { t: 'catch', n: 2, text: 'Jagt auf dem Rückweg für den Clan', enter() { follow('eichhornjunges'); } },
+  { t: 'deliver', n: 2, text: 'Bringt die Beute in die Steinmulde', dlg: () => [
+    { do: () => { const w = catById('wolkenjunges'), l = catById('lichtherz'); for (const c of [w, l]) if (c) { c.alive = true; c.hidden = false; c.clan = 'donner'; if (c.rank !== 'krieger') setRank(c, 'krieger'); c.x = LM.lager.x + LM.lager.r + 40; c.y = LM.lager.y; } if (w) w.suf = 'schweif'; if (l) l.suf = 'herz'; } },
+    ACT({ cap: 'Da humpeln zwei Katzen durch den Eingang: Wolkenschweif und Lichtherz!', moves: [['wolkenjunges', 'den:pile', { sp: 70 }], ['lichtherz', 'den:pile', { dx: 35, sp: 70, delay: 0.3 }]], cam: 'wolkenjunges', dist: 160 }),
+    ['wolkenjunges', 'Zweibeiner haben uns in ein Nest gesperrt. Es gab Futter und weiche Kissen … aber wir wollten nach Hause. Zu unserem Clan.'],
+    ['lichtherz', 'Wir sind durch ein offenes Fenster geflohen und den ganzen Weg zurückgelaufen.'],
+    ['sammy', 'Willkommen daheim, ihr beiden.'],
+  ], done() { goHome('eichhornjunges'); for (const id of ['wolkenjunges', 'lichtherz']) goHome(id); chron('Wolkenschweif und Lichtherz werden von Zweibeinern eingesperrt und kehren zum Clan zurück.'); } },
+]);
+
+// --- Buch 14: Rußpfotes Sturz und Distelpfotes Alleingang (statt „Doppeltes Leben“) ---
+replaceQuest('Doppeltes Leben', 'Rußpfote und Distelpfote', [
+  { t: 'scene', dlg: () => [
+    { do: () => { const r = ensureCat('russherz', { pre: 'Ruß', suf: 'herz', rank: 'schueler', clan: 'donner', sex: 'w', age: 7, look: L('#6e6e74', '#4a4a50', 0, '#4fa3d9') }); r.storyLock = true; r.hidden = false; } },
+    ['erz', 'Die Schülerin Rußpfote klettert beim Training auf die Himmelseiche – höher, immer höher.'],
+    ACT({ cap: 'Da bricht ein Ast. Rußpfote stürzt und bleibt mit verdrehtem Hinterbein liegen.', moves: [['russherz', 'player', { dx: 60, sp: 90, sleep: true }]], cam: 'russherz', shake: 2, dist: 130 }),
+    ['russherz', 'Mein Bein … es tut so weh …'],
+    ['haeherjunges', '(tastet ihr Bein ab) Gebrochen. Aber es heilt. Ich kümmere mich um dich, Rußpfote. Das verspreche ich.'],
+    ['erz', 'Häherpfote hat ein seltsames Gefühl: Als hätte er diese Kätzin schon einmal gekannt – vor langer Zeit.'],
+  ], done() { const r = catById('russherz'); r.sleep = false; r.hurt = true; r.ai = { m: 'home' }; chron('Rußpfote stürzt von der Himmelseiche und bricht sich das Bein.'); } },
+  { t: 'talk', who: 'distelpfote', text: 'Distelpfote hat etwas vor', dlg: () => [['distelpfote', 'Der FlussClan benimmt sich seltsam. Sie jagen nicht mehr am Ufer und lassen niemanden an ihr Lager. Ich will wissen, warum.'], ['player', 'Du willst ins FlussClan-Lager?! Das ist gegen das Gesetz der Krieger!'], ['distelpfote', 'Nur um den Clan zu schützen. Komm mit – oder verrate mich nicht.']], done() { follow('distelpfote'); } },
+  { t: 'goto', pos: () => Object.assign({ r: 120 }, borderPoint('fluss')), noPatrol: true, guide: 'distelpfote', guideSay: 'Leise! Hier entlang.', text: 'Schleich mit Distelpfote zur FlussClan-Grenze', enter() { follow('distelpfote'); }, dlg: () => [['erz', 'Vom Ufer aus seht ihr ins FlussClan-Lager: Viele Katzen liegen krank in ihren Nestern. Die Zweibeiner haben den Fluss vergiftet – ihre Fische machen sie krank.'], ['distelpfote', 'Deshalb jagen sie nicht mehr … Ich muss es Feuerstern sagen – auch wenn ich Ärger bekomme.']], done() { goHome('distelpfote'); } },
+]);
+
+// --- Buch 16: Löwenpfote entdeckt seine Macht (statt „Die Kraft der Drei“) ---
+replaceQuest('Die Kraft der Drei', 'Löwenpfotes Macht', [
+  { t: 'night', text: 'Schlaf im Schülerbau (warte bis zur Nacht)' },
+  {
+    t: 'defeat', group: 'traumkampf2', n: 1, noPatrol: true, dream: 'finster', text: 'Im dunklen Wald: Tigerstern und Habichtfrost greifen dich gleichzeitig an!',
+    enter() { const pc = P(), t = catById('tigerkralle'); spawnClanCat('sternen', pc.x + 70, pc.y, { id: 'tigertraum2', group: 'traumkampf2', name: 'Tigerstern', look: Object.assign({}, t.look, { base: '#3a2818' }), hostile: true, story: true, hp: 160, atk: 5, lv: 4, fleeAt: 0 }); spawnClanCat('sternen', pc.x - 70, pc.y, { id: 'habichttraum', name: 'Habichtfrost', look: L('#5a3e26', '#24160c', 0.3, '#9fe0ff'), hostile: false, story: true, ai: 'leader' }); },
+    dlg: () => [['erz', 'Tigerstern taumelt zurück. Du hast gegen zwei der stärksten Krieger aller Zeiten gekämpft – und hast keinen einzigen Kratzer.'], ['tigertraum2', 'Du kannst nicht verletzt werden, Löwenpfote. Mit dieser Macht könntest du über alle Clans herrschen.'], ['player', 'Ich will nicht herrschen. Ich will meinen Clan beschützen.'], { do: () => clearStoryEnts() }, ['erz', 'Du wachst auf. Häherpfote sitzt neben dir.'], ['haeherjunges', 'Du warst wieder im dunklen Wald, oder? Pass auf, Löwenpfote. Tigerstern will nur sich selbst.']]
+  },
+]);
+
+// --- Buch 18: Verdacht gegen Sol (statt „Die Ruhe vor dem Sturm“) ---
+replaceQuest('Die Ruhe vor dem Sturm', 'Verdacht gegen Sol', [
+  { t: 'talk', who: 'brombeerjunges', text: 'Brombeerkralle braucht dich', dlg: () => [['brombeerjunges', 'Sol wurde am Bach gesehen, an dem Tag, an dem Aschenpelz starb. Feuerstern will ihn befragen. Hol ihn von der SchattenClan-Grenze.']], done() { const s = catById('sol'); if (s) { const b = borderPoint('schatten'); s.alive = true; s.hidden = false; s.x = b.x + 60; s.y = b.y - 40; s.ai = { m: 'hold' }; } } },
+  { t: 'goto', who: 'sol', near: 80, noPatrol: true, text: 'Finde Sol an der SchattenClan-Grenze', dlg: () => [['sol', 'Ihr sucht mich? Wie aufmerksam. Ich komme mit – ich habe nichts zu verbergen.']], done() { follow('sol'); } },
+  { t: 'goto', at: 'lager', text: 'Bring Sol ins Lager', enter() { follow('sol'); }, dlg: () => [['sammy', 'Sol. Hast du Aschenpelz getötet?'], ['sol', 'Nein, Feuerstern. Aber ich glaube, in eurem eigenen Lager gibt es jemanden, der mehr weiß, als er sagt.'], ['erz', 'Distelblatt wird bei diesen Worten ganz blass.']], done() { const s = catById('sol'); s.homePos = { x: LM.lager.x + 60, y: LM.lager.y + 120 }; s.ai = { m: 'home' }; } },
+]);
+
 // ---------- Reihenfolge wie in den Büchern ----------
 function moveQuestAfter(title, afterTitle, ch) { const i = questIdx(title); if (i < 0) return; const q = QUESTS.splice(i, 1)[0]; if (ch) q.ch = ch; const j = questIdx(afterTitle); QUESTS.splice(j + 1, 0, q); }
 moveQuestAfter('Wolkenjunges', 'Silberfluss', 2);     // Wolkenjunges kommt in „Feuer und Eis“
