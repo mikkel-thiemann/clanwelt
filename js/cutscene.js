@@ -90,3 +90,32 @@ const Cut = {
     if (Dlg.open) { $('dialog').classList.remove('hidden'); Dlg.next(); }
   }
 };
+
+// Tod als Filmszene: Die Katze sinkt zu Boden, Sternenlicht glitzert, ihr Geist steigt zum SternenClan auf
+// (bei dunklen Katzen wie Tigerstern versinkt er stattdessen im Schatten). o: { to, mourn: [ids], dark, dist, wait }
+function DEATH(id, cap, o = {}) {
+  let ghost = null;
+  const moves = [[id, o.to || id, { sp: 35, sleep: true }]];
+  (o.mourn || []).forEach((m, i, arr) => { const a = i / arr.length * TAU + 0.6; moves.push([m, id, { dx: Math.cos(a) * 48, dy: Math.sin(a) * 48, sp: 90, delay: 0.4 + i * 0.25, face: id }]); });
+  return ACT({
+    cap, cam: id, dist: o.dist || 140, pitch: 0.3, orbit: 0.07, wait: o.wait || 4.5, max: 14, glow: id, glowCol: o.dark ? '#6a4a7a' : '#e8f0ff', moves,
+    start() {
+      const c = actor(id); if (!c) return;
+      if (c.hidden || dist(c.x, c.y, P().x, P().y) > 700) { const p = nearPlayer(90); c.x = p.x; c.y = p.y; }
+      c.hidden = false; c.gone = false;
+    },
+    tick(dt, t) {
+      const c = actor(id); if (!c) return;
+      if (t > 2 && !ghost) {
+        const nm = G.cats.includes(c) ? catName(c) : (c.name || '');
+        ghost = spawnClanCat('sternen', c.x, c.y, { id: 'seele_' + (c.id || 'x'), name: nm, look: c.look, star: true, hostile: false, truce: true, story: true, ai: 'leader' });
+        ghost.lift = 0;
+      }
+      if (ghost) {
+        ghost.lift += dt * (o.dark ? -9 : 24);
+        if (typeof FX3 !== 'undefined' && FX3.sysN && Math.random() < dt * 10) FX3.sparkle(ghost.x + rand(-10, 10), surfaceY(ghost.x, ghost.y) + Math.max(0, ghost.lift) + 12, ghost.y + rand(-10, 10), o.dark ? '#5a3a6a' : '#dfe8ff', 4);
+      }
+    },
+    end() { if (ghost) ghost.gone = true; },
+  });
+}

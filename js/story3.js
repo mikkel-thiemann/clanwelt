@@ -571,6 +571,7 @@ QUESTS.push(
       {
         t: 'scene', dlg: () => [
           ['erz', 'Im Morgengrauen: Aufregung am Bach an der Grenze. Aschenpelz liegt im Wasser. Tot.'],
+          DEATH('aschenfell', 'Im Bach an der Grenze liegt ein graues Fell im Wasser. Aschenpelz. Sein Geist steigt auf – doch niemand weiß, wohin.', { mourn: ['eichhornjunges', 'brombeerjunges'] }),
           { do: () => { const a = catById('aschenfell'); if (a && a.alive) killCat(a, 'Aschenpelz wird tot im Bach gefunden.'); } },
           ['sammy', 'Wer tut so etwas? Wer tötet einen Clan-Gefährten?'],
           ['distelpfote', '(sehr leise, zitternd) … Er hätte es allen erzählt. Er hätte den Clan zerstört.'],
@@ -831,6 +832,7 @@ insertQuestsBefore('Jagd mit Sandsturm', [{
       dlg: () => [
         ACT({ cap: 'Ein Knurren zwischen den Felsen. Dann jagt ein riesiger Hund an euch vorbei und verschwindet.', start() { const s = LM.schlangenfelsen; spawnBeast('hund', s.x + 220, s.y - 120, { id: 'hund_e', story: true, tame: true, hostile: false }); }, moves: [['hund_e', () => ({ x: LM.schlangenfelsen.x - 320, y: LM.schlangenfelsen.y + 60 }), { sp: 240 }]], cam: 'hund_e', shake: 3, dist: 170, end() { const h = ENTS.find(e => e.id === 'hund_e'); if (h) h.gone = true; } }),
         ['erz', 'Zwischen den Felsen liegen die beiden Schüler. Flinkpfote rührt sich nicht mehr.'],
+        DEATH('flinkpfote', 'Flinkpfote liegt reglos zwischen den Felsen. Er wollte so gern ein Krieger sein.', { mourn: ['sandpfote'] }),
         { do: () => { const f = catById('flinkpfote'); if (f && f.alive) killCat(f, 'Flinkpfote wird bei den Schlangenfelsen von Hunden getötet.'); } },
         ['lichtherz', '(flüsternd) Meute … Meute … töten … töten …'],
         ['sandpfote', 'Lichtpfote lebt noch! Schnell, wir bringen sie zu Rußpelz!'],
@@ -859,6 +861,7 @@ insertStepsBefore('Die neue Heimat', st => st.t === 'night', [
       ['riesenstern', 'Feuerstern … mein Freund. Hört meine letzten Worte …'],
       ['riesenstern', 'Nicht Moorkralle … sondern Kurzbart … soll den WindClan führen. Er war immer treu …'],
       ['moorkralle', 'WAS?! Ich bin der Zweite Anführer! Der WindClan gehört mir!'],
+      DEATH('riesenstern', 'Riesenstern schließt die Augen. Sein Geist steigt über das Moor hinauf in den Himmel.', { mourn: ['sammy', 'kurzbart'] }),
       { do: () => { const r = catById('riesenstern'); if (r && r.alive) killCat(r); G.others.wind.leader = 'Kurz'; chron('Riesenstern stirbt und bestimmt Kurzbart statt Moorkralle zu seinem Nachfolger.'); } },
       ['sammy', 'Riesenstern hat gesprochen, Moorkralle. Und ich war sein Zeuge.'],
       ['erz', 'Moorkralle faucht und verschwindet im Heidekraut.'],
@@ -927,7 +930,7 @@ replaceQuest('Vorbereitung auf die Schlacht', 'Die Gefangenen des TigerClans', [
       ['steinfell_e', 'Niemals. Sie sind meine Schüler – und sie sind unschuldig.'],
       ['tigerstern_f', 'Schwarzfuß. Du weißt, was zu tun ist.'],
       ACT({ cap: 'Schwarzfuß springt Steinfell an. Steinfell kämpft tapfer – doch er ist geschwächt. Er fällt.', moves: [['schwarzfuss_e', 'steinfell_e', { sp: 200 }]], cam: 'steinfell_e', shake: 3, dist: 150 }),
-      { do: () => { const s = ENTS.find(e => e.id === 'steinfell_e'); if (s) s.sleep = true; } },
+      DEATH('steinfell_e', 'Steinfell fällt. Er hat seine Schüler bis zuletzt beschützt. Sein Geist steigt zu den Sternen.', { mourn: ['federpfote_e', 'sturmpfote_e'] }),
       ['player', 'JETZT! Graustreif, hol die Jungen!'],
       ACT({ cap: 'Ihr stürmt ins Lager. Graustreif packt Federpfote und Sturmpfote – und ihr flieht in die Dunkelheit.', moves: [['graupfote', 'federpfote_e', { sp: 220 }], ['federpfote_e', 'player', { dx: -40, sp: 180, delay: 1 }], ['sturmpfote_e', 'player', { dx: -60, dy: 30, sp: 180, delay: 1.1 }]], cam: 'graupfote', dist: 180 }),
       ['graupfote', 'Ich habe sie! Meine Jungen sind in Sicherheit!'],

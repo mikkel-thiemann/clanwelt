@@ -271,6 +271,7 @@ const QUESTS = [
         dlg: () => [
           ACT({ cap: 'Die SchattenClan-Krieger fliehen. Doch Löwenherz schleppt sich noch ein paar Schritte … dann bricht er zusammen. Sein goldenes Fell ist voller Blut.', moves: [['loewenherz', 'player', { from: () => nearPlayer(110), dx: 35, sp: 35, sleep: true }]], cam: 'loewenherz', dist: 120, wait: 2 }),
           ['loewenherz', 'Feuerpfote … du wirst ein großer Krieger … Beschütze … den Clan …'],
+          DEATH('loewenherz', 'Löwenherz schließt die Augen. Aus seinem goldenen Fell steigt ein Sternenlicht empor – zum SternenClan.', { mourn: ['blaustern', 'graupfote'] }),
           { do: () => { killCat(catById('loewenherz')); } },
           ['blaustern', 'Löwenherz ist zum SternenClan gegangen. Tigerkralle, du wirst der neue Zweite Anführer.'],
           { do: () => { setRank(catById('tigerkralle'), 'zweiter'); chron('SchattenClan überfällt das Lager. Löwenherz stirbt, Tigerkralle wird Zweiter Anführer.'); applyFx({ rel: { schatten: -15 } }, true); } },
@@ -287,6 +288,7 @@ const QUESTS = [
           ACT({ cap: 'Am nächsten Morgen: Schreie aus der Kinderstube!', moves: [['frostfell', 'den:kinder', { dy: 35, sp: 200, say: 'Meine Jungen! Wo sind meine Jungen?!' }], ['player', 'den:kinder', { dx: 60, dy: 70, sp: 170 }]], cam: 'frostfell' }),
           ['erz', 'Frostfells Junge sind verschwunden.'],
           ['erz', 'Und im Heilerbau liegt Tüpfelblatt – tot. Der Geruch eines SchattenClan-Kriegers hängt in der Luft.'],
+          DEATH('tuepfelblatt', 'Tüpfelblatt liegt reglos im Moos. Über ihr glimmt ein Sternenlicht auf – und schwebt davon.', { to: 'den:heiler', mourn: ['blaustern', 'player'] }),
           { do: () => { killCat(catById('tuepfelblatt')); ['aschenjunges', 'farnjunges', 'dornenjunges'].forEach(id => { const k = catById(id); if (k) k.hidden = true; }); catById('gelbzahn').hidden = true; } },
           ['tigerkralle', 'Gelbzahn ist auch weg! Diese Verräterin hat Tüpfelblatt getötet und die Jungen gestohlen!'],
           ['player', '(leise zu Graupfote) Das glaube ich nicht. Wir müssen Gelbzahn finden!'],
@@ -417,6 +419,7 @@ const QUESTS = [
           ['erz', 'Silberfluss liegt am Ufer. Sie bekommt ihre Jungen – aber etwas stimmt nicht.'],
           ['silberfluss', 'Graustreif … es sind zwei … Pass gut auf sie auf …'],
           ['erz', 'Zwei kleine Junge maunzen im Gras. Silberfluss schließt die Augen und atmet nicht mehr.'],
+          DEATH('silberfluss', 'Graustreif drückt sich an Silberfluss – doch ihr Geist steigt schon hinauf zu den Sternen.', { mourn: ['graupfote'] }),
           { do: () => { const s = catById('silberfluss'); killCat(s); } },
           ['graupfote', 'Nein … NEIN! Silberfluss!'],
           ['erz', 'Der FlussClan beansprucht die Jungen für sich. Und Graustreif trifft eine schwere Entscheidung.'],
@@ -554,6 +557,7 @@ const QUESTS = [
         ['gelbzahn', 'Ich habe Halbschweif gesucht … zu spät. Hör zu. Ich bin stolz auf dich. Du warst mir … mehr ein Sohn als Braunstern je war.'],
         ['gelbzahn', 'Rußpelz wird eine gute Heilerin. Sag ihr … dass ich …'],
         ['erz', 'Gelbzahn schließt die Augen. Die alte Heilerin ist zum SternenClan gegangen.'],
+        DEATH('gelbzahn', 'Gelbzahn sinkt in die Asche. Ein Sternenlicht löst sich aus ihrem zerzausten Fell und steigt in den Rauch.', {}),
         { do: () => { killCat(catById('gelbzahn')); const h = catById('halbschweif'); if (h && h.alive) killCat(h); const a = catById('aschenjunges'); setRank(a, 'heiler'); a.mentor = null; chron('Ein Feuer zerstört das Lager. Feuerherz rettet Brombeerjunges und Bernsteinjunges. Gelbzahn und Halbschweif sterben. Rußpelz wird Heilerin.'); } },
       ] },
       { t: 'scene', dlg: () => [ACT({ cap: 'Endlich fallen die ersten Tropfen. Dann prasselt der Regen herab.', moves: [], cam: 'player', start() { G.weather = 'regen'; }, tick(dt) { if (G.fire) G.fire.r = Math.max(0, G.fire.r - dt * 90); }, wait: 3, dist: 200, pitch: 0.4 }), ['erz', 'Die Flammen zischen und sterben. Das Lager ist schwarz und verkohlt – aber es wird wieder wachsen.'], { do: () => { G.fire = null; G.weather = 'regen'; for (const c of clanCats()) if (c !== P()) { c.ai = { m: 'home' }; c.slow = false; } applyFx({ morale: -10, food: -20, health: -10 }); } }] },
@@ -581,7 +585,7 @@ const QUESTS = [
   },
   {
     ch: 5, title: 'Meute, Meute!', gap: 1, tasks: 1, steps: [
-      { t: 'goto', at: 'schlangenfelsen', guide: 'graupfote', guideSay: 'Da! Noch ein totes Kaninchen! Die Spur führt hier entlang!', text: 'Tote Kaninchen im Wald … Folge Graustreif auf der Spur', enter() { follow('graupfote'); }, dlg: () => [['erz', 'Eine Spur aus toten Kaninchen – sie führt von den Schlangenfelsen direkt zum DonnerClan-Lager. Tigerstern hat sie gelegt!'], ['erz', 'Am Ende der Spur liegt Buntgesicht. Tot. Sie war der Köder.'], { do: () => { const b = catById('buntgesicht'); if (b && b.alive) killCat(b); } }, ['graupfote', 'Tigerstern will die Hunde zu unserem Lager locken! Ein ganzer Clan … als Futter für Hunde!'], ['player', 'Dann locken wir die Meute zur Schlucht. Ich laufe vorne.']], done() { goHome('graupfote'); } },
+      { t: 'goto', at: 'schlangenfelsen', guide: 'graupfote', guideSay: 'Da! Noch ein totes Kaninchen! Die Spur führt hier entlang!', text: 'Tote Kaninchen im Wald … Folge Graustreif auf der Spur', enter() { follow('graupfote'); }, dlg: () => [['erz', 'Eine Spur aus toten Kaninchen – sie führt von den Schlangenfelsen direkt zum DonnerClan-Lager. Tigerstern hat sie gelegt!'], ['erz', 'Am Ende der Spur liegt Buntgesicht. Tot. Sie war der Köder.'], DEATH('buntgesicht', 'Am Ende der Spur liegt Buntgesicht. Tigerstern hat sie als Köder für die Hunde getötet.', { mourn: ['graupfote'] }), { do: () => { const b = catById('buntgesicht'); if (b && b.alive) killCat(b); } }, ['graupfote', 'Tigerstern will die Hunde zu unserem Lager locken! Ein ganzer Clan … als Futter für Hunde!'], ['player', 'Dann locken wir die Meute zur Schlucht. Ich laufe vorne.']], done() { goHome('graupfote'); } },
       {
         t: 'custom', text: 'LAUF zur Schlucht! Der Anführer der Meute darf dich nicht erwischen!', at: 'schlucht', noPatrol: true,
         enter() { for (const e of ENTS) if (e.meute) e.gone = true; const s = LM.schlangenfelsen; spawnBeast('meute', s.x + 60, s.y - 40, { chase: true, story: true, meute: true, boss: true }); for (let i = 0; i < 2; i++) spawnBeast('hund', s.x - 70 + i * 40, s.y - 60, { story: true, meute: true, group: 'hunde' }); toast('„Meute, Meute! Töten, töten!“ – Lauf!'); },
@@ -592,6 +596,7 @@ const QUESTS = [
           ACT({ cap: 'Du springst hinterher in den reißenden Fluss. Zwei FlussClan-Krieger – Nebelfuß und Steinfell – helfen dir, Blaustern ans Ufer zu ziehen.', moves: [['player', 'schlucht', { sp: 200 }], ['blaustern', 'player', { from: () => ({ x: LM.schlucht.x - 60, y: LM.schlucht.y + 40 }), dx: 30, sp: 40, sleep: true, delay: 1 }]], cam: 'player', dist: 150, wait: 2 }),
           ['blaustern', 'Nebelfuß … Steinfell … meine Jungen. Vergebt mir, dass ich euch damals weggegeben habe …'],
           ['blaustern', 'Feuerherz … du bist das Feuer, das den Clan retten wird. Das hat Tüpfelblatt gesehen … Führe sie gut, mein Krieger …'],
+          DEATH('blaustern', 'Blaustern atmet ein letztes Mal. Über dem Fluss steigt ihr Geist in das Silbervlies auf – dorthin, wo die Anführer der Clans jagen.', { dist: 170, wait: 5.5 }),
           { do: () => { killCat(catById('blaustern')); chron('Blaustern opfert ihr letztes Leben und stürzt mit dem Anführer der Meute in die Schlucht. (Ende von Buch 5)'); } },
           ['erz', 'Blaustern ist tot. Die übrigen Hunde fliehen aus dem Wald.'],
           ['erz', '— Ende von Buch 5: Pfad der Gefahr —'],
@@ -640,7 +645,7 @@ const QUESTS = [
           ['geissel_e', 'Ich bin Geißel. Der Wald gehört jetzt uns. Und du, Tigerstern … wir brauchen dich nicht mehr.'],
           ACT({ cap: 'Der kleine schwarze Kater geht langsam auf Tigerstern zu. Seine Krallen klicken auf dem Stein …', moves: [['geissel_e', 'leader_schatten', { dx: -28, sp: 60 }]], cam: 'geissel_e', dist: 130, pitch: 0.18, wait: 0.8 }),
           ['erz', 'Blitzschnell schlägt der kleine schwarze Kater zu. Seine Krallen sind mit Hundezähnen verstärkt. Tigerstern stürzt zu Boden …'],
-          ['erz', '… und verliert alle neun Leben auf einmal. Ein Jaulen, das nicht aufhören will. Dann ist es still.'],
+          DEATH('leader_schatten', 'Tigerstern bricht zusammen. Neun Leben verlassen ihn – eines nach dem anderen. Ein Jaulen, das nicht aufhören will. Dann ist es still.', { dark: true, wait: 6 }),
           { do: () => { const l = ENTS.find(e => e.id === 'leader_schatten'); if (l) l.gone = true; const t = catById('tigerkralle'); t.alive = false; t.deathMoon = moon(); G.others.schatten.leader = 'Schwarz'; G.others.schatten.lives = 9; chron('Geißel, Anführer des BlutClans, tötet Tigerstern mit einem Schlag.'); } },
           ['geissel_e', 'Ihr habt drei Tage. Verlasst den Wald – oder sterbt.'],
         ], done() { clearStoryEnts(); for (const e of ENTS) if (e.gathering) e.gone = true; }
@@ -663,7 +668,7 @@ const QUESTS = [
         t: 'defeat', group: 'blut', n: 7, at: 'platane', spawnNear: 700, noPatrol: true, text: 'Der LöwenClan stellt sich dem BlutClan an der Großen Platane!',
         enter() { clanCats().filter(c => (c.rank === 'krieger' || c.rank === 'zweiter') && c !== P()).slice(0, 6).forEach(c => { c.ai = { m: 'follow' }; }); const pc = P(); for (let i = 0; i < 4; i++) spawnClanCat(['wind', 'fluss', 'schatten', 'wind'][i], pc.x + rand(-80, 80), pc.y + rand(-80, 80), { ally: true, hostile: false, story: true, followP: false, lv: 2 }); },
         spawn() { const p = LM.platane; storyFoes('blut', 'blut', 6, p, { lv: 3, look: randomLook(true), collar: '#8a7a6a' }); spawnClanCat('blut', p.x, p.y - 40, { group: 'blut', story: true, name: 'Knochen', look: LOOK.knochen(), hp: 200, atk: 15, lv: 5, collar: '#d8d0c0' }); for (const e of ENTS) if (e.group === 'blut') e.collar = '#8a7a6a'; },
-        dlg: () => [['erz', 'Der Kampf tobt. Knochen, Geißels riesiger Stellvertreter, hat Weißpelz tödlich verwundet – doch dann stürzen sich die DonnerClan-Schüler gemeinsam auf ihn.'], { do: () => { const w = catById('weisspelz'); if (w && w.alive && w !== P()) killCat(w, 'Weißpelz stirbt im Kampf gegen Knochen.'); const g = catById('graupfote'); if (g && g.alive && !deputyCat()) { setRank(g, 'zweiter'); } } }, ['graupfote', 'Feuerstern! Da drüben – Geißel!']]
+        dlg: () => [['erz', 'Der Kampf tobt. Knochen, Geißels riesiger Stellvertreter, hat Weißpelz tödlich verwundet – doch dann stürzen sich die DonnerClan-Schüler gemeinsam auf ihn.'], DEATH('weisspelz', 'Weißpelz sinkt zu Boden. Sein weißes Fell schimmert wie Sternenlicht, als sein Geist aufsteigt.', { mourn: ['graupfote', 'player'] }), { do: () => { const w = catById('weisspelz'); if (w && w.alive && w !== P()) killCat(w, 'Weißpelz stirbt im Kampf gegen Knochen.'); const g = catById('graupfote'); if (g && g.alive && !deputyCat()) { setRank(g, 'zweiter'); } } }, ['graupfote', 'Feuerstern! Da drüben – Geißel!']]
       },
       {
         t: 'custom', text: 'Besiege Geißel, den Anführer des BlutClans!', at: 'platane', noPatrol: true,
@@ -678,12 +683,14 @@ const QUESTS = [
         },
         check: () => { const g = ENTS.find(e => e.id === 'geissel_boss'); return g && g.hp <= 1; },
         target: () => ENTS.find(e => e.id === 'geissel_boss'),
-        dlg: () => [['erz', 'Mit einem letzten Schlag besiegst du Geißel. Der Anführer des BlutClans fällt – und seine Krieger fliehen zurück in den Zweibeinerort.'], { do: () => { clearStoryEnts(); for (const c of clanCats()) if (c !== P()) c.ai = { m: 'home' }; applyFx({ morale: 25, terr: 15, rep: 20 }); chron('Der LöwenClan besiegt den BlutClan. Feuerstern tötet Geißel und verliert dabei ein Leben.'); } }, ['graupfote', 'Wir haben es geschafft, Feuerstern. Der Wald ist frei.'], ['erz', 'Die vier Clans trennen sich wieder – jeder in sein Territorium. Der Wald ist im Gleichgewicht.'], ['erz', '— Ende von Buch 6: Stunde der Finsternis —']]
+        dlg: () => [DEATH('geissel_boss', 'Geißel fällt. Der kleine schwarze Kater, der so viele getötet hat, rührt sich nicht mehr.', { dark: true }), ['erz', 'Mit einem letzten Schlag besiegst du Geißel. Der Anführer des BlutClans fällt – und seine Krieger fliehen zurück in den Zweibeinerort.'], { do: () => { clearStoryEnts(); for (const c of clanCats()) if (c !== P()) c.ai = { m: 'home' }; applyFx({ morale: 25, terr: 15, rep: 20 }); chron('Der LöwenClan besiegt den BlutClan. Feuerstern tötet Geißel und verliert dabei ein Leben.'); } }, ['graupfote', 'Wir haben es geschafft, Feuerstern. Der Wald ist frei.'], ['erz', 'Die vier Clans trennen sich wieder – jeder in sein Territorium. Der Wald ist im Gleichgewicht.'], ['erz', '— Ende von Buch 6: Stunde der Finsternis —']]
       },
       {
         t: 'scene', dlg: () => [
           ['erz', 'Du hast die erste Staffel erlebt – vom Hauskätzchen Sammy bis zu Feuerstern, dem Anführer des DonnerClans.'],
+          ACT({ cap: 'Sandsturm zieht in die Kinderstube. Ihr Bauch ist rund – bald ist es so weit.', moves: [['sandpfote', 'den:kinder', { dy: 30, sp: 60, sleep: true }], ['player', 'den:kinder', { dx: 60, dy: 70, sp: 80 }]], cam: 'sandpfote', dist: 150, pass: 600, passT: 4, wait: 2 }),
           { do: () => { G.flags.tigerstern = true; const s = catById('sandpfote'); if (s && s.alive) { setRank(s, 'koenigin'); const o = { mother: 'sandpfote', rank: 'junges', age: 0 }; ensureCat('eichhornjunges', Object.assign({ pre: 'Eichhorn', suf: 'schweif', sex: 'w', look: L('#c0501e', null, 0.35, '#6fc23a'), storyLock: true }, o)); ensureCat('blattjunges', Object.assign({ pre: 'Blatt', suf: 'see', sex: 'w', look: L('#a8845a', '#6a4a2a', 0.4, '#e8b923'), storyLock: true }, o)); chron('Sandsturm bekommt zwei Junge: Eichhornjunges und Blattjunges.'); } } },
+          ACT({ cap: 'In der Nacht maunzt es in der Kinderstube: Zwei winzige Junge kuscheln sich an Sandsturm.', moves: [['eichhornjunges', 'sandpfote', { dx: 18, dy: 10, sp: 20, sleep: true }], ['blattjunges', 'sandpfote', { dx: -16, dy: 12, sp: 20, sleep: true }]], cam: 'sandpfote', dist: 110, pitch: 0.4, wait: 3 }),
           ['erz', 'Endlich ist es so weit: Sandsturm bekommt zwei Töchter – Eichhornjunges mit feuerrotem Fell wie ihr Vater, und die sanfte Blattjunges.'],
           ['erz', 'Doch die Geschichte ist noch nicht zu Ende. Eine neue Prophezeiung wartet …'],
         ]
@@ -774,6 +781,7 @@ const QUESTS = [
           { do: () => { for (const e of ENTS) if (e.id === 'scharfzahn_e') e.gone = true; } },
           ['erz', 'Scharfzahn ist tot. Doch Federschweif liegt reglos am Boden.'],
           ['federschweif', 'Sturmpelz … ich war … die silberne Katze … Es ist gut so …'],
+          DEATH('federschweif', 'Federschweif liegt still auf dem Felsboden. Ihr silbernes Fell leuchtet – dann steigt ihr Geist zu den Ahnen des Stammes.', { mourn: ['sturmpelz', 'player'] }),
           { do: () => { killCat(catById('federschweif')); chron('Federschweif opfert sich und tötet Scharfzahn, um den Stamm des eilenden Wassers zu retten.'); } },
           ['sturmpelz', 'Federschweif! NEIN!'],
           ['steinsager_e', 'Sie wird bei unseren Ahnen jagen. Der Stamm wird ihren Namen nie vergessen.'],
@@ -890,6 +898,7 @@ const QUESTS = [
           ACT({ cap: 'Mitternacht ist gekommen – mit WindClan-Kriegern! Gemeinsam treibt ihr die Dachse aus dem Lager.', moves: [['mitternacht_e', 'player', { dx: 60, sp: 80 }]], cam: 'mitternacht_e', dist: 170 }),
           ['mitternacht_e', 'Ich habe versucht, meine Verwandten aufzuhalten. Sie hörten nicht. Es tut mir leid.'],
           ['erz', 'Doch in der Kinderstube liegt Rußpelz. Sie hat die Jungen beschützt – mit ihrem Leben.'],
+          DEATH('aschenjunges', 'In der Kinderstube liegt Rußpelz neben den Jungen, die sie beschützt hat. Sternenlicht steigt aus ihrem grauen Fell.', { to: 'den:kinder', mourn: ['blattjunges', 'player'] }),
           { do: () => { const a = catById('aschenjunges'); if (a && a.alive) killCat(a); const b = catById('blattjunges'); b.suf = 'see'; setRank(b, 'heiler'); b.storyLock = true; chron('Dachse überfallen die Steinmulde. Rußpelz stirbt. Blattsee wird Heilerin des DonnerClans.'); clearStoryEnts(); } },
           ['blattjunges', 'Rußpelz … meine Mentorin … Ich werde ihre Arbeit fortführen. Ich werde Blattsee heißen – so hat sie es sich gewünscht.'],
           { do: () => { setRank(P(), 'zweiter'); setStage('staffel2b'); chron('Feuerstern erklärt Graustreif für verschollen. Brombeerkralle wird Zweiter Anführer.'); } },
@@ -918,6 +927,7 @@ const QUESTS = [
           ACT({ cap: 'Habichtfrost springt – doch Brombeerkralle packt den spitzen Pfahl der Falle und stößt ihn nach vorn. Habichtfrost bricht zusammen.', moves: [['habichtfrost', () => ({ x: LM.seeufer.x + 70, y: LM.seeufer.y + 60 }), { sp: 60, sleep: true }]], cam: 'habichtfrost', dist: 120, shake: 2, wait: 2 }),
           ['erz', 'Blut färbt das Wasser am Ufer rot.'],
           ['habichtfrost', 'Du Narr … Ich war nicht allein … Ein Krieger aus deinem eigenen Clan … hat mir geholfen …'],
+          DEATH('habichtfrost', 'Habichtfrost rührt sich nicht mehr. Sein Geist steigt nicht zu den Sternen – er versinkt im Schatten des dunklen Waldes.', { dark: true }),
           { do: () => { killCat(catById('habichtfrost')); chron('Habichtfrost stellt Feuerstern eine Falle. Brombeerkralle rettet Feuerstern; Habichtfrost stirbt.'); } },
           ['erz', 'Blut hat Blut vergossen. Die Prophezeiung hat sich erfüllt. Du befreist Feuerstern aus der Falle.'],
           ['sammy', 'Brombeerkralle … du hast mir das Leben gerettet. Ich habe dir zu lange misstraut. Du bist nicht dein Vater.'],

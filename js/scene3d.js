@@ -719,7 +719,7 @@ function placeEnt(m, e) {
   let y = surfaceY(e.x, e.y);
   if (e.onRock && W3.rockTops) { const t = W3.rockTops.find(t => dist(t.x, t.y, e.x, e.y) < 60); if (t) y = t.top; }
   if ((inRiver(e.x, e.y) && !inRoad(e.x, e.y)) || inLake(e.x, e.y) || inOcean(e.x, e.y)) y -= 4;
-  m.position.set(e.x, y, e.y);
+  m.position.set(e.x, y + (e.lift || 0), e.y);
   m.rotation.y = -e.dir;
 }
 function updateMarkers(t, tg) {
